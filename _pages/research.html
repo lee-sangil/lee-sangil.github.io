@@ -1,0 +1,21 @@
+---
+layout: archive 
+author_profile: true
+header:
+  overlay_image: assets/image/header/skiing.jpg
+excerpt: "Research"
+---
+
+{% for post in site.categories.Research %}
+	{% include archive-single.html %}
+{% endfor %}
+
+<!--
+{% for post in paginator.posts %}
+  {% if post.category == "blog" %}
+    {% include archive-single.html %}
+  {% endif %}
+{% endfor %}
+
+{% include paginator.html %}
+-->

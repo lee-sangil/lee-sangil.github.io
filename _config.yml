@@ -86,9 +86,9 @@ social:
 
 # Analytics
 analytics:
-  provider               : false # false (default), "google", "google-universal", "google-gtag", "custom"
+  provider               : "google" # false (default), "google", "google-universal", "google-gtag", "custom"
   google:
-    tracking_id          :
+    tracking_id          : "UA-109409543-1"
     anonymize_ip         : # true, false (default)
 
 
@@ -101,7 +101,7 @@ author:
   # email            : "sangillee724@gmail.com"
   links:
     - label: "Curriculum Vitae"
-      icon: "fa fa-fw fa-file-pdf-o"
+      icon: "fas fa-fw fa-file-pdf"
       url: "/assets/download/sangillee_cv.pdf"
     - label: "Email"
       icon: "fas fa-fw fa-envelope"

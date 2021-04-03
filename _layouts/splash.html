@@ -8,6 +8,8 @@ layout: default
   {% include page__hero_video.html %}
 {% endif %}
 
+{% include_cached masthead.html %}
+
 <div id="main" role="main">
   <article class="splash" itemscope itemtype="https://schema.org/CreativeWork">
     {% if page.title %}<meta itemprop="headline" content="{{ page.title | markdownify | strip_html | strip_newlines | escape_once }}">{% endif %}

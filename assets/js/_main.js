@@ -27,6 +27,30 @@ $(document).ready(function() {
     stickySideBar();
   });
 
+  function throttleUsingRaf(cb) {
+    var rAFTimeout = null;
+  
+    return function () {
+      if (rAFTimeout) {
+        window.cancelAnimationFrame(rAFTimeout);
+      }
+      rAFTimeout = window.requestAnimationFrame(function () {
+        cb();
+      })
+    }
+  }
+  
+  function onScroll() {
+    var scroll_y = window.scrollY;
+    if (scroll_y >= 0){
+      $(".page__hero--overlay").css("transform", "translateY(" + scroll_y*0.5 + "px)");
+      $(".page__hero--overlay .wrapper").css("transform", "translateY(calc(-100% - " + scroll_y*0.5 + "px))");
+    }
+    $(".page__hero--overlay").css("box-shadow", "inset 0 0 0 " + window.innerHeight + "px rgba(0,0,0," + scroll_y/(0.5*window.innerHeight) + ")");
+  }
+
+  window.addEventListener("scroll", throttleUsingRaf(onScroll), { passive: true });
+
   // Follow menu drop down
   $(".author__urls-wrapper button").on("click", function() {
     $(".author__urls").toggleClass("is--visible");

@@ -9,6 +9,8 @@ author_profile: false
   {% include page__hero_video.html %}
 {% endif %}
 
+{% include_cached masthead.html %}
+
 {% if page.url != "/" and site.breadcrumbs %}
   {% unless paginator %}
     {% include breadcrumbs.html %}

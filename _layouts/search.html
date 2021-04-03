@@ -6,6 +6,8 @@ layout: default
   {% include page__hero.html %}
 {% endif %}
 
+{% include_cached masthead.html %}
+
 {% if page.url != "/" and site.breadcrumbs %}
   {% unless paginator %}
     {% include breadcrumbs.html %}

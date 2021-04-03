@@ -46,7 +46,7 @@ $(document).ready(function() {
       $(".page__hero--overlay").css("transform", "translateY(" + scroll_y*0.5 + "px)");
       $(".page__hero--overlay .wrapper").css("transform", "translateY(calc(-100% - " + scroll_y*0.5 + "px))");
     }
-    $(".page__hero--overlay").css("box-shadow", "inset 0 0 0 " + window.innerHeight + "px rgba(0,0,0," + scroll_y/(0.5*window.innerHeight) + ")");
+    $(".page__hero--overlay").css("box-shadow", "inset 0 0 0 " + window.innerHeight + "px rgba(0,0,0," + scroll_y/(0.6*window.innerHeight) + ")");
   }
 
   window.addEventListener("scroll", throttleUsingRaf(onScroll), { passive: true });
@@ -62,7 +62,8 @@ $(document).ready(function() {
     if (e.keyCode === 27) {
       if ($(".search-content").hasClass("is--visible")) {
         $(".search-content").toggleClass("is--visible");
-        $(".initial-content").toggleClass("is--hidden");
+        $(".results").toggleClass("is--visible");
+        // $("#main").toggleClass("is--hidden");
       }
     }
   });
@@ -70,7 +71,9 @@ $(document).ready(function() {
   // Search toggle
   $(".search__toggle").on("click", function() {
     $(".search-content").toggleClass("is--visible");
-    $(".initial-content").toggleClass("is--hidden");
+    $(".results").toggleClass("is--visible");
+    // $("#main").toggleClass("is--hidden");
+
     // set focus on input
     setTimeout(function() {
       $(".search-content input").focus();

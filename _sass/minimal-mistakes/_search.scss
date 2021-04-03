@@ -12,6 +12,7 @@
   margin-left: 1rem;
   margin-right: 1rem;
   height: $nav-toggle-height;
+  padding: 0;
   border: 0;
   outline: none;
   color: $primary-color;
@@ -31,17 +32,20 @@
 }
 
 .search-content {
-  display: none;
+  // display: none;
+  // visibility: hidden;
+  display: block;
   visibility: hidden;
-  padding-top: 1em;
-  padding-bottom: 1em;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  width: 0px;
+  transition: 0.2s;
 
   &__inner-wrap {
     width: 100%;
     margin-left: auto;
-    margin-right: auto;
-    padding-left: 1em;
-    padding-right: 1em;
+    margin-right: 0;
     -webkit-animation: $intro-transition;
     animation: $intro-transition;
     -webkit-animation-delay: 0.15s;
@@ -55,17 +59,16 @@
 
   &__form {
     background-color: transparent;
-    display: inline-block;
+    display: block;
+    padding-top: 0;
     padding-bottom: 0;
-    width: 70vw;
+    padding-right: 0;
+    margin: 0;
+    // min-width: $right-sidebar-width-narrow;
 
-    @include breakpoint($x-large) {
-      max-width: $large;
-    }
-  }
-
-  &__icon {
-    display: inline-block;
+    // @include breakpoint($medium) {
+    //   max-width: $right-sidebar-width-wide;
+    // }
   }
 
   .search-input {
@@ -76,20 +79,21 @@
     outline: none;
     box-shadow: none;
     background-color: transparent;
-    font-size: $type-size-5;
+    font-size: $type-size-6;
 
     @include breakpoint($large) {
-      font-size: $type-size-5;
+      font-size: $type-size-6;
     }
 
     @include breakpoint($x-large) {
-      font-size: $type-size-4;
+      font-size: $type-size-6;
     }
   }
 
   &.is--visible {
     display: block;
     visibility: visible;
+    width: 12em;
 
     &::after {
       content: "";
@@ -121,6 +125,18 @@
 
   .archive__item-excerpt {
     margin-bottom: 0;
+  }
+}
+
+/* Results */
+
+.results {
+  display: none;
+  visibility: hidden;
+  
+  &.is--visible {
+    display: block;
+    visibility: visible;
   }
 }
 

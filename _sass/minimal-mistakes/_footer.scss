@@ -7,6 +7,7 @@
   float: left;
   margin-left: 0;
   margin-right: 0;
+  padding: 0 2em;
   width: 100%;
   margin-top: 3em;
   color: $muted-text-color;
@@ -21,14 +22,11 @@
     margin-left: auto;
     margin-right: auto;
     margin-top: 1em;
-    width: 100%;
-    // max-width: 100%;
-    padding: 0em 1em 2em 1em;
+    max-width: 100%;
+    padding: 0em 0em 2em 0em;
 
     @include breakpoint($x-large) {
-      padding-left: 10%;
-      padding-right: 10%;
-      // max-width: $x-large;
+      max-width: $x-large;
     }
   }
 

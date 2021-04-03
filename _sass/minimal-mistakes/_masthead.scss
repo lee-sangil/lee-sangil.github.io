@@ -4,16 +4,13 @@
 
 .masthead {
   position: sticky;
-  border-radius: 0.5em 0.5em 0 0;
   top: -0.5em;
-  margin-top: -0.5em;
   border-bottom: 1px solid $border-color;
   background-color: $background-color;
   -webkit-animation: $intro-transition;
   animation: $intro-transition;
   -webkit-animation-delay: 0.15s;
   animation-delay: 0.15s;
-  overflow: hidden;
   z-index: 100;
   font-size: $h-size-3;
 
@@ -21,9 +18,8 @@
     @include clearfix;
     margin-left: auto;
     margin-right: auto;
-    padding: 1em 1em .5em 1em;
-    width: 100%;
-    // max-width: 100%;
+    padding: 1em 0em .5em 0em;
+    max-width: 100%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -33,9 +29,7 @@
     font-family: $sans-serif-narrow;
 
     @include breakpoint($x-large) {
-      padding-left: 10%;
-      padding-right: 10%;
-      // max-width: $max-width;
+      max-width: $max-width;
     }
 
     nav {

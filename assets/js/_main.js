@@ -60,7 +60,7 @@ $(document).ready(function() {
   // Close search screen with Esc key
   $(document).keyup(function(e) {
     if (e.keyCode === 27) {
-      if ($(".initial-content").hasClass("is--hidden")) {
+      if ($(".search-content").hasClass("is--visible")) {
         $(".search-content").toggleClass("is--visible");
         $(".initial-content").toggleClass("is--hidden");
       }
@@ -79,7 +79,7 @@ $(document).ready(function() {
 
   // Smooth scrolling
   var scroll = new SmoothScroll('a[href*="#"]', {
-    offset: 20,
+    offset: 100,
     speed: 400,
     speedAsDuration: true,
     durationMax: 500
@@ -97,7 +97,7 @@ $(document).ready(function() {
       nestedClass: "active", // applied to the parent items
 
       // Offset & reflow
-      offset: 20, // how far from the top of the page to activate a content area
+      offset: 100, // how far from the top of the page to activate a content area
       reflow: true, // if true, listen for reflows
 
       // Event support

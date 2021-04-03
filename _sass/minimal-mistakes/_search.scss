@@ -55,24 +55,35 @@
 
   &__form {
     background-color: transparent;
+    display: inline-block;
+    padding-bottom: 0;
+    width: 70vw;
+
+    @include breakpoint($x-large) {
+      max-width: $large;
+    }
+  }
+
+  &__icon {
+    display: inline-block;
   }
 
   .search-input {
     display: block;
     margin-bottom: 0;
-    padding: 0;
-    border: none;
+    padding: .5em 1em;
+    border: 1px solid $light-gray;
     outline: none;
     box-shadow: none;
     background-color: transparent;
-    font-size: $type-size-3;
+    font-size: $type-size-5;
 
     @include breakpoint($large) {
-      font-size: $type-size-2;
+      font-size: $type-size-5;
     }
 
     @include breakpoint($x-large) {
-      font-size: $type-size-1;
+      font-size: $type-size-4;
     }
   }
 
@@ -88,6 +99,7 @@
 
   .results__found {
     margin-top: 0.5em;
+    margin-bottom: 2em;
     font-size: $type-size-6;
   }
 

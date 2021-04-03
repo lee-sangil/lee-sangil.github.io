@@ -5,7 +5,7 @@ main:
   - title: "Research"
     url: /_pages/research/index.html
   - title: "Archive"
-    url: /_pages/archive/index.html
+    url: /year-archive/
   - title: "Category"
     url: /categories/
   - title: "Tag"

@@ -127,6 +127,7 @@
 }
 
 .archive__item-teaser_leftOfText {
+  @extend .archive__item-teaser;
   float: left;
   border-radius: $border-radius;
   overflow: hidden;

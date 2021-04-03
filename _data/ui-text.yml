@@ -48,7 +48,7 @@ en: &DEFAULT_EN
   search_label_text          : "Enter your search term..."
   search_placeholder_text    : "Enter your search term..."
   search_algolia_no_results  : "No results"
-  results_found              : "Result(s) found"
+  results_found              : "results found"
   back_to_top                : "Back to top"
 en-US:
   <<: *DEFAULT_EN

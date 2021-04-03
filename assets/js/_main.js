@@ -45,12 +45,20 @@ $(document).ready(function() {
     if (scroll_y >= 0){
       $(".page__hero--overlay").css("transform", "translateY(" + scroll_y*0.5 + "px)");
       $(".page__hero--overlay .wrapper").css("transform", "translateY(calc(-100% - " + scroll_y*0.5 + "px))");
+
+      if (document.querySelector('.page__hero--overlay') ){
+        if (scroll_y < 0.4*window.innerHeight)
+          $(".results").css("transform", "translateY(calc(40vh - " + scroll_y + "px))");
+        else
+          $(".results").css("transform", "translateY(0)");
+      }
     }
     $(".page__hero--overlay").css("box-shadow", "inset 0 0 0 " + window.innerHeight + "px rgba(0,0,0," + scroll_y/(0.6*window.innerHeight) + ")");
   }
 
   window.addEventListener("scroll", throttleUsingRaf(onScroll), { passive: true });
-
+  onScroll();
+  
   // Follow menu drop down
   $(".author__urls-wrapper button").on("click", function() {
     $(".author__urls").toggleClass("is--visible");

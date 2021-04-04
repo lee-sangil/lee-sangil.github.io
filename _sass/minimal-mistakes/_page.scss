@@ -376,13 +376,13 @@ body {
     margin-top: 2em;
   }
 
-  &::before {
-    content: "";
-    display: block;
-    height: 5em;          /* fixed header 높이 만큼 부여 or 브라우저 상단에서 띄워놓기 원하는 높이 */
-    margin-top: -5em;     /* 위에서 설정한 높이와 동일한 만큼을 음수로 제공 */
-    visibility: hidden;
-  }
+  // &::before {
+  //   content: "";
+  //   display: block;
+  //   height: 5em;          /* fixed header 높이 만큼 부여 or 브라우저 상단에서 띄워놓기 원하는 높이 */
+  //   margin-top: -5em;     /* 위에서 설정한 높이와 동일한 만큼을 음수로 제공 */
+  //   visibility: hidden;
+  // }
 }
 
 .taxonomy__title {

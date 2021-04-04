@@ -66,8 +66,8 @@ The above values are calculated by MATLAB calibration toolbox, and the color and
 
 We provide the following .tgz files containing RGB-D sequences and supplementary material (i.e. ground-truth, camera intrinsic, etc). 
 
-| sequence name | duration | length | min <br> valid depth [\%] | description |
-|---------------|:--------:|:------:|:-------------------:|-------------|
+| sequence name | duration | length | min valid depth | description |
+|---------------|:--------:|:------:|:-------------------------:|-------------|
 | one-object-static <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_one_object_static.tgz)(0.26GB), [bag](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_one_object_static.bag)(0.97GB), [rawlog](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_one_object_static.rawlog)(8KB) | 23.15s | 0.00m  | 75.65% | One object moves |
 | two-object-static <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_two_object_static.tgz)(0.29GB), [bag](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_two_object_static.bag)(1.1GB), [rawlog](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_two_object_static.rawlog)(8KB) | 24.70s | 0.00m  | 45.67% | Two objects move |
 | place-items <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_place_items.tgz)(0.22GB), [bag](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_place_items.bag)(0.76GB), [rawlog](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_place_items.rawlog)(7KB) | 39.91s | 0.00m | 27.70% | Place items on table |

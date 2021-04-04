@@ -48,9 +48,9 @@ $(document).ready(function() {
 
       if (document.querySelector('.page__hero--overlay') ){
         if (scroll_y < 0.4*window.innerHeight)
-          $(".results").css("transform", "translateY(calc(40vh - " + scroll_y + "px))");
+          $(".results-wrapper").css("transform", "translateY(calc(40vh - " + scroll_y + "px))");
         else
-          $(".results").css("transform", "translateY(0)");
+          $(".results-wrapper").css("transform", "translateY(0)");
       }
     }
     $(".page__hero--overlay").css("box-shadow", "inset 0 0 0 " + window.innerHeight + "px rgba(0,0,0," + scroll_y/(0.6*window.innerHeight) + ")");
@@ -70,7 +70,7 @@ $(document).ready(function() {
     if (e.keyCode === 27) {
       if ($(".search-content").hasClass("is--visible")) {
         $(".search-content").toggleClass("is--visible");
-        $(".results").toggleClass("is--visible");
+        $(".results-wrapper").toggleClass("is--visible");
         // $("#main").toggleClass("is--hidden");
       }
     }
@@ -79,7 +79,7 @@ $(document).ready(function() {
   // Search toggle
   $(".search__toggle").on("click", function() {
     $(".search-content").toggleClass("is--visible");
-    $(".results").toggleClass("is--visible");
+    $(".results-wrapper").toggleClass("is--visible");
     // $("#main").toggleClass("is--hidden");
 
     // set focus on input

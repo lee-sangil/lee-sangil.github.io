@@ -123,32 +123,16 @@
 }
 
 /* Results */
-
-.results {
-  background-color: $lighter-gray;
-  padding: 0 1em 0 1em;
-  margin-bottom: 0em;
+.results-wrapper {
+  overflow: hidden;
   border-radius: $border-hard-radius;
   position: fixed;
   right: 1em;
   max-height: 50%;
-  overflow-x: hidden;
-  overflow-y: scroll;
   top: 5em;
   z-index: 20;
-  width: 30%;
-  
-  @include breakpoint($large) {
-    width: $right-sidebar-width-narrow;
-    // left: $right-sidebar-width-narrow;
-    // padding-right: $right-sidebar-width-narrow;
-  }
-
-  @include breakpoint($x-large) {
-    width: $right-sidebar-width;
-    // left: $right-sidebar-width;
-    // padding-right: $right-sidebar-width;
-  }
+  width: 50vw;
+  transition: width 0.2s;
 
   display: none;
   visibility: hidden;
@@ -156,12 +140,56 @@
   &.is--visible {
     display: block;
     visibility: visible;
-    margin-bottom: 4em;
+  }
+
+  @include breakpoint($medium) {
+    width: 30vw;
+  }
+  
+  @include breakpoint($large) {
+    width: $right-sidebar-width-narrow;
+  }
+
+  @include breakpoint($x-large) {
+    width: $right-sidebar-width;
+  }
+}
+
+.results {
+  background-color: $lighter-gray;
+  padding: 0 1em 0 1em;
+  margin-bottom: 0em;
+  position: relative;
+  max-height: 50vh;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  width: calc(50vw + 1em);
+  
+  @include breakpoint($medium) {
+    width: calc(30vw + 1em);
+  }
+  
+  @include breakpoint($large) {
+    width: calc(#{$right-sidebar-width-narrow} + 1em);
+  }
+
+  @include breakpoint($x-large) {
+    width: calc(#{$right-sidebar-width} + 1em);
   }
 
   &__found {
     margin-top: 1em;
     margin-bottom: 1em;
+    border-bottom: 1px $light-gray solid;
+  }
+
+  & > .list__item {
+    padding-left: .5em;
+    border-left: 4px $light-gray solid;
+  }
+
+  & > .list__item:last-child {
+    border-left: 4px $gray solid;
   }
 }
 

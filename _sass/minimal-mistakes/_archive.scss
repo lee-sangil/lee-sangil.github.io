@@ -171,6 +171,7 @@
 
   .archive__item-title {
     text-decoration: underline;
+    text-decoration-color: $link-color-hover;
   }
 }
 
@@ -179,6 +180,17 @@
    ========================================================================== */
 
 .list__item {
+  .page__meta {
+    margin: 0 0 4px;
+    font-size: 0.6em;
+  }
+}
+
+/*
+   List view
+   ========================================================================== */
+
+.post__item {
   .page__meta {
     margin: 0 0 4px;
     font-size: 0.6em;

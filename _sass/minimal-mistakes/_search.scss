@@ -124,6 +124,7 @@
 
 /* Results */
 .results-wrapper {
+  box-shadow: 0 0 2em rgba(#000, 0.05);
   overflow: hidden;
   border-radius: $border-hard-radius;
   position: fixed;
@@ -230,6 +231,7 @@
   color: $primary-color;
   font-style: normal;
   text-decoration: underline;
+  text-decoration-color: $link-color-hover;
 }
 
 .archive__item-excerpt .ais-Highlight {

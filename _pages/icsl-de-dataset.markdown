@@ -1,11 +1,10 @@
 ---
 layout: single
+title: ICSL Dynamic Environments Dataset
 author_profile: true
 toc: true
 toc_sticky: true
 ---
-
-# ICSL Dynamic Environments Dataset
 
 ## File Formats
 We provide the RGB-D datasets from the ASUS Xtion Pro live in the following format.

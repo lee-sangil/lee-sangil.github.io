@@ -20,9 +20,7 @@
             {% if f.image_caption %}
               <span class="archive__item-caption">{{ f.image_caption | markdownify | remove: "<p>" | remove: "</p>" }}</span>
             {% endif %}
-          </div>
-          <div class="archive__item-teaser-link">
-            <p>{{ f.btn_label | default: site.data.ui-text[site.locale].more_label | default: "Learn More" }}</p>
+            <p class="archive__item-teaser-link">{{ f.btn_label | default: site.data.ui-text[site.locale].more_label | default: "Learn More" }}</p>
           </div>
         {% endif %}
 

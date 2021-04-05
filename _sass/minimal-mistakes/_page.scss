@@ -84,6 +84,33 @@ body {
   }
 }
 
+.page__authors {
+  text-indent: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: $type-size-5;
+}
+
+.page__links {
+  margin-top: 0.1em;
+  font-size: $type-size-5;
+  font-weight: bold;
+
+  & + p {
+    text-indent: 0;
+    font-size: $type-size-5;
+  }
+
+  a {
+    color: $link-color;
+    margin-right: 1em;
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
 .page__lead {
   font-family: $global-font-family;
   font-size: $type-size-4;

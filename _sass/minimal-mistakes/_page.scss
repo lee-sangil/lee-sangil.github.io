@@ -202,7 +202,8 @@ body {
   animation-delay: 0.25s;
 
   &--overlay {
-    position: relative;
+    position: fixed;
+    width: 100%;
     box-shadow: inset 0 0 0 10em rgba(0,0,0,0);
     margin-bottom: 0em;
     padding: 0 2em;
@@ -258,6 +259,27 @@ body {
       @include breakpoint($small) {
         font-size: $type-size-1;
       }
+    }
+  }
+}
+
+.page__hero--overlay-blank {
+  position: relative;
+  height: 40vh;
+  padding: 0 2em;
+  .wrapper {
+    @extend .page__hero--overlay.wrapper;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0;
+    top: 100%;
+    max-width: 100%;
+    .page__title {
+      transform: translateY(-135%);
+    }
+    @include breakpoint($x-large) {
+      max-width: $x-large;
     }
   }
 }

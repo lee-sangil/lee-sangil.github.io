@@ -12,6 +12,9 @@ header:
 conference: IJCAS
 authors: <u>Sangil Lee</u>, Chungkeun Lee, Haram Kim, and H. Jin Kim
 links:
+ - video:
+   link: https://www.youtube.com/watch?v=xw5C1FYHHLU
+   name: "Video"
  - bibtex: 
    name: "Bibtex"
 ---

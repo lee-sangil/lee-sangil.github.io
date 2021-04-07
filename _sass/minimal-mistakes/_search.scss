@@ -123,39 +123,6 @@
 }
 
 /* Results */
-.results-wrapper {
-  box-shadow: 0 0 2em rgba(#000, 0.05);
-  overflow: hidden;
-  border-radius: $border-hard-radius;
-  position: fixed;
-  right: 1em;
-  max-height: 50%;
-  top: 5em;
-  z-index: 20;
-  width: 50vw;
-  transition: width 0.2s;
-
-  display: none;
-  visibility: hidden;
-  
-  &.is--visible {
-    display: block;
-    visibility: visible;
-  }
-
-  @include breakpoint($medium) {
-    width: 30vw;
-  }
-  
-  @include breakpoint($large) {
-    width: $right-sidebar-width-narrow;
-  }
-
-  @include breakpoint($x-large) {
-    width: $right-sidebar-width;
-  }
-}
-
 .results {
   background-color: $lighter-gray;
   padding: 0 1em 0 1em;
@@ -164,18 +131,22 @@
   max-height: 50vh;
   overflow-x: hidden;
   overflow-y: scroll;
-  width: calc(50vw + 1em);
+  width: calc(100% + 1em); // related to (.results-wrapper,  width)
   
+  @include breakpoint($small) {
+    width: calc(50vw + 1em);
+  }
+
   @include breakpoint($medium) {
     width: calc(30vw + 1em);
   }
   
   @include breakpoint($large) {
-    width: calc(#{$right-sidebar-width-narrow} + 1em);
+    width: $right-sidebar-width-narrow;
   }
 
   @include breakpoint($x-large) {
-    width: calc(#{$right-sidebar-width} + 1em);
+    width: $right-sidebar-width;
   }
 
   &__found {
@@ -191,6 +162,52 @@
 
   & > .list__item:last-child {
     border-left: 4px $gray solid;
+  }
+
+  &-bg {
+    position: absolute;
+    margin-top: 2em;
+    width: calc(100% - 4em);
+    height: 100%;
+    z-index: 15;
+    pointer-events: none;
+  }
+  &-wrapper {
+    box-shadow: 0 0 2em rgba(#000, 0.05);
+    overflow: hidden;
+    border-radius: $border-hard-radius;
+    position: sticky;
+    left: 100%;
+    max-height: 50%;
+    top: 5em;
+    z-index: 20;
+    width: 100%; // related to (.results,  width)
+    transition: width 0.2s;
+  
+    pointer-events: all;
+    display: none;
+    visibility: hidden;
+    
+    &.is--visible {
+      display: block;
+      visibility: visible;
+    }
+
+    @include breakpoint($small) {
+      width: 50vw;
+    }
+
+    @include breakpoint($medium) {
+      width: 30vw;
+    }
+    
+    @include breakpoint($large) {
+      width: calc(#{$right-sidebar-width-narrow} - 1em);
+    }
+  
+    @include breakpoint($x-large) {
+      width: calc(#{$right-sidebar-width} - 1em);
+    }
   }
 }
 

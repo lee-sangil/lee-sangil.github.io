@@ -13,6 +13,8 @@
   animation-delay: 0.15s;
   z-index: 100;
   font-size: $h-size-3;
+  margin: 0 -1em;
+  padding: 0 1em;
 
   &__inner-wrap {
     @include clearfix;

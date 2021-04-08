@@ -24,6 +24,25 @@
   &:hover {
     color: mix(#000, $primary-color, 25%);
   }
+
+  &:before {
+    @supports (pointer-events: none) {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+  }
+
+  &.open {
+    &:before {
+      pointer-events: auto;
+      z-index: -1;
+    }
+  }
 }
 
 .search-icon {
@@ -169,7 +188,7 @@
     margin-top: 2em;
     width: calc(100% - 4em);
     height: 100%;
-    z-index: 15;
+    z-index: 200;
     pointer-events: none;
   }
   &-wrapper {
@@ -180,7 +199,7 @@
     left: 100%;
     max-height: 50%;
     top: 5em;
-    z-index: 20;
+    z-index: 200;
     width: 100%; // related to (.results,  width)
     transition: width 0.2s;
   

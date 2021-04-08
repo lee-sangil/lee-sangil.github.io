@@ -360,30 +360,30 @@ body:hover .visually-hidden button {
   }
 }
 
-.close .navicon {
-  /* hide the middle line*/
-  background: transparent;
+// .close .navicon {
+//   /* hide the middle line*/
+//   background: transparent;
 
-  /* overlay the lines by setting both their top values to 0*/
-  &:before,
-  &:after {
-    -webkit-transform-origin: 50% 50%;
-    -ms-transform-origin: 50% 50%;
-    transform-origin: 50% 50%;
-    top: 0;
-    width: $navicon-width;
-  }
+//   /* overlay the lines by setting both their top values to 0*/
+//   &:before,
+//   &:after {
+//     -webkit-transform-origin: 50% 50%;
+//     -ms-transform-origin: 50% 50%;
+//     transform-origin: 50% 50%;
+//     top: 0;
+//     width: $navicon-width;
+//   }
 
-  /* rotate the lines to form the x shape*/
-  &:before {
-    -webkit-transform: rotate3d(0, 0, 1, 45deg);
-    transform: rotate3d(0, 0, 1, 45deg);
-  }
-  &:after {
-    -webkit-transform: rotate3d(0, 0, 1, -45deg);
-    transform: rotate3d(0, 0, 1, -45deg);
-  }
-}
+//   /* rotate the lines to form the x shape*/
+//   &:before {
+//     -webkit-transform: rotate3d(0, 0, 1, 45deg);
+//     transform: rotate3d(0, 0, 1, 45deg);
+//   }
+//   &:after {
+//     -webkit-transform: rotate3d(0, 0, 1, -45deg);
+//     transform: rotate3d(0, 0, 1, -45deg);
+//   }
+// }
 
 .greedy-nav__toggle {
   &:before {
@@ -404,7 +404,7 @@ body:hover .visually-hidden button {
 
   &.close {
     &:before {
-      opacity: 0.9;
+      // opacity: 0.5;
       -webkit-transition: $global-transition;
       transition: $global-transition;
       pointer-events: auto;
@@ -419,11 +419,11 @@ body:hover .visually-hidden button {
     background: mix(#000, $primary-color, 25%);
   }
 
-  &.close {
-    .navicon {
-      background: transparent;
-    }
-  }
+  // &.close {
+  //   .navicon {
+  //     background: transparent;
+  //   }
+  // }
 }
 
 /*

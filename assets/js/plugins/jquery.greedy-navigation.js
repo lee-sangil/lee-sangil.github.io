@@ -98,6 +98,7 @@ $(function() {
   });
 
   $btn.on('click', function() {
+    $btn.toggleClass('close');
     $hlinks.toggleClass('hidden');
     clearTimeout(timer);
   });

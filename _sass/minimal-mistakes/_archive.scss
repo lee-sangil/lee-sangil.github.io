@@ -6,6 +6,10 @@
   margin-top: 1em;
   margin-bottom: 2em;
 
+  & > p {
+    font-size: $type-size-5;
+  }
+
   h2:first-child, h3:first-child {
     margin-top: 0;
   }
@@ -39,18 +43,22 @@
 
 .archive__subtitle {
   margin: 1.414em 0 0.5em;
-  padding-bottom: 0.5em;
-  font-size: $type-size-5;
+  // padding-bottom: 0.5em;
+  font-size: $type-size-4;
   color: $muted-text-color;
   border-bottom: 1px solid $border-color;
 
   + .list__item .archive__item-title {
     margin-top: 0.5em;
   }
+
+  @media screen and (max-width: $small) {
+    border: 0;
+  }
 }
 
 .archive__item-title {
-  margin-top: 1em;
+  margin-top: .25em;
   margin-bottom: 0.25em;
   font-family: $sans-serif-narrow;
   line-height: initial;
@@ -201,6 +209,16 @@
   }
 }
 
+.entries-list {
+  @media screen and (max-width: $small) {
+    border-left: 1px solid $gray;
+  }
+}
+
+#recent-posts {
+  border: none;
+}
+
 /*
    List view
    ========================================================================== */
@@ -210,6 +228,23 @@
     margin: 0 0 4px;
     font-size: $type-size-7;
   }
+  @media screen and (max-width: $small) {
+    padding: 2em 1em;
+    &:last-child {
+      border-bottom: none;
+    }
+    border-bottom: 1px solid $border-color;
+    .archive__item {
+      margin: 0;
+    }
+    .archive__item-excerpt {
+      display: none;
+    }
+    &:hover {
+      background-color: whitesmoke;
+      box-shadow: inset 0 0 10vw rgba(#000, 0.01);
+    }
+  }
 }
 
 /*
@@ -218,6 +253,7 @@
 
 .post__item {
   display: block;
+  overflow: auto;
   transition: $global-transition;
   .page__meta {
     margin: 0 0 4px;
@@ -357,8 +393,8 @@
 
 .feature__wrapper {
   @include clearfix();
-  margin-bottom: 2em;
-  border-bottom: 1px solid $border-color;
+  // margin-bottom: 2em;
+  // border-bottom: 1px solid $border-color;
 
   .archive__item-title {
     margin-bottom: 0;

@@ -142,22 +142,24 @@
 }
 
 /* Results */
+$scroll-bar-width: 1.2em;
+
 .results {
   background-color: $lighter-gray;
-  padding: 0 1em 0 1em;
+  padding: 0 $scroll-bar-width 0 1em;
   margin-bottom: 0em;
   position: relative;
   max-height: 50vh;
   overflow-x: hidden;
   overflow-y: scroll;
-  width: calc(100% + 1em); // related to (.results-wrapper,  width)
+  width: calc(100% + #{$scroll-bar-width}); // related to (.results-wrapper,  width)
   
   @include breakpoint($small) {
-    width: calc(50vw + 1em);
+    width: calc(50vw + #{$scroll-bar-width});
   }
 
   @include breakpoint($medium) {
-    width: calc(30vw + 1em);
+    width: calc(30vw + #{$scroll-bar-width});
   }
   
   @include breakpoint($large) {
@@ -221,11 +223,11 @@
     }
     
     @include breakpoint($large) {
-      width: calc(#{$right-sidebar-width-narrow} - 1em);
+      width: calc(#{$right-sidebar-width-narrow} - #{$scroll-bar-width});
     }
   
     @include breakpoint($x-large) {
-      width: calc(#{$right-sidebar-width} - 1em);
+      width: calc(#{$right-sidebar-width} - #{$scroll-bar-width});
     }
   }
 }

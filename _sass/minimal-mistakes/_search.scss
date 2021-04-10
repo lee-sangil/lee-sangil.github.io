@@ -98,21 +98,12 @@
     outline: none;
     box-shadow: none;
     background-color: transparent;
-    font-size: $type-size-6;
-
-    @include breakpoint($large) {
-      font-size: $type-size-6;
-    }
-
-    @include breakpoint($x-large) {
-      font-size: $type-size-6;
-    }
   }
 
   &.is--visible {
     display: block;
     visibility: visible;
-    width: 12em;
+    width: 15em;
 
     &::after {
       content: "";
@@ -178,6 +169,9 @@ $scroll-bar-width: 1.2em;
 
   & > .list__item {
     padding-left: .5em;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: .8em 0;
     border-left: 4px $light-gray solid;
   }
 
@@ -233,12 +227,13 @@ $scroll-bar-width: 1.2em;
 }
 
 .search__item {
+  margin-bottom: 0;
   @extend .archive__item;
   width: 100%;
 
   &-title {
     @extend .archive__item-title;
-    font-size: medium;
+    font-size: $type-size-5;
     font-weight: normal;
     margin: .5em 0;
 

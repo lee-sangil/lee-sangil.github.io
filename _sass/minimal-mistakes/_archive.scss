@@ -229,7 +229,7 @@
     font-size: $type-size-7;
   }
   @media screen and (max-width: $small) {
-    padding: 2em 1em;
+    padding: 1em 1em;
     &:last-child {
       border-bottom: none;
     }
@@ -262,7 +262,7 @@
 
   background-color: #fff;
   @media screen and (max-width: $small) {
-    padding: 2em 1em;
+    padding: 1em 1em;
     &:last-child {
       border-bottom: none;
     }
@@ -284,6 +284,9 @@
   }
 }
 
+.clear {
+  clear: both;
+}
 /*
    Grid view
    ========================================================================== */
@@ -589,12 +592,12 @@
     }
   }
 
-  .feature__item,
-  .feature__item--left,
-  .feature__item--center,
-  .feature__item--right {
-    font-size: $type-size-5;
-  }
+  // .feature__item,
+  // .feature__item--left,
+  // .feature__item--center,
+  // .feature__item--right {
+  //   font-size: $type-size-5;
+  // }
 }
 
 /*

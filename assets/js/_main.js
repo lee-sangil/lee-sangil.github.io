@@ -47,16 +47,16 @@ $(document).ready(function() {
   
   function onScroll() {
     var scroll_y = window.scrollY;
-    if (scroll_y <= 0) {
-      $(".page__hero--overlay").css("transform", "translateY(" + (-scroll_y) + "px)");
-      // $(".page__hero--overlay").css("box-shadow", "none");
-    }else {
-      $(".page__hero--overlay").css("transform", "none");
-    }
+    // if (scroll_y <= 0) {
+    //   $(".page__hero--overlay").css("transform", "translateY(" + (-scroll_y) + "px)");
+    //   // $(".page__hero--overlay").css("box-shadow", "none");
+    // }else {
+    //   $(".page__hero--overlay").css("transform", "none");
+    // }
 
     if (scroll_y >= 0)
       $(".page__hero--overlay").css("filter", "brightness(" + (1-scroll_y/(0.6*window.innerHeight)) + ")");
-      
+
     // $(".page__hero--overlay").css("box-shadow", "inset 0 0 0 " + window.innerHeight + "px rgba(0,0,0," + scroll_y/(0.6*window.innerHeight) + ")");
     
     // if (scroll_y >= 0){

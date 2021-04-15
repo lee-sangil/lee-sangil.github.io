@@ -1,6 +1,11 @@
 /* ==========================================================================
    jQuery plugin settings and other scripts
    ========================================================================== */
+$(window).on("load", function() {
+  $(".preloader").css("opacity", "0");
+  $(".preloader").css("pointer-events", "none");
+  console.log("loaded.");
+});
 
 $(document).ready(function() {
   // FitVids init
@@ -48,7 +53,10 @@ $(document).ready(function() {
     }else {
       $(".page__hero--overlay").css("transform", "none");
     }
-    $(".page__hero--overlay").css("filter", "brightness(" + (1-scroll_y/(0.6*window.innerHeight)) + ")");
+
+    if (scroll_y >= 0)
+      $(".page__hero--overlay").css("filter", "brightness(" + (1-scroll_y/(0.6*window.innerHeight)) + ")");
+      
     // $(".page__hero--overlay").css("box-shadow", "inset 0 0 0 " + window.innerHeight + "px rgba(0,0,0," + scroll_y/(0.6*window.innerHeight) + ")");
     
     // if (scroll_y >= 0){

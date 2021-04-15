@@ -253,7 +253,6 @@
 
 .post__item {
   display: block;
-  overflow: auto;
   transition: $global-transition;
   .page__meta {
     margin: 0 0 4px;
@@ -444,6 +443,10 @@
     padding-right: gutter(1 of 12);
     color: black;
     text-decoration-color: black;
+
+    .archive__item-excerpt > p {
+      text-align: left;
+    }
   }
 
   a.btn::before {

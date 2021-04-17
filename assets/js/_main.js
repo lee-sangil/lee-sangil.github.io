@@ -4,7 +4,6 @@
 $(window).on("load", function() {
   $(".preloader").css("opacity", "0");
   $(".preloader").css("pointer-events", "none");
-  console.log("loaded.");
 });
 
 $(document).ready(function() {
@@ -47,28 +46,8 @@ $(document).ready(function() {
   
   function onScroll() {
     var scroll_y = window.scrollY;
-    // if (scroll_y <= 0) {
-    //   $(".page__hero--overlay").css("transform", "translateY(" + (-scroll_y) + "px)");
-    //   // $(".page__hero--overlay").css("box-shadow", "none");
-    // }else {
-    //   $(".page__hero--overlay").css("transform", "none");
-    // }
-
     if (scroll_y >= 0)
       $(".page__hero--overlay").css("filter", "brightness(" + (1-scroll_y/(0.6*window.innerHeight)) + ")");
-
-    // $(".page__hero--overlay").css("box-shadow", "inset 0 0 0 " + window.innerHeight + "px rgba(0,0,0," + scroll_y/(0.6*window.innerHeight) + ")");
-    
-    // if (scroll_y >= 0){
-    //   $(".page__hero--overlay .wrapper").css("transform", "translateY(calc(-100% - " + scroll_y + "px))");
-
-    //   if (document.querySelector('.page__hero--overlay') ){
-    //     if (scroll_y <= 0.4*window.innerHeight)
-    //       $(".results-wrapper").css("transform", "translateY(" + (0.4*window.innerHeight - scroll_y) + "px)");
-    //     else
-    //       $(".results-wrapper").css("transform", "translateY(0)");
-    //   }
-    // }
   }
 
   window.addEventListener("scroll", throttleUsingRaf(onScroll), { passive: true });
@@ -96,18 +75,18 @@ $(document).ready(function() {
     }
   });
 
-  // Search toggle
-  $(".search__toggle").on("click", function() {
-    $(".search__toggle").toggleClass("open");
-    $(".search-content").toggleClass("is--visible");
-    $(".results-wrapper").toggleClass("is--visible");
-    // $("#main").toggleClass("is--hidden");
+  // // Search toggle
+  // $(".search__toggle").on("click", function() {
+  //   $(".search__toggle").toggleClass("open");
+  //   $(".search-content").toggleClass("is--visible");
+  //   $(".results-wrapper").toggleClass("is--visible");
+  //   // $("#main").toggleClass("is--hidden");
 
-    // set focus on input
-    setTimeout(function() {
-      $(".search-content input").focus();
-    }, 400);
-  });
+  //   // set focus on input
+  //   setTimeout(function() {
+  //     $(".search-content input").focus();
+  //   }, 400);
+  // });
 
   // Smooth scrolling -- about to scroll
   var scroll = new SmoothScroll('a[href*="#"]', {

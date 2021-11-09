@@ -34,9 +34,9 @@ We provide the following TAR.GZ files containing image frames, events, imu data.
 
 | preview | sequence name | duration | description |
 |---------|---------------|:--------:|-------------|
-| ![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif) | indoor1 <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_one_object_static.tgz)(0.26GB) | 0s | indoor/manual movement |
-| ![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif) | outdoor1 <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_two_object_static.tgz)(0.29GB) | 0s | outdoor/day/one vehicle/camera stops later |
-| ![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif) | outdoor2 <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_place_items.tgz)(0.22GB) | 0s | outdoor/day/one motorcycle/ |
-| ![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif) | outdoor3 <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_flight_static.tgz)(0.64GB) | 0s | outdoor/night/three vehicles |
+| <img src="/assets/image/thumbnail/indoor1_image.gif" width=200/> <img src="/assets/image/thumbnail/indoor1_event.gif" width=200/> | indoor1 <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_one_object_static.tgz)(0.26GB) | 0s | <ul><li>indoor</li><li>manual movement</li></ul> |
+| <img src="/assets/image/thumbnail/outdoor1_image.gif" width=200/> <img src="/assets/image/thumbnail/outdoor1_event.gif" width=200/> | outdoor1 <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_two_object_static.tgz)(0.29GB) | 0s | <ul><li>outdoor</li><li>day</li><li>one vehicle</li><li>camera stops later</li></ul> |
+| <img src="/assets/image/thumbnail/outdoor2_image.gif" width=200/> <img src="/assets/image/thumbnail/outdoor2_event.gif" width=200/> | outdoor2 <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_place_items.tgz)(0.22GB) | 0s | <ul><li>outdoor</li><li>day</li><li>one motorcycle</li></ul> |
+| <img src="/assets/image/thumbnail/outdoor3_image.gif" width=200/> <img src="/assets/image/thumbnail/outdoor3_event.gif" width=200/> | outdoor3 <br> [TGZ](https://icsl.snu.ac.kr/sangillee/rgbd_dataset_flight_static.tgz)(0.64GB) | 0s | <ul><li>outdoor</li><li>night</li><li>three vehicles</li></ul> |
 
 For questions, comments, or suggestions, please feel free to send me an email.

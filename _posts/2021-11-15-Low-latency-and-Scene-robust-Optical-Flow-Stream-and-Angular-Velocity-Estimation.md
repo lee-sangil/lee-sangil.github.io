@@ -8,7 +8,7 @@ tags:
  - optical flow
  - angular velocity
 header:
-  teaser: /assets/image/thumbnail/Access2021.jpg
+  teaser: /assets/image/thumbnail/Access2021.png
 conference: Access
 authors: <u>Sangil Lee</u> and H. Jin Kim
 links:

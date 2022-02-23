@@ -13,7 +13,7 @@ conference: Access
 authors: <u>Sangil Lee</u> and H. Jin Kim
 links:
  - paper: 
-   link: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9622228.pdf
+   link: https://ieeexplore.ieee.org/iel7/6287639/9312710/09622228.pdf
    name: "Paper"
  - video:
    link: https://youtu.be/qYpf6pg0Gd0

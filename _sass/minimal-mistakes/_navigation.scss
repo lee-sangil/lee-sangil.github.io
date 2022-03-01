@@ -445,6 +445,7 @@
 .nav__list .nav__items {
   margin: 0;
   font-size: 1.25rem;
+  transition: max-height 0s;
 
   a {
     color: inherit;

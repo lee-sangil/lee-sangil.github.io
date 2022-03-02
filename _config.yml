@@ -132,7 +132,7 @@ author:
       url: "https://www.linkedin.com/in/lee-sangil"
     - label: "Portfolio"
       icon: "fas fa-fw fa-link"
-      url: "http://34.83.206.223/portfolio/index.html"
+      url: "https://portfolio.sangillee.com"
 
 # Site Footer
 footer:
@@ -298,5 +298,6 @@ defaults:
       share: true
       related: false
 
+# for jekyll local server
 host: 192.168.0.15
 port: 4000

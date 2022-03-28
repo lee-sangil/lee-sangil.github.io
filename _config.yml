@@ -299,5 +299,5 @@ defaults:
       related: false
 
 # for jekyll local server
-host: 192.168.0.15
-port: 4000
+# host: 192.168.0.15
+# port: 4000

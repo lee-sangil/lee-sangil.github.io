@@ -20,7 +20,7 @@ title                    : "Sangil Lee"
 title_separator          : "-"
 subtitle                 : # site tagline that appears below site title in masthead
 name                     : "Sangil Lee"
-description              : "Robotics vision researcher"
+description              : "ToF sensor engineer"
 url                      : "https://sangillee.com" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : "/" # the subpath of your site, e.g. "/blog"
 repository               : "lee-sangil/lee-sangil.github.io" # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
@@ -96,7 +96,7 @@ analytics:
 author:
   name             : "Sangil Lee"
   avatar           : "/assets/image/thumbnail/profile.jpg" # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "Ph.D. student in Mechanical & Aerospace Engineering in SNU."
+  bio              : "Staff Engineer in S. LSI, Samsung"
   location         : "Seoul, South Korea"
   # email            : "sangillee724@gmail.com"
   links:

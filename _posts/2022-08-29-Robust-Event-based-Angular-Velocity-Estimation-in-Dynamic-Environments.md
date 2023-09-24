@@ -16,6 +16,9 @@ links:
  - paper: 
    link: /assets/download/sangillee_dissertation.pdf
    name: "Paper"
+ - dataset: 
+   link: /_pages/larr-dvs-de-dataset/index.html
+   name: "Dataset"
 ---
 
 **Abstract:** This dissertation addresses the problem of estimating the angular velocity of the event camera with robustness to a dynamic environment where moving objects exist. These vision-based navigation problems have been mainly dealt with in frame-based cameras. The traditional frame-based cameras such as monocular or RGB-D image sensors capture the whole frame of absolute intensity and/or depth, thus making them easy to recognize temporary environments. However, even under the common illumination conditions, these sensors require a certain amount of time to collect light during which data is not output, thus latency occurs. Also, a video with a high dynamic range, e.g., a 14-bit raw image, is not usually used for computer vision due to its extremely high data bandwidth, and the general 8-bit image sequences easily lose their intensity data under overexposure or underexposure environments. Contrary to the conventional cameras that produce frames, events cameras operate asynchronously by imitating the human eye. Event cameras respond to the intensity changes in the temporal domain and generate an event that is triggered at the pixel whose intensity has changed. Due to the nature of the event cameras, they output data stream with low latency and high time resolution in us units. Besides, the event cameras only perceive relative intensity, they can have a higher dynamic range of more than 120 dB, whereas the standard cameras have 60 dB approximately. I take these advantages of the event cameras to detect moving objects and estimate the ego-motion of the camera in dynamic environments.

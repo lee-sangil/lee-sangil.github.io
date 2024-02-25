@@ -96,8 +96,8 @@ earth_equator.rotateZ(23.5*Math.PI/180); // tilted rotation axis
 
 const scene = new THREE.Scene();
 scene.add(sun);
-scene.add(light);
 scene.add(earth_orbit);
+sun.add(light);
 earth_orbit.add(earth_equator);
 earth_equator.add(earth);
 earth_equator.add(moon_orbit);
@@ -117,6 +117,12 @@ function updateSystem(sec) {
 In the above code, because `moon_orbit` belongs to the `earth_equator`, the position of `moon` is determined in the `earth_equator` coordinates. Thus, the equation of the moon gets simple rather than the above equation.
 
 <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/5yJ95Mw.gif">
+
+## Scene graph
+
+Therefore, the scene graph of the above system looks like below. Depending on moon, its object can be added into mother's equator or mother's orbit. Actually, to be precise, the scene graph also includes the relationships among Object3D, Mesh, Geometry, Material, and Texture. But here, I depicted Object3D only.
+
+<img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/KvtEwBx.png">
 
 ## Entire code
 ```js
@@ -155,8 +161,8 @@ earth_equator.rotateZ(23.5*Math.PI/180);
 
 const scene = new THREE.Scene();
 scene.add(sun);
-scene.add(light);
 scene.add(earth_orbit);
+sun.add(light);
 earth_orbit.add(earth_equator);
 earth_equator.add(earth);
 earth_equator.add(moon_orbit);

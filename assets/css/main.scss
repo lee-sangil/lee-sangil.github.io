@@ -9,7 +9,10 @@
 
 .image {
     position: relative;
-    width: 240px;
+    width: 320px;
     left: 50%;
     transform: translate(-50%, 0);
+    @media screen and (max-width: $large) {
+        width: 40vw;
+    }
 }

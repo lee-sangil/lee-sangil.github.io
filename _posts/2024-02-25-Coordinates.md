@@ -1,5 +1,5 @@
 ---
-title: "[Three.js] Coordinate Hierarchy"
+title: "[Three.js] Scene Graph"
 categories:
  - JavaScript
 tags:
@@ -78,12 +78,15 @@ Finally, the result is below:
 
 ## Local coordinates
 However, when we try to add the moon to the Sun-Earth system, we have to solve the position of the moon explicitly.
+
 $$
-x_{moon} = dist_{sun-earth} \times cos(\omega_{rev, earth}\times t) + dist_{earth-moon}\times cos(\omega_{rev, moon}\times t)
+x_{\rm moon} = dist_{\rm sun-earth} \times \cos(\omega_{\rm rev, earth}\times t) + dist_{\rm earth-moon}\times \cos(\omega_{\rm rev, moon}\times t)
 $$
+
 $$
-y_{moon} = -dist_{sun-earth} \times sin(\omega_{rev, earth}\times t) - dist_{earth-moon}\times sin(\omega_{rev, moon}\times t)
+y_{\rm moon} = -dist_{\rm sun-earth} \times \sin(\omega_{\rm rev, earth}\times t) - dist_{\rm earth-moon}\times \sin(\omega_{\rm rev, moon}\times t)
 $$
+
 Moreover, if we try to describe a realistic solar system, the above equations would become much more complicated because real orbit and rotation axis of the earth are tilted. Let's revise the above code using local coordinate: earth's orbit plane and equator plane, and moon's orbit plane. 
 ```js
 const earth_orbit = new THREE.Object3D();

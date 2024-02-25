@@ -14,7 +14,7 @@ header:
 1. Three.js basics
 	1. [Installation]({% post_url 2024-02-16-Installation %})
 	1. [Create scene]({% post_url 2024-02-18-How-to-Create-a-Scene %})
-	1. Coordinates
+	1. [Coordinates]({% post_url 2024-02-25-Coordinates %})
 	1. PBR (Physical-based rendering) material
 	1. Shader material
 1. GLSL basics

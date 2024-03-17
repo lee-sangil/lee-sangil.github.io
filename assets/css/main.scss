@@ -16,3 +16,23 @@
         width: 40vw;
     }
 }
+
+.image240 {
+    position: relative;
+    width: 240px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    @media screen and (max-width: $large) {
+        width: 40vw;
+    }
+}
+
+.image480 {
+    position: relative;
+    width: 480px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    @media screen and (max-width: $large) {
+        width: 40vw;
+    }
+}

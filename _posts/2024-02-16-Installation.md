@@ -67,4 +67,4 @@ import { OrbitControls } from 'three/addon/controls/OrbitControls.js';
 
 In the following contents, I've imported Three.js from a CDN and used Live Server with VS Code.
 
-[^wiki]: https://en.wikipedia.org/wiki/Three.js
+[^wiki]: [https://en.wikipedia.org/wiki/Three.js](https://en.wikipedia.org/wiki/Three.js)

@@ -11,6 +11,10 @@ header:
   teaser: /assets/image/thumbnail/threejs.jpg
 ---
 
+<img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/usL1piI.png">
+
+The above image is the snapshot of a solar system simulator.[^solarsystem] The posts will be serialized in the order of contents below.
+
 1. Three.js basics
 	1. [Installation]({% post_url 2024-02-16-Installation %})
 	1. [Create scene]({% post_url 2024-02-18-How-to-Create-a-Scene %})
@@ -28,3 +32,5 @@ header:
 1. Eclipse (planet-to-moon, planet-to-rings)
 1. Shining (post-processing)
 1. Compute the orbit
+
+[^solarsystem]: [https://portfolio.sangillee.com/apps/solar](https://portfolio.sangillee.com/apps/solar)

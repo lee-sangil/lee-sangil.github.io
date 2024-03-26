@@ -20,7 +20,7 @@ The above image is the snapshot of a solar system simulator.[^solarsystem] The p
 	1. [Create scene]({% post_url 2024-02-18-How-to-Create-a-Scene %})
 	1. [Coordinates]({% post_url 2024-02-25-Coordinates %})
 	1. [PBR (Physical-based rendering) material]({% post_url 2024-03-18-PBR %})
-	1. Shader material
+	1. [Shader material]({% post_url 2024-03-26-Shader-material %})
 1. GLSL basics
 	1. vertex and fragment
 	1. attribute, varying, uniform

@@ -105,9 +105,13 @@
         gl.uniform2f(u_mousePosition, dpr*evt.offsetX * invScaleW, dpr*evt.offsetY * invScaleH);
     });
     canvas.addEventListener('touchmove', function(evt){
+        evt.preventDefault();
         const invScaleW = 1 / canvas.width;
         const invScaleH = 1 / canvas.height;
-        gl.uniform2f(u_mousePosition, dpr*evt.changedTouches[0].offsetX * invScaleW, dpr*evt.changedTouches[0].offsetY * invScaleH);
+        const rect = evt.target.getBoundingClientRect();
+        const x = evt.targetTouches[0].clientX - rect.left;
+        const y = evt.targetTouches[0].clientY - rect.top;
+        gl.uniform2f(u_mousePosition, dpr*x * invScaleW, dpr*y * invScaleH);
     });
 
     // update the dimension of canvas

@@ -1,12 +1,14 @@
 ---
-title: "[Three.js] Shader Program"
+title: "[WebGL] Shader Program"
 categories:
  - JavaScript
 tags:
  - javascript
- - three.js
+ - glsl
+ - webgl
+ - shader
 header:
-  teaser: /assets/image/thumbnail/threejs.jpg
+  teaser: /assets/image/thumbnail/webgl.jpg
 ---
 
 > GLSL (OpenGL Shading Language) is a programming language for simple program, Shader, that describes the color attribute of each vertex in parallel computation. Thus, all vertices do not know the status of other vertices nearby, i.e., vertices are blind to the others. But, if we use a `uniform` variable, all vertices can share the same value. Also, we can use `varying` variable to transfer a value of a vertex into its fragment shader. In this post, I'll summarize how to implement a basic shader program. The below image shows how to create a shader program. 

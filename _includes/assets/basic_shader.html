@@ -49,13 +49,15 @@
     void main() {
         vec2 position = v_position;// / u_resolution;
         vec2 mousePosition = u_mousePosition; // / u_resolution;
+        float x = clamp(mousePosition.x, 0., 1.);
+        float y = clamp(mousePosition.y, 0., 1.);
 
-        vec3 color = vec3(position, mousePosition.x);
-        color *= mousePosition.y;
+        vec3 color = vec3(position, x);
+        color *= y;
 
         // float color = 1.;
-        // color *= step(mousePosition.x, position.x);
-        // color *= step(mousePosition.y, position.y);
+        // color *= step(x, position.x);
+        // color *= step(y, position.y);
 
         // gl_FragColor는 프래그먼트 셰이더가 설정을 담당하는 특수 변수
         gl_FragColor = vec4(color, 1.); // 자주색 반환

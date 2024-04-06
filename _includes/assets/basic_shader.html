@@ -1,4 +1,32 @@
+<div id="wrapper">
+    <p id='hover'>Touch or hover your mouse here</p>
+    <canvas id='webgl'></canvas>
+</div>
 <script>
+    const text = document.getElementById('hover');
+    text.style.position = 'absolute';
+    text.style.left = '50%';
+    text.style.top = '50%';
+    text.style.transform = 'translate(-50%, -50%)';
+    text.style.color = 'white';
+    text.style.opacity = 1;
+    text.style.transition = 'opacity 0.3s ease';
+
+    const wrapper = document.getElementById('wrapper');
+    wrapper.style.position = 'relative';
+    wrapper.addEventListener('mouseover', ()=>{
+        text.style.opacity = 0;
+    });
+    wrapper.addEventListener('mouseleave', ()=>{
+        text.style.opacity = 1;
+    });
+    wrapper.addEventListener('touchstart', ()=>{
+        text.style.opacity = 0;
+    });
+    wrapper.addEventListener('touchend', ()=>{
+        text.style.opacity = 1;
+    });
+
     // create canvas element
     const canvas = document.getElementById('webgl')
     canvas.style.width = '100%';

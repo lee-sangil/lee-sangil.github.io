@@ -82,8 +82,6 @@ function createAttribute(gl, program, name, size, value) {
 ## Entire code
 Below is an example using shader program. In the example, the color of canvas varies depending on the position of mouse pointer and coordinates. I'll explain the method of how to script vertex and fragment shaders in the next post.
 
-<canvas id='webgl'></canvas>
-
 {% include /assets/basic_shader.html %}
 
 #### fragment shader

@@ -1,0 +1,289 @@
+<div id="code-wrapper">
+    <textarea id="vertex" rows="20" onkeydown="check_tab(this, event)">
+// Vertex
+precision mediump float;
+
+attribute vec2 a_position;
+uniform vec2 u_mousePosition;
+uniform vec2 u_resolution;
+uniform float u_time;
+varying vec2 v_position;
+
+void main() {
+    vec2 zeroToOne = a_position;
+    v_position = a_position;
+
+    // Convert from [0,1] to [-1,+1]
+    vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+    clipSpace.y *= -1.;
+
+    gl_Position = vec4(clipSpace, 0., 1.);
+}</textarea>
+    <textarea id="fragment" rows="20" onkeydown="check_tab(this, event)">
+// Fragment
+precision mediump float;
+
+uniform vec2 u_mousePosition;
+uniform vec2 u_resolution;
+uniform float u_time;
+varying vec2 v_position;
+
+void main() {
+    gl_FragColor = vec4(1., 0., 1., 1.);
+}</textarea>
+</div>
+<div id="wrapper">
+    <p id='hover'>Touch or hover your mouse here</p>
+    <canvas id='webgl'></canvas>
+</div>
+<style>
+    #code-wrapper {
+        display: flex;
+        justify-content: space-between;
+    }
+    textarea {
+        padding: 10px;
+        font-family: monospace;
+        background-color: rgb(10, 20, 20);
+        font-size: small;
+        color: white;
+        width: calc(50% - 2px);
+        overflow-y: scroll;
+        resize: none
+    }
+    textarea::selection {
+        background-color: lightgray;
+    }
+</style>
+<script>
+    let u_mousePosition, u_time, u_resolution, program;
+
+    const text = document.getElementById('hover');
+    text.style.position = 'absolute';
+    text.style.left = '50%';
+    text.style.top = '50%';
+    text.style.width = '100%';
+    text.style.textAlign = 'center';
+    text.style.transform = 'translate(-50%, -50%)';
+    text.style.color = 'white';
+    text.style.opacity = 1;
+    text.style.pointerEvents = 'none';
+    text.style.transition = 'opacity 0.3s ease';
+
+    const wrapper = document.getElementById('wrapper');
+    wrapper.style.position = 'relative';
+    wrapper.addEventListener('mouseover', ()=>{
+        text.style.opacity = 0;
+    });
+    wrapper.addEventListener('mouseleave', ()=>{
+        text.style.opacity = 1;
+    });
+    wrapper.addEventListener('touchstart', ()=>{
+        text.style.opacity = 0;
+    });
+    wrapper.addEventListener('touchend', ()=>{
+        text.style.opacity = 1;
+    });
+
+    // create canvas element
+    const canvas = document.getElementById('webgl')
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+
+    // get webgl context
+    const gl = canvas.getContext('webgl');
+    if (!gl) alert('WebGL is not supported by your browser');
+
+    // get dpr value
+    const dpr = window.devicePixelRatio;
+
+    // create shaders
+    const vertexDOM = document.getElementById('vertex');
+    const fragmentDOM = document.getElementById('fragment');
+
+    vertexDOM.addEventListener('input', (event)=>{
+        const vertex = event.target.value;
+        const fragment = fragmentDOM.textContent;
+
+        updateShader(gl, vertex, fragment);
+    });
+    fragmentDOM.addEventListener('input', (event)=>{
+        const vertex = vertexDOM.textContent;
+        const fragment = event.target.value;
+
+        updateShader(gl, vertex, fragment);
+    })
+
+    const vertex = vertexDOM.textContent;
+    const fragment = fragmentDOM.textContent;
+
+    updateShader(gl, vertex, fragment);
+
+    // update uniform value with a range: [0, 1]
+    canvas.addEventListener('mousemove', function(evt){
+        gl.uniform2f(u_mousePosition, dpr*evt.offsetX, dpr*evt.offsetY);
+    });
+    canvas.addEventListener('touchmove', function(evt){
+        evt.preventDefault();
+        const rect = evt.target.getBoundingClientRect();
+        const x = evt.targetTouches[0].clientX - rect.left;
+        const y = evt.targetTouches[0].clientY - rect.top;
+        gl.uniform2f(u_mousePosition, dpr*x, dpr*y);
+    });
+
+    // update the dimension of canvas
+    window.addEventListener('resize', resize);
+
+    // render
+    window.requestAnimationFrame(render);
+
+    function createShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+
+        const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+        if (success) {
+            return shader;
+        }
+
+        console.log(gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+    }
+
+    function createProgram(gl, vertexShader, fragmentShader) {
+        if (program) {
+            gl.deleteProgram(program);
+        }
+
+        const _program = gl.createProgram();
+        gl.attachShader(_program, vertexShader);
+        gl.attachShader(_program, fragmentShader);
+        gl.linkProgram(_program);
+
+        const success = gl.getProgramParameter(_program, gl.LINK_STATUS);
+        if (success) {
+            return _program;
+        }
+
+        console.log(gl.getProgramInfoLog(_program));
+        gl.deleteProgram(_program);
+    }
+
+    function createAttribute(gl, program, name, size, value) {
+        // create a buffer
+        const buffer = gl.createBuffer();
+
+        // bind it to ARRAY_BUFFER
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(value), gl.STATIC_DRAW);
+
+        // look up where the vertex data needs to go.
+        const attributeLocation = gl.getAttribLocation(program, name);
+
+        // turn on the attribute
+        gl.enableVertexAttribArray(attributeLocation);
+
+        // tell the attribute how to get data out of buffer (ARRAY_BUFFER)
+        const normalize = false; // don't normalize the data
+        const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        const offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(attributeLocation, size, gl.FLOAT, normalize, stride, offset);
+    }
+
+    function updateShader(gl, vertexSource, fragmentSource) {
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+
+        program = createProgram(gl, vertexShader, fragmentShader);
+
+        // use program
+        gl.useProgram(program);
+    
+        // enable to cull back face
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK); // BACK (default), FRONT, FRONT_AND_BACK
+
+        // In default, if the winding order of vertices is CCW, their triangle create a front face
+        gl.frontFace(gl.CCW); // CCW (default), CW
+
+        // create attributes
+        createAttribute(gl, program, "a_position", 2, [
+            0, 0,
+            0, 1,
+            1, 1,
+            0, 0,
+            1, 1,
+            1, 0,
+        ]);
+
+        // look up uniform locations
+        u_mousePosition = gl.getUniformLocation(program, "u_mousePosition");
+        u_resolution = gl.getUniformLocation(program, "u_resolution");
+        u_time = gl.getUniformLocation(program, "u_time");
+
+        resize();
+    }
+
+    function resize() {
+        // get displayed canvas size in pixels
+        const displayWidth  = Math.round(canvas.clientWidth * dpr);
+        const displayHeight = Math.round(canvas.clientHeight * dpr);
+
+        // update canvas size
+        canvas.width = displayWidth;
+        canvas.height = displayHeight;
+
+        // update gl viewport size
+        gl.viewport(0, 0, canvas.width, canvas.height);
+
+        gl.uniform2f(u_resolution, canvas.width, canvas.height);
+    }
+
+    function render(t) {
+        gl.uniform1f(u_time, t * 0.001);
+
+        // set color to clear canvas
+        gl.clearColor(0, 0, 0, 0);
+
+        // clear the canvas with the above color
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // draw triangles
+        const primitiveType = gl.TRIANGLES;
+        const offset = 0;
+        const count = 6;
+        gl.drawArrays(primitiveType, offset, count);
+
+        requestAnimationFrame(render.bind(this));
+    }
+
+    function update_code() {
+      const result_elem = document.querySelector("code");
+      let text = result_elem.value;
+      if (text[text.length-1] == "\n") {
+        text += "    ";
+      } else if (text == "") {
+        text += "\n    ";
+      } else if (text.indexOf("\n", 1) < 0) {
+        text += "\n    ";
+      }
+
+      result_elem.innerHTML = text;
+      hljs.highlightBlock(result_elem)
+    }
+
+    function check_tab(element, event) {
+      let code = element.value;
+      if(event.key == "Tab") {
+        event.preventDefault();
+        let before_tab = code.slice(0, element.selectionStart);
+        let after_tab = code.slice(element.selectionEnd, element.value.length); //
+        let cursor_pos = element.selectionEnd + 4;
+        element.value = before_tab + "    " + after_tab;
+        element.selectionStart = cursor_pos;
+        element.selectionEnd = cursor_pos;
+        update_code(element.value);
+      }
+    }
+</script>

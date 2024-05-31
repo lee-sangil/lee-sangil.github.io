@@ -9,9 +9,12 @@ tags:
  - shader
 header:
   teaser: /assets/image/thumbnail/webgl.jpg
+excerpt_separator: <!--more-->
 ---
 
 Now, it's time to design a custom pattern to illustrate the shader. Since all vertex and fragment is "blind" to others, we have to script a code with different manner from the concurrent programming. Thus, the position and color of a vertex should be defined with its own attributes and the shared uniform values. Here, I'll address several techniques. For more information, please visit [https://thebookofshaders.com](https://thebookofshaders.com)
+
+<!--more-->
 
 ## Basic Functions
 * `step(th, x)`: return $$1$$ if $$\rm{th} \it < x$$, otherwise $$0$$.

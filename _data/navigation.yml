@@ -3,15 +3,15 @@ main:
   # - title: "Quick-Start Guide"
   #   url: https://mmistakes.github.io/minimal-mistakes/docs/quick-start-guide/
   - title: "Research"
-    url: /_pages/research/index.html
+    url: /_pages/research/
   - title: "Archive"
-    url: /year-archive/
+    url: /archive/
   - title: "Category"
-    url: /categories/
+    url: /category/
   - title: "Tag"
-    url: /tags/
+    url: /tag/
   - title: "Log"
-    url: /_pages/log/index.html
+    url: /_pages/log/
   # - title: "Dataset"
   #   url: /_pages/icsl-de-dataset/index.html 
   # - title: "Sample Collections"

@@ -206,6 +206,23 @@ li ol {
 
 /* Figures and images */
 
+.gallary {
+  &-window {
+    overflow: hidden;
+    & ::-webkit-scrollbar {
+      width: 0;  /* Remove scrollbar space */
+      background: transparent;  /* Optional: just make scrollbar invisible */
+    }
+  }
+  &-container {
+    height: 400px;
+    width: 100%;
+    overflow-x: auto;
+    display: flex;
+    flex-direction: row;
+  }
+}
+
 figure {
   display: -webkit-box;
   display: flex;
@@ -215,6 +232,19 @@ figure {
   align-items: flex-start;
   flex-wrap: wrap;
   margin: 0 0;
+
+  &.carousel {
+    width: auto;
+    height: 100%;
+    object-fit: cover;
+    margin-right: 1rem;
+    
+    img {
+      max-height: 100%;
+      width: auto;
+      max-width: none;
+    }
+  }
 
   img,
   iframe,

@@ -16,9 +16,12 @@ links:
    name: "Patent"
  - bibtex: 
    name: "Bibtex"
+excerpt_separator: <!--more-->
 ---
 
 **Abstract:** Disclosed is an ego motion estimation method and apparatus, wherein the apparatus calculates a scene flow field from a plurality of spaces of an input image, clusters the plurality of spaces based on a scene flow, updates a probability vector map for clustered spaces, identifies a stationary background based on the updated probability vector map, and estimates ego motion information based on the identified stationary background.
+
+<!--more-->
 
 ## Bibtex <a id="bibtex"></a>
 ```

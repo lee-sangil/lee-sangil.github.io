@@ -6,7 +6,12 @@ tags:
  - javascript
  - html
  - css
+excerpt_separator: <!--more-->
 ---
+
+This is an example of post
+
+<!--more-->
 
 {% include /bounceBall/index.html %}
 

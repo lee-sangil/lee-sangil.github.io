@@ -1,6 +1,7 @@
 ---
 title: "[WebGL] Shader Design Patterns"
 categories:
+ - WebGL
  - JavaScript
 tags:
  - javascript

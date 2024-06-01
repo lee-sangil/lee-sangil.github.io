@@ -1,16 +1,19 @@
 ---
 title: "[Three.js] How to Create a Scene"
 categories:
+ - ThreeJS
  - JavaScript
 tags:
  - javascript
  - three.js
 header:
   teaser: /assets/image/thumbnail/threejs.jpg
+excerpt_separator: <!--more-->
 ---
 
 ## Create the scene environment
 For Three.js to render a scene, it needs scene, camera, and renderer. In JavaScript, you have to import Three.js depending on the installation options as mentioned in the previous article. 
+<!--more-->
 ```js
 // main.js
 import * as THREE from 'three'

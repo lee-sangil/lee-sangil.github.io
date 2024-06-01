@@ -1,16 +1,19 @@
 ---
 title: "[Three.js] Scene Graph"
 categories:
+ - ThreeJS
  - JavaScript
 tags:
  - javascript
  - three.js
 header:
   teaser: /assets/image/thumbnail/threejs.jpg
+excerpt_separator: <!--more-->
 ---
 
 ## Sun-Earth system
 In this article, I'll create a simple Sun-Earth system. Firstly, create an orange sphere and a blue sphere which represent the Sun and the Earth, respectively.
+<!--more-->
 ```js
 // create sphere geometry for Sun and Earth
 const geometry_sphere = new THREE.SphereGeometry(1, 30, 30); 

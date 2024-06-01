@@ -2,15 +2,19 @@
 title: "[Electron] How To Publish an Electron App to Github at Build Time"
 categories:
  - Electron
+ - JavaScript
 tags:
  - electron
  - electron-builder
  - vue
 header:
   teaser: /assets/image/thumbnail/electron.jpg
+excerpt_separator: <!--more-->
 ---
 
 > In the page, I’ll introduce a method to build an electron app and automatically publish it to GitHub using electron-builder. 
+
+<!--more-->
 
 First, you should install `electron-builder`:
 ```bash

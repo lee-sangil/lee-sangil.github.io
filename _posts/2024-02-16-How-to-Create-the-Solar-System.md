@@ -1,6 +1,7 @@
 ---
 title: "[Three.js] How to Create the Solar System"
 categories:
+ - ThreeJS
  - JavaScript
 tags:
  - javascript
@@ -9,11 +10,14 @@ tags:
  - glsl
 header:
   teaser: /assets/image/thumbnail/threejs.jpg
+excerpt_separator: <!--more-->
 ---
 
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/usL1piI.png">
 
 The above image is the snapshot of a solar system simulator.[^solarsystem] The posts will be serialized in the order of contents below.
+
+<!--more-->
 
 1. Three.js basics
 	1. [Installation]({% post_url 2024-02-16-Installation %})

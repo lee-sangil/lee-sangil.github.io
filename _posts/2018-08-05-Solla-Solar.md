@@ -19,9 +19,12 @@ gallery-snapshot:
   - url: 
     image_path: /assets/image/thumbnail/solla-solar.png
     alt: "snapshot of solla solar"
+excerpt_separator: <!--more-->
 ---
 
 Solla Solar is a simple 2D solar system simulator. By manipulating the screen, you can observe the past, present, and future of the solar system.
+
+<!--more-->
 
 ### Snapshot
 {% include gallery id="gallery-snapshot" caption="" %}

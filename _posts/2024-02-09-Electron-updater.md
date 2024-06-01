@@ -2,14 +2,18 @@
 title: "[Electron] How To Update an Electron App Automatically"
 categories:
  - Electron
+ - JavaScript
 tags:
  - electron
  - autoUpdater
 header:
   teaser: /assets/image/thumbnail/electron.jpg
+excerpt_separator: <!--more-->
 ---
 
 > The autoUpdater enables an electron app to check the latest version and update itself automatically. [^updater]
+
+<!--more-->
 
 #### Installation
 You can install autoUpdater via NPM or yarn:

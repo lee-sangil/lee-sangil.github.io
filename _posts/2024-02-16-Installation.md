@@ -1,15 +1,19 @@
 ---
 title: "[Three.js] Installation"
 categories:
+ - ThreeJS
  - JavaScript
 tags:
  - javascript
  - three.js
 header:
   teaser: /assets/image/thumbnail/threejs.jpg
+excerpt_separator: <!--more-->
 ---
 
 > Three.js is a JavaScript library for creating and animating 3D computer graphics in browser using WebGL. [^wiki]
+
+<!--more-->
 
 ## Installation
 

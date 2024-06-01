@@ -20,11 +20,14 @@ links:
    name: "Video"
  - bibtex: 
    name: "Bibtex"
+excerpt_separator: <!--more-->
 ---
 
 {% include video id="qYpf6pg0Gd0" provider="youtube" %}
 
 **Abstract:** Event cameras are bio-inspired sensors that capture intensity changes of pixels individually, and generate asynchronous and independent ``events''. Due to the fundamental difference from the conventional cameras, most research on event cameras builds a global event frame by grouping events according to their timestamps or their number to employ traditional computer vision algorithms. However, in order to take advantage of event cameras, it makes sense to generate asynchronous output on an event-by-event basis. In this paper, we propose an optical flow estimation algorithm with low latency and robustness to various scenes to utilize the advantage of the event camera by enhancing the existing optical flow algorithm. Furthermore, we estimate angular velocity with low latency using the proposed optical flow stream. For the validation of algorithms, we evaluate the accuracy and latency of optical flow with publicly available datasets. Moreover, we assess the performance of the proposed angular velocity estimation in comparison to the existing algorithms. Both validations suggest that our asynchronous optical flow shows comparable accuracy to the existing algorithms and the latency is reduced by half compared to the existing block matching algorithm on average. Also, our angular velocity estimation is superior to the existing algorithms in terms of accuracy and robustness while showing low latency within 15 ms consistently.
+
+<!--more-->
 
 ## Bibtex <a id="bibtex"></a>
 ```

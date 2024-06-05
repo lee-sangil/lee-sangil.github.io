@@ -223,7 +223,7 @@ sass:
   quiet_deps: true    # Disable printing deprecation warnings to terminal
 
 # Outputting
-permalink: /:categories/:title/
+permalink: /:name/
 paginate: 5 # amount of posts to show in each page
 paginate_path: /page:num/
 timezone: # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones

@@ -32,11 +32,11 @@ In main .js file of electron, autoUpdater can be defined as follows:
 const { autoUpdater } = require("electron-updater");
 
 autoUpdater.setFeedURL({
-	provider: "github",
-	host: "github.com",
-	owner: "{ username }",
-	repo: "{ repository }",
-	token: "{ token }",
+    provider: "github",
+    host: "github.com",
+    owner: "{ username }",
+    repo: "{ repository }",
+    token: "{ token }",
 });
 ```
 

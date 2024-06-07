@@ -37,6 +37,16 @@
     }
 }
 
+.image640 {
+    position: relative;
+    width: 640px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    @media screen and (max-width: $large) {
+        width: 80vw;
+    }
+}
+
 .imageWideFull {
     position: relative;
     width: 100vw;

@@ -64,7 +64,7 @@ function animate (msec) {
     updateSystem(msec * 0.001);
 
     controls.update();
-	renderer.render(scene, camera);
+    renderer.render(scene, camera);
 }
 animate();
 ```
@@ -190,7 +190,7 @@ function animate (msec) {
     updateSystem(msec * 0.001);
 
     controls.update();
-	renderer.render(scene, camera);
+    renderer.render(scene, camera);
 }
 animate();
 ```

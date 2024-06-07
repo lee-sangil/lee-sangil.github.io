@@ -106,7 +106,7 @@ void main() {
     vec3 color = vec3(position, mousePosition.x);
     color *= mousePosition.y;
 
-	gl_FragColor = vec4(color, 1.);
+    gl_FragColor = vec4(color, 1.);
 }
 `
 export default fragment
@@ -131,7 +131,7 @@ void main() {
     vec2 clipSpace = zeroToOne * 2.0 - 1.0;
     clipSpace.y *= -1.;
 
-	// deliver vertex attributes to fragment shader
+    // deliver vertex attributes to fragment shader
     v_position = a_position;
     v_normal = a_normal;
 

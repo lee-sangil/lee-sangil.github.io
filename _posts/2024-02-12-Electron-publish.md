@@ -25,27 +25,27 @@ Then, you should add repository and build option in `package.json` as below:
 ```json
 // package.json
 {
-	"name": "{ name }",
-	"version": "{ version }",
-	...
-	"repository": {
-		"type": "git",
-		"url": "{ repository url }"
-	},
-	"build": {
-		"appID": "{ appID }",
-		...
-		"publish": {
-			"provider": "github",
-			"host": "{ github.com }",
-			"owner": "{ github username }",
-			"repo": "{ repository name }",
-			"releaseType": "draft",
-		},
-		"releaseInfo": {
-			"releaseNotesFile": "release-notes.md",
-		}
-	}
+    "name": "{ name }",
+    "version": "{ version }",
+    ...
+    "repository": {
+        "type": "git",
+        "url": "{ repository url }"
+    },
+    "build": {
+        "appID": "{ appID }",
+        ...
+        "publish": {
+            "provider": "github",
+            "host": "{ github.com }",
+            "owner": "{ github username }",
+            "repo": "{ repository name }",
+            "releaseType": "draft",
+        },
+        "releaseInfo": {
+            "releaseNotesFile": "release-notes.md",
+        }
+    }
 }
 ```
 `releaseType` can be "draft", "prerelease", or "release"; and these are types of release. If you choose "draft", you have to publish release manually in the remote repository.
@@ -56,26 +56,26 @@ Then, you should add repository and build option in `package.json` as below:
 When you use electron with Vue, you should configure builder in `vue.config.js` as below: 
 ```js
 module.exports = defineConfig({
-	...
-	pluginOptions: {
-		electronBuilder: {
-			builderOptions: {
-				appId: "{ appID }",
-				...
-				"publish": {
-					"provider": "github",
-					"host": "{ github.com }",
-					"owner": "{ github username }",
-					"repo": "{ repository name }",
-					"releaseType": "draft",
-				},
-				"releaseInfo": {
-					"releaseNotesFile": "release-notes.md",
-				}
-			}
-		}
-	},
-	...
+    ...
+    pluginOptions: {
+        electronBuilder: {
+            builderOptions: {
+                appId: "{ appID }",
+                ...
+                "publish": {
+                    "provider": "github",
+                    "host": "{ github.com }",
+                    "owner": "{ github username }",
+                    "repo": "{ repository name }",
+                    "releaseType": "draft",
+                },
+                "releaseInfo": {
+                    "releaseNotesFile": "release-notes.md",
+                }
+            }
+        }
+    },
+    ...
 })
 ```
 

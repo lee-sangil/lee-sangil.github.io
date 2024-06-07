@@ -18,12 +18,12 @@ excerpt_separator: <!--more-->
 `ShaderMaterial` can be defined by:
 ```js
 const material = new THREE.ShaderMaterial({
-	uniforms: {
-		time: { value: 1.0 },
-		resolution: { value: new THREE.Vector2() }
-	},
-	vertexShader: /* glsl */ `...`,
-	fragmentShader: /* glsl */ `...`,
+    uniforms: {
+        time: { value: 1.0 },
+        resolution: { value: new THREE.Vector2() }
+    },
+    vertexShader: /* glsl */ `...`,
+    fragmentShader: /* glsl */ `...`,
 })
 ```
 
@@ -42,12 +42,12 @@ The `vertexShader` and `fragmentShader` of `ShaderMaterial` fetch a code as a te
 <!-- index.html -->
 <html>
 <head>
-	<script id="vertex" type=“x-shader/x-vertex”>
-		...
-	</script>
-	<script id="fragment" type=“x-shader/x-fragment”>
-		...
-	</script>
+    <script id="vertex" type=“x-shader/x-vertex”>
+        ...
+    </script>
+    <script id="fragment" type=“x-shader/x-fragment”>
+        ...
+    </script>
 </head>
 <body>
 </body>

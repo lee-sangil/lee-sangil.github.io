@@ -45,9 +45,9 @@ Gradient color shows a transition between multiple colors. To implement gradient
 varying vec2 v_position; // [0, 1]
 
 void main() {
-	vec3 color1 = vec3(1.0, 0.5, 0.5);
-	vec3 color2 = vec3(0.5, 1.0, 1.0);
-	gl_FragColor = vec4(mix(color1, color2, v_position.x), 1.0);
+    vec3 color1 = vec3(1.0, 0.5, 0.5);
+    vec3 color2 = vec3(0.5, 1.0, 1.0);
+    gl_FragColor = vec4(mix(color1, color2, v_position.x), 1.0);
 }
 ```
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/B2F3nDT.png">
@@ -57,10 +57,10 @@ Or, you can use `smoothstep` so that the position of gradient boundary can be tu
 varying vec2 v_position; // [0, 1]
 
 void main() {
-	vec3 color1 = vec3(1.0, 0.5, 0.5);
-	vec3 color2 = vec3(0.5, 1.0, 1.0);
-	float ratio = smoothstep(0.3, 0.7, v_position.x);
-	gl_FragColor = vec4(mix(color1, color2, ratio), 1.0);
+    vec3 color1 = vec3(1.0, 0.5, 0.5);
+    vec3 color2 = vec3(0.5, 1.0, 1.0);
+    float ratio = smoothstep(0.3, 0.7, v_position.x);
+    gl_FragColor = vec4(mix(color1, color2, ratio), 1.0);
 }
 ```
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/WfJe18T.png">
@@ -70,15 +70,15 @@ Also, you can manually design the smoothing function.
 varying vec2 v_position; // [0, 1]
 
 float my_interp(in float a, in float b, in float x) {
-	float z = (x-a)/(b-a);
-	return z < 0.5 ? 2.0 * z * z : 1.0 - pow(-2.0 * z + 2.0, 2.0) / 2.0;
+    float z = (x-a)/(b-a);
+    return z < 0.5 ? 2.0 * z * z : 1.0 - pow(-2.0 * z + 2.0, 2.0) / 2.0;
 }
 
 void main() {
-	vec3 color1 = vec3(1.0, 0.5, 0.5);
-	vec3 color2 = vec3(0.5, 1.0, 1.0);
-	float ratio = my_interp(0.0, 1.0, v_position.x);
-	gl_FragColor = vec4(mix(color1, color2, ratio), 1.0);
+    vec3 color1 = vec3(1.0, 0.5, 0.5);
+    vec3 color2 = vec3(0.5, 1.0, 1.0);
+    float ratio = my_interp(0.0, 1.0, v_position.x);
+    gl_FragColor = vec4(mix(color1, color2, ratio), 1.0);
 }
 ```
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/c10JKTU.png">
@@ -88,12 +88,12 @@ If you want to generate a gradient using three colors, use `mix` twice with two 
 varying vec2 v_position; // [0, 1]
 
 void main() {
-	vec3 color1 = vec3(1.0, 0.5, 0.5);
-	vec3 color2 = vec3(0.5, 1.0, 1.0);
-	vec3 color3 = vec3(0.2, 0.5, 1.0);
-	float ratio1 = smoothstep(0.0, 0.6, v_position.x);
-	float ratio2 = smoothstep(0.4, 1.0, v_position.x);
-	gl_FragColor = vec4(mix(mix(color1, color2, ratio1), color3, ratio2), 1.0);
+    vec3 color1 = vec3(1.0, 0.5, 0.5);
+    vec3 color2 = vec3(0.5, 1.0, 1.0);
+    vec3 color3 = vec3(0.2, 0.5, 1.0);
+    float ratio1 = smoothstep(0.0, 0.6, v_position.x);
+    float ratio2 = smoothstep(0.4, 1.0, v_position.x);
+    gl_FragColor = vec4(mix(mix(color1, color2, ratio1), color3, ratio2), 1.0);
 }
 ```
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/dfCRarK.png">
@@ -104,14 +104,14 @@ When zooming out on most complicated natural texture, you can see they are patte
 varying vec2 v_position; // [0, 1]
 
 void main() {
-	float ncol = 3.0;
-	float nrow = 2.0;
-	float x1 = fract(ncol * v_position.x);
-	float y1 = fract(nrow * v_position.y);
-	float idx_x1 = floor(ncol * v_position.x);
-	float idx_y1 = floor(nrow * v_position.y);
+    float ncol = 3.0;
+    float nrow = 2.0;
+    float x1 = fract(ncol * v_position.x);
+    float y1 = fract(nrow * v_position.y);
+    float idx_x1 = floor(ncol * v_position.x);
+    float idx_y1 = floor(nrow * v_position.y);
 
-	gl_FragColor = vec4(x1, y1, (idx_x1 + idx_y1) / 5.0, 1.0);
+    gl_FragColor = vec4(x1, y1, (idx_x1 + idx_y1) / 5.0, 1.0);
 }
 ```
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/Ow15yYa.png">
@@ -121,17 +121,17 @@ Likewise, if you want to generate a pattern inside a pattern, divide grids twice
 varying vec2 v_position; // [0, 1]
 
 vec4 divide_cell(in vec2 parent, in vec2 size) {
-	vec4 child = vec4(0.0);
-	child.xy = fract(size * parent); // x, y position
-	child.zw = floor(size * parent); // x, y index
-	return child;
+    vec4 child = vec4(0.0);
+    child.xy = fract(size * parent); // x, y position
+    child.zw = floor(size * parent); // x, y index
+    return child;
 }
 
 void main() {
-	vec4 xy1 = divide_cell(v_position, vec2(3.0, 2.0));
-	vec4 xy2 = divide_cell(xy1.xy, vec2(2.0, 2.0));
+    vec4 xy1 = divide_cell(v_position, vec2(3.0, 2.0));
+    vec4 xy2 = divide_cell(xy1.xy, vec2(2.0, 2.0));
 
-	gl_FragColor = vec4(xy2.x, xy2.y, mod(xy2.z + xy2.w, 2.0), 1.0);
+    gl_FragColor = vec4(xy2.x, xy2.y, mod(xy2.z + xy2.w, 2.0), 1.0);
 }
 ```
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/Crp8Idz.png">
@@ -140,7 +140,7 @@ void main() {
 Unfortunately, GLSL does not provide a true random number generator. Instead, we can generate a pseudo random number with a sinusoidal function of high amplitude with `fract`. `fract` transforms the value into the range [0, 1], and the sinusoidal function produces randomness by generating a different slope for each [0, 1] piece. Also, `fract(x^2)` can generate random number since their slopes are different for each piece. However, unlike the sinusoidal function, which is bounded on [-1, 1], `x^2` can exceed the maximum value of Float, thus outputting incorrect value.
 ```c
 float random(in float x) {
-	return fract(sin(x)*100000.0);
+    return fract(sin(x)*100000.0);
 }
 ```
 
@@ -182,7 +182,7 @@ Above, the histogram of $$\rm sin(\it x \rm)$$, $$x^2$$, $$x$$ are shown. As men
 To generate a random number from two or more dimensional vector, we use dot product to produce a scalar number. 
 ```c
 float random(in vec2 x) {
-	return fract(sin(dot(x, vec2(12.9898,78.233)))*43758.5453123);
+    return fract(sin(dot(x, vec2(12.9898,78.233)))*43758.5453123);
 }
 ```
 
@@ -212,8 +212,8 @@ float noise (in vec2 x) {
     float c = random(i + vec2(0.0, 1.0));
     float d = random(i + vec2(1.0, 1.0));
 
-	// Cubic Hermine Curve. Same as SmoothStep()
-	vec2 u = smoothstep(0., 1., f);
+    // Cubic Hermine Curve. Same as SmoothStep()
+    vec2 u = smoothstep(0., 1., f);
 
     // Mix 4 coorners percentages
     return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
@@ -244,17 +244,17 @@ float noise (in vec2 x) {
 
 #define LEVELS 6
 float fractal_noise (in vec2 x, in float scaling_amp, in float scaling_freq) {
-	float n = 0.;
-	float amplitude = 1. - scaling_amp; // ensure that the maximum value is 1.
+    float n = 0.;
+    float amplitude = 1. - scaling_amp; // ensure that the maximum value is 1.
 
-	
-	for (int i = 0; i < LEVELS; ++i) {
-		n += amplitude * noise(x);
-		amplitude *= scaling_amp;
-		x *= scaling_freq;
-	}
+    
+    for (int i = 0; i < LEVELS; ++i) {
+        n += amplitude * noise(x);
+        amplitude *= scaling_amp;
+        x *= scaling_freq;
+    }
 
-	return n;
+    return n;
 }
 
 void main() {

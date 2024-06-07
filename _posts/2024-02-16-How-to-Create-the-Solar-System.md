@@ -29,7 +29,7 @@ The above image is the snapshot of a solar system simulator.[^solarsystem] The p
 	1. [Shader program]({% post_url 2024-04-06-Shader-program %})
 	1. [Vertex and fragment]({% post_url 2024-04-21-Vertex-and-fragment %})
 	1. [Shader patterns]({% post_url 2024-05-25-Shader-design-patterns %})
-1. Create realistic Earth
+1. [Create realistic Earth]({% post_url 2024-06-07-Create-realistic-Earth-with-shaders %})
 1. Create realistic Sun
 1. Create a planet with rings
 1. Create a moon with irregular shape

@@ -228,18 +228,18 @@ The below figure describes how to compute the brightness of the surface while co
 In the above, I have computed how much lighting source is hided by the moon. Let $$R_s$$ and $$R_m$$ be the actual radius of the Sun and moon. Given vectors, $${v}_{se}$$ and $${v}_{me}$$, denoting a vector from earth to the Sun and moon, respectively, the apparent radius of the Sun and moon, $$\theta_{s}$$ and $$\theta_{m}$$, are
 
 $$
-\theta_{s} = \tan^{-1} {\frac{R_s}{d_{se}}} \approx \frac{R_s}{d_{se}}
+\theta_{s} = \sin^{-1} {\frac{R_s}{d_{se}}} \approx \frac{R_s}{d_{se}}
 $$
 
 and
 
 $$
-\theta_{m} = \tan^{-1} {\frac{R_m}{d_{me}}} \approx \frac{R_m}{d_{me}},
+\theta_{m} = \sin^{-1} {\frac{R_m}{d_{me}}} \approx \frac{R_m}{d_{me}},
 $$
 
 where $$d_{se}=\|{v}_{se}\|$$ and $$d_{me}=\|{v}_{me}\|$$. Also, the apparent distance between the Sun and moon is $$\theta_{sm} = \frac{ {v}_{se} \cdot {v}_{me}}{ \|{v}_{se}\| * \|{v}_{me}\|}$$. Then, the brightness of the surface depends on the relationship between $$\theta_s, \theta_m$$, and $$\theta_{sm}$$. When $$\theta_{sm}$$ is larger than $$\theta_s + \theta_m$$, eclipse does not appear. In this case, the apparent surface of the lighting source is $$\pi R_s^2$$, and it is applied to the shader as 1 by scaling with $$\pi R_s^2$$. Let us call this scaled value as a brightness factor. 
 
-If $$0 < \theta_{sm} < \theta_s - \theta_m$$ is satisfied, the brightness factor is 
+If $$\theta_m < \theta_s$$ and $$0 < \theta_{sm} < \theta_s - \theta_m$$ is satisfied, the moon is completely inside the sun, so the brightness factor is 
 
 $$
 \frac{\pi R_s^2 - \pi (d_{se}\theta_m)^2}{\pi R_s^2} = 1 - \frac{\theta^2_m}{\theta^2_s},
@@ -247,7 +247,7 @@ $$
 
 where $$d_{se}\theta_m$$ is referred to as the apparent radius assuming that the moon and the sun are at the same distance from the Earth, not actual radius of the moon. 
 
-Moreover, if $$\theta_s < \theta_m$$ and $$\theta_{sm} < \theta_m - \theta_s$$ are satisfied, the brightness factor is zero, since the sun is fully hided by the moon. Otherwise, When $$abs(\theta_s - \theta_m) < \theta_{sm} < \theta_s + \theta_m$$ is satisfied, the sun is partially hided. In this case, the brightness factor is
+Moreover, if $$\theta_s < \theta_m$$ and $$0 < \theta_{sm} < \theta_m - \theta_s$$ are satisfied, the brightness factor is zero, since the sun is fully hided by the moon. Otherwise, When $$abs(\theta_s - \theta_m) < \theta_{sm} < \theta_s + \theta_m$$ is satisfied, the sun is partially hided. In this case, the brightness factor is
 
 $$
 \frac{1}{\pi \theta^2_s} (\pi \theta^2_s - \phi_s \theta^2_s + \frac{1}{2}\theta^2_s\sin(2\phi_s) -\phi_m \theta^2_m + \frac{1}{2}\theta^2_m \sin(2 \phi_m)),

@@ -69,7 +69,7 @@ function animate (msec) {
 animate();
 ```
 
-Also, to easily see the rotation of the earth, reduce the number of segment of `SphereGeometry` and set `flatShading = true` for the earth material.
+Also, to easily see the rotation of the Earth, reduce the number of segment of `SphereGeometry` and set `flatShading = true` for the Earth material.
 ```js
 const geometry_sphere = new THREE.SphereGeometry(1, 10, 10);
 const material_earth = new THREE.MeshLambertMaterial({color: 0x4444ff, flatShading: true});
@@ -80,7 +80,7 @@ Finally, the result is below:
 <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/mBaXGcW.gif">
 
 ## Local coordinates
-However, when we try to add the moon to the Sun-Earth system, we have to solve the position of the moon explicitly.
+However, when we try to add the Moon to the Sun-Earth system, we have to solve the position of the Moon explicitly.
 
 $$
 x_{\rm moon} = dist_{\rm sun-earth} \times \cos(\omega_{\rm rev, earth}\times t) + dist_{\rm earth-moon}\times \cos(\omega_{\rm rev, moon}\times t)
@@ -90,7 +90,7 @@ $$
 y_{\rm moon} = -dist_{\rm sun-earth} \times \sin(\omega_{\rm rev, earth}\times t) - dist_{\rm earth-moon}\times \sin(\omega_{\rm rev, moon}\times t)
 $$
 
-Moreover, if we try to describe a realistic solar system, the above equations would become much more complicated because real orbit and rotation axis of the earth are tilted. Let's revise the above code using local coordinate: earth's orbit plane and equator plane, and moon's orbit plane. 
+Moreover, if we try to describe a realistic solar system, the above equations would become much more complicated because real orbit and rotation axis of the Earth are tilted. Let's revise the above code using local coordinate: Earth's orbit plane and equator plane, and Moon's orbit plane. 
 ```js
 const earth_orbit = new THREE.Object3D();
 const earth_equator = new THREE.Object3D();
@@ -117,7 +117,7 @@ function updateSystem(sec) {
 }
 ```
 
-In the above code, because `moon_orbit` belongs to the `earth_equator`, the position of `moon` is determined in the `earth_equator` coordinates. Thus, the equation of the moon gets simple rather than the above equation.
+In the above code, because `moon_orbit` belongs to the `earth_equator`, the position of `moon` is determined in the `earth_equator` coordinates. Thus, the equation of the Moon gets simple rather than the above equation.
 
 <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/5yJ95Mw.gif">
 

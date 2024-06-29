@@ -63,4 +63,4 @@ export const vertex = `
 `
 ```
 
-In the following articles, I’ll introduce the basics of GLSL and create the earth using `ShaderMaterial`.
+In the following articles, I’ll introduce the basics of GLSL and create the Earth using `ShaderMaterial`.

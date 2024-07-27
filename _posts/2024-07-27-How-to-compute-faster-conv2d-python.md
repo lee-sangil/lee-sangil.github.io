@@ -11,7 +11,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
->In image processing, 2-D convolution is a highly useful operation. It can be used for tasks such as blurring, morphology, edge detection, and sharpening. In Python, a naive 2-D convolution method has a time complexity of $$O(H \cdot W \cdot k^2)$$ for an $$(H \times W)$$ image and a $$(k \times k)$$ kernel. This post introduces the use of `np.lib.stride_tricks` for enhancing performance of the convolution algorithm. The functions in this library directly access memory, so care must be taken when writing data to memory.
+>In image processing, 2-D convolution is a highly useful operation. It can be used for tasks such as blurring, morphology, edge detection, and sharpening. In Python, a naive 2-D convolution method takes a huge computational load for a large image. This post introduces the use of np.lib.stride_tricks for enhancing performance of the convolution algorithm. The functions in this library directly access memory, so care must be taken when writing data to memory.
 
 <!--more-->
 
@@ -42,7 +42,7 @@ This method involves multiple nested for-loops, which can lead to computation ti
 To improve the performance of the 2-D convolution algorithm, `np.lib.stride_tricks.as_strided()` can be utilized. Essentially, this function creates a new array with the desired shape and strides. Strides refer to the number of bytes to skip when moving one step in a specific dimension. For example, let us consider the numpy array `x = np.array([[1,2],[3,4]], dtype=np.int64)`. The raw data bytes of `x` can be viewed as:
 ```python
 x = np.array([[1,2],[3,4]], dtype=np.int64)
-print(x.tobytes())
+print(x.tobytes()) # little-endian
 # b'\x01\x00\x00\x00\x00\x00\x00\x00 \x02\x00\x00\x00\x00\x00\x00\x00 \x03\x00\x00\x00\x00\x00\x00\x00 \x04\x00\x00\x00\x00\x00\x00\x00'
 ```
 

@@ -1,5 +1,5 @@
 ---
-title: "[Python] How to Compute Faster 2-D Convolution in Python"
+title: "How to Compute Faster 2-D Convolution in Python"
 categories:
  - Python
 tags:
@@ -11,7 +11,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
->In image processing, 2-D convolution is a highly useful operation. It can be used for tasks such as blurring, morphology, edge detection, and sharpening. In Python, a naive 2-D convolution method takes a huge computational load for a large image. This post introduces the use of np.lib.stride_tricks for enhancing performance of the convolution algorithm. The functions in this library directly access memory, so care must be taken when writing data to memory.
+> In image processing, 2-D convolution is a highly useful operation. It can be used for tasks such as blurring, morphology, edge detection, and sharpening. In Python, a naive 2-D convolution method takes a huge computational load for a large image. This post introduces the use of np.lib.stride_tricks for enhancing performance of the convolution algorithm. The functions in this library directly access memory, so care must be taken when writing data to memory.
 
 <!--more-->
 

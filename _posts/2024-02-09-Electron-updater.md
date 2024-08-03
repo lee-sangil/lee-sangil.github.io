@@ -1,5 +1,5 @@
 ---
-title: "[Electron] How To Update an Electron App Automatically"
+title: "How To Update an Electron App Automatically"
 categories:
  - Electron
  - JavaScript

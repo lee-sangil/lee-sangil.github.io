@@ -1,5 +1,5 @@
 ---
-title: "[WebGL] Shader Design Patterns"
+title: "Shader Design Patterns"
 categories:
  - WebGL
  - JavaScript

@@ -1,5 +1,5 @@
 ---
-title: "[Three.js] Shader Material"
+title: "Shader Material"
 categories:
  - ThreeJS
  - JavaScript

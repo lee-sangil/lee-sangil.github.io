@@ -1,5 +1,5 @@
 ---
-title: "[Three.js] Installation"
+title: "Installation"
 categories:
  - ThreeJS
  - JavaScript

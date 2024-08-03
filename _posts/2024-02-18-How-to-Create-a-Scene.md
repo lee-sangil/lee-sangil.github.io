@@ -1,5 +1,5 @@
 ---
-title: "[Three.js] How to Create a Scene"
+title: "How to Create a Scene"
 categories:
  - ThreeJS
  - JavaScript

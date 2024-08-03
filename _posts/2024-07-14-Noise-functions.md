@@ -1,5 +1,5 @@
 ---
-title: "[WebGL] Noise Functions"
+title: "Noise Functions"
 categories:
  - WebGL
  - JavaScript
@@ -411,5 +411,5 @@ This is a result.
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/sTfBGZF.png">
 
 
-[^wiki]: https://en.m.wikipedia.org/wiki/Simplex_noise
+[^wiki]: [https://en.m.wikipedia.org/wiki/Simplex_noise](https://en.m.wikipedia.org/wiki/Simplex_noise)
 [^shaderpattern]: [\[WebGL\] Shader Design Patterns](https://sangillee.com/2024-05-25-shader-design-patterns/)

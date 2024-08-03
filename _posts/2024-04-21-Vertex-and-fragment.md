@@ -1,5 +1,5 @@
 ---
-title: "[WebGL] Vertex and Fragment"
+title: "Vertex and Fragment"
 categories:
  - WebGL
  - JavaScript

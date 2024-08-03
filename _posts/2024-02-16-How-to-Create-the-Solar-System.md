@@ -1,5 +1,5 @@
 ---
-title: "[Three.js] How to Create the Solar System"
+title: "How to Create the Solar System"
 categories:
  - ThreeJS
  - JavaScript
@@ -8,6 +8,7 @@ tags:
  - three.js
  - shader
  - glsl
+ - solar system
 header:
   teaser: /assets/image/thumbnail/threejs.jpg
 excerpt_separator: <!--more-->

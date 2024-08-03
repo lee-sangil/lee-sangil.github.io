@@ -1,11 +1,12 @@
 ---
-title: "[Three.js] Scene Graph"
+title: "Scene Graph"
 categories:
  - ThreeJS
  - JavaScript
 tags:
  - javascript
  - three.js
+ - solar system
 header:
   teaser: /assets/image/thumbnail/threejs.jpg
 excerpt_separator: <!--more-->

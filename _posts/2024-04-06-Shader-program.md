@@ -1,5 +1,5 @@
 ---
-title: "[WebGL] Shader Program"
+title: "Shader Program"
 categories:
  - WebGL
  - JavaScript

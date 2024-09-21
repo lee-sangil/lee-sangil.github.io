@@ -2,9 +2,7 @@
 title: "Vertex and Fragment"
 categories:
  - WebGL
- - JavaScript
 tags:
- - javascript
  - glsl
  - webgl
  - shader
@@ -19,7 +17,7 @@ excerpt_separator: <!--more-->
 
 ## Vertex shader
 In vertex shader, we have to define the position of vertices, `gl_Position`, in `main()` function. `gl_Position` is a reserved variable, so its name can not be changed manually. The simple example of vertex shader is below:
-```c
+```glsl
 precision mediump float;
 
 attribute vec2 a_position;
@@ -47,7 +45,7 @@ Lastly, `varying` is the reserved data type for sending the value of the data fr
 
 ## Fragment shader
 The fragment shader describes the color of a pixel, `gl_FragColor`. The type of this reserved variable is `vec4` consisting of red, green, blue, alpha. 
-```c
+```glsl
 precision mediump float;
 varying vec2 v_position;
 uniform float u_time;

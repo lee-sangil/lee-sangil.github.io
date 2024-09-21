@@ -6,6 +6,7 @@ tags:
  - convolution
  - numpy
  - image processing
+ - stride tricks
 header:
   teaser: /assets/image/thumbnail/python.jpg
 excerpt_separator: <!--more-->

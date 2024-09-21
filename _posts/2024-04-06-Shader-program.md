@@ -89,7 +89,7 @@ Below is an example using shader program. In the example, the color of canvas va
 {% include /assets/basic_shader.html %}
 
 #### fragment shader
-```c
+```glsl
 // frag.js
 const fragment = /* glsl */ `
 precision mediump float;
@@ -113,7 +113,7 @@ export default fragment
 ```
 
 #### vertex shader
-```c
+```glsl
 // vert.js
 const vertex = /* glsl */ `
 precision mediump float;

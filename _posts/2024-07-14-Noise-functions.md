@@ -2,12 +2,11 @@
 title: "Noise Functions"
 categories:
  - WebGL
- - JavaScript
 tags:
- - javascript
  - glsl
  - webgl
  - shader
+ - noise
 header:
   teaser: /assets/image/thumbnail/simplex_noise.png
 excerpt_separator: <!--more-->
@@ -20,7 +19,7 @@ excerpt_separator: <!--more-->
 ## Value noise
 This is the simplest noise function using four random values per each vertex. As mentioned in here[^shaderpattern], GLSL does not support a true random function, but pseudo-random function. Thus, a vertex can read the random value of adjacent vertices from indexing, i.e., `random(x + vec2(1., 0.))`. By interpolating the value of four vertices, we can generate a noise value. To make the noise value smooth at the boundary, we can use `smoothstep()` or a custom stepper (timing) function. I'll address the interpolation methods in the upcoming article. Then, when you increase the scale of the input of the noise function, the resolution of the noise pattern will increase. 
 
-```c
+```glsl
 // Fragment
 precision mediump float;
 
@@ -77,7 +76,7 @@ A Perlin noise is suggested by Ken Perlin to represent the natural complexity wh
 
 The example code is shown below.
 
-```c
+```glsl
 // Fragment
 precision mediump float;
 
@@ -125,7 +124,7 @@ void main() {
 
 However, since the value of points are computed from gradient vectors, the value of all corners is zero. This characteristic of Perlin noise can cause directional artifacts. Depending on the condition, straight lines with values ​​near 0 can be seen. To resolve this issue, we can set the magnitude of gradient vector randomly,
 
-```c
+```glsl
 vec2 random2 (in vec2 x) {
     float magnitude = random(x * 12.34);
     float theta = random(x) * 2. * PI;
@@ -136,7 +135,7 @@ vec2 random2 (in vec2 x) {
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/czsW8FG.png">
 
 or we can use the previous Value noise together. 
-```c
+```glsl
 void main() {
     vec2 st = v_position * 6.;
     float value = 0.2 * noise(st) + 0.8 * Perlin(st);
@@ -301,7 +300,7 @@ $$
 $$
 
 In shader, `x_skew` is a point in the skewed coordinate, `x_orig` is the origin of the corresponding cell in the input coordinate, and `x0` denotes the internal coordinate inside the cell.
-```c
+```glsl
 const float F = 0.5 * (1.7320508076 - 1.);
 const float G = 0.5 * (1. - 1./1.7320508076);
   
@@ -325,7 +324,7 @@ The below figure shows a total of six simplices in the three-dimensional coordin
 
 For an arbitrary point, it is possible to determine which simplex it belongs to according to the size order of each element. In the below code, I've only compared the magnitude of `x0.x` and `x0.y` since there are two simplices in the two-dimensional coordinate. Then, the position `i1` in the input coordinate is `i1 - vec2(G)` and the position `i2` in the input coordinate is `i2 - 2.0 * vec2(G)`. Thus, `x1` and `x2` denote the unskewed displacement vector from each vertex.
 
-```c
+```glsl
 vec2 i1 = vec2(0.0);
 if (x0.x > x0.y) {
     i1 = vec2(1.0, 0.0);
@@ -338,7 +337,7 @@ vec2 x2 = x0 - (vec2(1.0) - 2.0 * vec2(G));
 
 #### Gradient selection
 Likewise the above classic Perlin noise, I've generated a pseudo-random gradient vectors for each vertex.
-```c
+```glsl
 vec2 g0 = random2(i0);
 vec2 g1 = random2(i0 + i1);
 vec2 g2 = random2(i0 + vec2(1.0));
@@ -346,7 +345,7 @@ vec2 g2 = random2(i0 + vec2(1.0));
 
 #### Kernel summation
 Finally, compute the extrapolated value from summing the contributions of each vertex as below:
-```c
+```glsl
 vec3 t = max(0.5 - vec3(dot(x0,x0), dot(x1,x1), dot(x2,x2)), 0.0);
 t = t*t*t*t;
 
@@ -354,7 +353,7 @@ return 50.0 * dot(t, vec3(dot(x0, g0), dot(x1, g1), dot(x2, g2))) + 0.5;
 ```
 
 A total code is here.
-```c
+```glsl
 precision mediump float;
 
 varying vec2 v_position;

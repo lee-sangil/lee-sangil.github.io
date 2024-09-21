@@ -2,12 +2,14 @@
 title: "Shader Design Patterns"
 categories:
  - WebGL
- - JavaScript
 tags:
- - javascript
  - glsl
  - webgl
  - shader
+ - random
+ - gradient
+ - noise
+ - fractal
 header:
   teaser: /assets/image/thumbnail/webgl.jpg
 excerpt_separator: <!--more-->
@@ -41,7 +43,7 @@ Using the above fundamental functions, several techniques are addressed below.
 ## Gradient
 Gradient color shows a transition between multiple colors. To implement gradient color, we need $$n$$ colors and $$(n-1)$$ weight variables. 
 `mix` makes you implement simple gradient easily. 
-```c
+```glsl
 varying vec2 v_position; // [0, 1]
 
 void main() {
@@ -53,7 +55,7 @@ void main() {
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/B2F3nDT.png">
 
 Or, you can use `smoothstep` so that the position of gradient boundary can be tuned. 
-```c
+```glsl
 varying vec2 v_position; // [0, 1]
 
 void main() {
@@ -66,7 +68,7 @@ void main() {
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/WfJe18T.png">
 
 Also, you can manually design the smoothing function. 
-```c
+```glsl
 varying vec2 v_position; // [0, 1]
 
 float my_interp(in float a, in float b, in float x) {
@@ -84,7 +86,7 @@ void main() {
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/c10JKTU.png">
 
 If you want to generate a gradient using three colors, use `mix` twice with two weight variables.
-```c
+```glsl
 varying vec2 v_position; // [0, 1]
 
 void main() {
@@ -100,7 +102,7 @@ void main() {
 
 ## Repetitive Pattern
 When zooming out on most complicated natural texture, you can see they are patterned. To divide a range [0, 1] into multiple [0, 1] s, we use `fract()` function. 
-```c
+```glsl
 varying vec2 v_position; // [0, 1]
 
 void main() {
@@ -117,7 +119,7 @@ void main() {
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/Ow15yYa.png">
 
 Likewise, if you want to generate a pattern inside a pattern, divide grids twice. 
-```c
+```glsl
 varying vec2 v_position; // [0, 1]
 
 vec4 divide_cell(in vec2 parent, in vec2 size) {
@@ -138,7 +140,7 @@ void main() {
 
 ## Random
 Unfortunately, GLSL does not provide a true random number generator. Instead, we can generate a pseudo random number with a sinusoidal function of high amplitude with `fract`. `fract` transforms the value into the range [0, 1], and the sinusoidal function produces randomness by generating a different slope for each [0, 1] piece. Also, `fract(x^2)` can generate random number since their slopes are different for each piece. However, unlike the sinusoidal function, which is bounded on [-1, 1], `x^2` can exceed the maximum value of Float, thus outputting incorrect value.
-```c
+```glsl
 float random(in float x) {
     return fract(sin(x)*100000.0);
 }
@@ -180,7 +182,7 @@ ylabel('Value, X');
 Above, the histogram of $$\rm sin(\it x \rm)$$, $$x^2$$, $$x$$ are shown. As mentioned before, sinusoidal and power functions show randomness, whereas linear function has a pattern. Please notice that they have a uniform distribution.
 
 To generate a random number from two or more dimensional vector, we use dot product to produce a scalar number. 
-```c
+```glsl
 float random(in vec2 x) {
     return fract(sin(dot(x, vec2(12.9898,78.233)))*43758.5453123);
 }
@@ -197,7 +199,7 @@ If we called a single independent noise as random, noise means the interpolated 
 
 As mentioned above, all vertex and fragment is blind to others, so each fragment can not read the colors nearby. However, since the random function of GLSL generates pseudo-random output rather than true random, thus each fragment can read the value of adjacent fragments. 
 
-```c
+```glsl
 float random (in vec2 x) {
     return fract(sin(dot(x, vec2(12.9898,78.233))) * 43758.5453123);
 }
@@ -222,7 +224,7 @@ float noise (in vec2 x) {
 
 In real world, a signal is the sum of sinusoids of multiple frequencies, and we can compute the amplitude of sinusoids of the specific frequency by Fourier transform. In noise pattern, a division number corresponds to a frequency of Fourier transform. Therefore, when we add multiple noises of different division size, a natural texture can be imitated.
 
-```c
+```glsl
 float random (in vec2 x) {
     return fract(sin(dot(x, vec2(12.9898,54.233))) * 43758.5453123);
 }
@@ -263,7 +265,7 @@ void main() {
 ```
 
 Also, you can compose multiple fractal noises and time variable to illustrate flowing textures such as smoke.
-```c
+```glsl
 void main() {
     vec3 color = vec3(0.5, 0.6, 0.7);
 

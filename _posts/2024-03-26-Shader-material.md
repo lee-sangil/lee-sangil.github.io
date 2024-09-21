@@ -6,6 +6,8 @@ categories:
 tags:
  - javascript
  - three.js
+ - shader
+ - material
 header:
   teaser: /assets/image/thumbnail/threejs.jpg
 excerpt_separator: <!--more-->

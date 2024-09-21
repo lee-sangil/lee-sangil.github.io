@@ -6,6 +6,8 @@ tags:
  - visual odometry
  - depth filter
  - derivation
+ - likelihood
+ - posterior
 header:
   teaser: /assets/image/thumbnail/depth_filter.png
 excerpt_separator: <!--more-->

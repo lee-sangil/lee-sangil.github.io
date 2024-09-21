@@ -32,7 +32,7 @@ const material = new THREE.ShaderMaterial({
 ```
 
 On the other hands, the texture map can be declared as
-```c
+```glsl
 uniform sampler2D u_dayTexture;
 uniform sampler2D u_nightTexture;
 ```
@@ -43,13 +43,13 @@ Below are the example of day and night map of Earth.
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/KfZv5dF.jpeg">
 
 Then, RGB values of texture can be accessed by UV position, `vUv`, that is an attribute provided by Three.js.
-```c
+```glsl
 vec3 dayColor = texture2D( u_dayTexture, vUv ).rgb;
 vec3 nightColor = texture2D( u_nightTexture, vUv ).rgb;
 ```
 
 To mix two textures, we have to compute a weight between them, and it depends on the direction of the Sun. Thus, we should let shaders know the relative position of Sun with respect to Earth, `u_sunRelPosition`.
-```c
+```glsl
 uniform vec3 u_sunRelPosition; // the relative position of light source
 
 void main( void ) {
@@ -59,7 +59,7 @@ void main( void ) {
 ```
 
 Then the dot product between the sun direction and the normal vector of the Earth surfaces denotes an incidence angle of sunlight which defines day or night.
-```c
+```glsl
 float cosAngleSunToNormal = dot(vNormal, sunDir); // Compute cosine sun to normal
 float mixAmountTexture = 1. / (1. + exp(-20. * cosAngleSunToNormal)); // Convert [+1, -1] -> [1, 0] with high contrast
     
@@ -69,7 +69,7 @@ vec3 color = mix(nightColor, dayColor, mixAmountTexture); // Select day or night
 Seen from above, `mixAmountTexture` not only converts value from \[+1, -1\] to \[1, 0\], but also increases contrast through an exponential function for natural shading. Then, `mix()` function mixes the night color and day color. These basic functions are briefly explained before[^shaderpattern]. 
 
 Up to here, the result is below:
-```c
+```glsl
 uniform sampler2D u_dayTexture;
 uniform sampler2D u_nightTexture;
 uniform vec3 u_sunRelPosition; // the relative position of light source
@@ -119,22 +119,22 @@ $$ n_y = 2 * G - 1, $$
 $$ n_z = 2 * B - 1. $$
 
 In shader, we use
-```c
+```glsl
 vec3 t_normal = texture2D( u_normalTexture, vUv ).xyz * 2.0 - 1.0;
 ```
 
 The normal vector of `texture2D` is based on the local coordinate system of the object. Thus, in order to convert a normal vector from local coordinates to world coordinates, we multiply the normal vector by `vTbn` matrix. Each column of `vTbn` matrix is composed of tangent, normal, and the cross vector of both vectors with respect to world coordinates, and they can be computed from the attributes provided by Three.js. Therefore, a normal vector in world coordinate system is
-```c
+```glsl
 vec3 normal = normalize(vTbn * t_normal);
 ```
 
 Then, the angle between the normal vector and the direction of sunlight is 
-```c
+```glsl
 float cosAngleSunToSurface = dot(normal, sunDirUnit); // Compute cosine sun to normal
 ```
 
 Finally, we add the difference between `cosAngleSunToSurface` and `cosAngleSunToNormal` into the calculation of `mixAmountTexture`. The below is the total code. 
-```c
+```glsl
 // Normal map texture
 vec3 t_normal = texture2D( u_normalTexture, vUv ).xyz * 2.0 - 1.0;
 vec3 normal = normalize(vTbn * t_normal);
@@ -150,25 +150,25 @@ To compute reflection and its effect on the camera, we need a specular map and t
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/i8ZwWzM.jpeg">
 
 To soften the effect of glitter, I've scaled down the value.
-```c
+```glsl
 float reflectRatio = texture2D(u_specTexture, vUv).r;
 reflectRatio = 0.3 * reflectRatio + 0.1; // [0, 1] -> [0.1, 0.4]
 ```
 
 Then, the vector of sunlight reflecting at a surface is computed by
-```c
+```glsl
 vec3 reflectVec = -reflect(sunDir, normal); // reflected vector of sunlight
 ```
 , where `reflect(v, w)` = $$v - 2 * (v \cdot w) * w$$.
 
 Eventually, surface points whose reflection vectors are close to the vector starting at the camera position and ending at the surface position should be brightened. Notice that `cameraPosition` is a built-in attribute of Three.js, and denotes the position of the camera in world coordinates.
-```c
+```glsl
 float specPower = dot(reflectVec, normalize(cameraPosition - surfacePosition)); // dot product between reflected light and camera vector. When they are close to each other, the result of dot product increases.
 color += mixAmountTexture * pow(specPower, 2.0) * reflectRatio;
 ```
 
 The part of specular map texture is summarized as below.
-```c
+```glsl
 // Specular map texture with reflection
 vec3 surfacePosition = u_position + vPosition; // surface position in world coordinates
 float reflectRatio = texture2D(u_specTexture, vUv).r;
@@ -188,18 +188,18 @@ On Earth, there are clouds due to the circulation of atmosphere. You can find cl
 In this section, we will render cloud and its shadow. 
 
 Since the cloud layer is on the top, you can just mix the previous texture and cloud texture. The above PNG file provides RGBA values, and we can use the value of alpha channel as a weight for the mix function.
-```c
+```glsl
 vec4 cloudsColor = texture2D(u_cloudTexture, vUv);
 cloudsColor *= clamp(mixAmountHemisphere, 0.2, 1.);
 color = color * (1.0 - cloudsColor.a) + cloudsColor.rgb * cloudsColor.a;
 ```
 Please notice that I've used a new value `mixAmountHemisphere` rather than `mixAmountTexture` to implement a day-and-night of cloud, because `mixAmountTexture` includes the shadow of mountains.
-```c
+```glsl
 float mixAmountHemisphere = 1. / (1. + exp(-20. * cosAngleSunToNormal));
 ```
 
 To render more realistic cloud, we can independently adjust RGB value of `cloudColor`, for example, making red color diminish gradually while blue color become dark sharply, at the edge of day and night. 
-```c
+```glsl
 cloudsColor.r *= clamp(mixAmountHemisphere, 0.2, 1.);
 cloudsColor.g *= clamp(pow(mixAmountHemisphere, 1.5), 0.2, 1.);
 cloudsColor.b *= clamp(pow(mixAmountHemisphere, 2.0), 0.2, 1.); // Blue light is less scattered than red light
@@ -213,7 +213,7 @@ For calculating the shadow of cloud, we first compute `dot(vNormal, sunDir) * vN
 <img class="image480" referrerpolicy="no-referrer" src="https://i.imgur.com/ulM5bPQ.jpeg">
 
 Then, `inverse(vTbn)` converts the vector from world to local coordinate system, and a magic number `0.005` implies the height of clouds. Next, `cloudsShadow` is the cloud texture value that affects the surface. Therefore, `mixAmountTexture` decreases depending on the thickness of cloud that sunlight penetrates.
-```c
+```glsl
 vec3 translVec = 0.0005 * inverse(vTbn) * (dot(vNormal, sunDir) * vNormal - sunDir);
 vec4 cloudsShadow = texture2D(u_cloudTexture, vUv - translVec.xy);
 mixAmountTexture *= (1. - 0.5*cloudsShadow.a);
@@ -284,7 +284,7 @@ $$
 $$
 
 The above equations are summarized in the below function.
-```c
+```glsl
 #define PI (3.141592)
 
 float eclipse(float angleBtw, float angleLight, float angleObs) {
@@ -310,7 +310,7 @@ float eclipse(float angleBtw, float angleLight, float angleObs) {
 ```
 
 Then, the brightness of the surface is multiplied by the brightness factors for all moon.
-```c
+```glsl
 // Eclipse
 vec3 surfacePosition = u_position + vPosition;
 float distSurfaceToSun = length(u_sunRelPosition);
@@ -322,7 +322,7 @@ mixAmountHemisphere *= eclipse(angleBtwSunMoon, asin(u_sunRadius/distSurfaceToSu
 ```
 
 Please insert the below line into the normal map processing to apply eclipse shadow to the ground.
-```c
+```glsl
 mixAmountTexture *= mixAmountHemisphere;
 ```
 
@@ -331,7 +331,7 @@ mixAmountTexture *= mixAmountHemisphere;
 ## Atmosphere
 Thankfully, the Earth has an atmosphere. To generate our blue atmosphere, we have to consider that the atmosphere is visible remarkably under the light. Thus, we compute the cosine angle between sun and normal vector again. Then, in common with the glow effect in [[Create realistic Sun]], I've created an ambient circle with `u_color`, and masked with `mixAmount`. Notice that `vNormalView` denotes a normal vector of the object, represented in the camera coordinates.
 
-```c
+```glsl
 uniform vec3 u_sunRelPosition;
 uniform vec3 u_color; // the color of atmosphere
 
@@ -362,7 +362,7 @@ The result is as follows. By the way, I've changed the background color to black
 ## Fresnel
 Finally, this is the last step. The Fresnel effect deals with the intensity of reflection depending on the angle of incidence. As the angle gets small, the reflection becomes strong. Thus, the farther from the center of the Earth, i.e. the greater the angle between the camera-surface vector and the normal vector of the surface, the less transparent the atmosphere should be. As the same with the above atmosphere, Fresnel values are also masked with day-and-night amount, `mixAmount`. 
 
-```c
+```glsl
 uniform vec3 u_sunRelPosition;
 uniform vec3 u_color;
 
@@ -394,7 +394,7 @@ As compared the below image to the previous one, you can see the surface blurrin
 Up to here, the overall fragment and vertex shader codes, and Three.js javascript code are below.
 
 #### Earth's fragment shader
-```c
+```glsl
 uniform sampler2D u_dayTexture;
 uniform sampler2D u_nightTexture;
 uniform sampler2D u_normalTexture;
@@ -492,7 +492,7 @@ void main( void ) {
 ```
 
 #### Earth's vertex shader
-```c
+```glsl
 varying vec2 vUv;
 varying vec3 vNormal;
 varying vec3 vPosition;
@@ -519,7 +519,7 @@ void main() {
 ```
 
 #### Add-on vertex shader
-```c
+```glsl
 varying vec2 vUv;
 varying vec3 vNormal;
 varying vec3 vNormalModel;

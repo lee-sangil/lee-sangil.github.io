@@ -22,7 +22,7 @@ excerpt_separator: <!--more-->
 
 ## Surface
 Since the sun is the only celestial object that emits lights, there is no day-and-night. There is only day. So, we just design the texture of the surface of the sun only. In this article, the surface of the sun is rendered using fractal noise, a.k.a., fractal Brownian motion, referred from here[^shaderpattern]. To render a fractal noise in 3D space, we define a random and a noise function whose input is a 3D vector, in advance. You can find another magic numbers who generate a random number. 
-```c
+```glsl
 // 2D Random
 float random (in vec3 st) {
     return fract(sin(dot(st,vec3(12.9898,78.233,23.112)))*12943.145);
@@ -30,7 +30,7 @@ float random (in vec3 st) {
 ```
 
 By the way, a noise function fetching 3D vector as an input is as follows. 
-```c
+```glsl
 float noise (in vec3 _pos) {
     vec3 i_pos = floor(_pos);
     vec3 f_pos = fract(_pos);
@@ -65,7 +65,7 @@ float noise (in vec3 _pos) {
 Since the above noise function is based on 3D space, it mixes a total of eight values with 3d smoothing step vector `t` in x, y, z axis. 
 
 Furthermore, to change the values as time goes, I've defined `i_time` and `f_time`, in similar with `i_pos` and `f_pos`.  Then, new eight values, `ba` ~ `bh`, are introduced. In the below, I've added the time variable into the position variable, i.e., `float aa = random(i_pos + 2.*i_time)`. Instead, you can define a random function for `vec4` type, and use `float aa = random(vec4(i_pos, i_time))`. 
-```c
+```glsl
 float noise (in vec3 _pos) {
     vec3 i_pos = floor(_pos);
     vec3 f_pos = fract(_pos);
@@ -112,8 +112,8 @@ float noise (in vec3 _pos) {
 ```
 
 Next, we build a fractal Brownian motion using the above noise function.
-```c
- #define NUM_OCTAVES 6
+```glsl
+#define NUM_OCTAVES 6
 float fBm ( in vec3 _pos, in float sz) {
     float v = 0.0;
     float a = 0.2;
@@ -165,7 +165,7 @@ The glow effect can make a light-emitting object brighter. Since the glow effect
 | <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/JdN8oyc.gif"> | <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/VY5pyZG.gif"> | <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/qXqr1mV.gif"> |
 
 In Three.js, `vNormal`, `vNormalModel`, and `vNormalView` can be derived from the predefined attributes; `normal`, `modelMatrix`, and `normalMatrix`.
-```c
+```glsl
 varying vec2 vUv;
 varying vec3 vNormal;
 varying vec3 vNormalModel;
@@ -183,7 +183,7 @@ void main() {
 ```
 
 Thus, `dot(vPosition, vNormalView)` has the largest value at the center of object, whereas having small value at the boundary.  
-```c
+```glsl
 uniform vec3 u_color;
 varying vec3 vPosition;
 varying vec3 vNormalView;
@@ -199,7 +199,7 @@ void main() {
 
 ## Fresnel
 As mentioned in the previous article[^earth], when rendering the light-emitting object, we have to consider that the boundary of the object seems to be brighter because the angle of incidence becomes small at the boundary. In the below, the Fresnel effect is described with the term, `fresnelTerm_outer`. Besides, because the light from the center of the object enters the camera more strongly, this effect is described as a term, `fresnelTerm_inner`. As the same with the glow effect, `vNormalView` has been used to render the Fresnel effect.
-```c
+```glsl
 uniform vec3 u_color;
 varying vec3 vPosition;
 varying vec3 vNormalView;

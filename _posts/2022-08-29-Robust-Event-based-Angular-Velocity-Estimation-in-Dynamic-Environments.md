@@ -16,6 +16,9 @@ links:
  - paper: 
    link: /assets/download/sangillee_dissertation.pdf
    name: "Paper"
+ - presentation:
+   link: /assets/download/sangillee_dissertation_ppt.pdf
+   name: "Presentation"
  - dataset: 
    link: /_pages/larr-dvs-de-dataset/index.html
    name: "Dataset"

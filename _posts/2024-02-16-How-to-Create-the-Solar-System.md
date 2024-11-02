@@ -31,10 +31,9 @@ The above image is the snapshot of a solar system simulator.[^solarsystem] The p
 	1. [Vertex and fragment]({% post_url 2024-04-21-Vertex-and-fragment %})
 	1. [Shader patterns]({% post_url 2024-05-25-Shader-design-patterns %})
 1. [Create realistic Earth]({% post_url 2024-06-07-Create-realistic-Earth-with-shaders %})
-1. [Create realistic Sun]({% post_url 2024-06-29-Create-realistic-Sun-with-shaders %})
-1. Create a planet with rings
+1. [Create realistic Sun with glow]({% post_url 2024-06-29-Create-realistic-Sun-with-shaders %})
+1. [Create realistic Saturn with rings]({% post_url 2024-11-02-Create-realistic-Saturn-with-shaders %})
 1. Create a moon with irregular shape
-1. Eclipse (planet-to-moon, planet-to-rings)
 1. Shining (post-processing)
 1. Compute the orbit
 

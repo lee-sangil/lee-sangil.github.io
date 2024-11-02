@@ -12,7 +12,7 @@ tags:
  - shader
  - solar system
 header:
-  teaser: /assets/image/thumbnail/2024-11-02-create-realistic-saturn-with-rings.png
+  teaser: /assets/image/thumbnail/2024-11-02-create-realistic-saturn-with-rings.jpg
 excerpt_separator: <!--more-->
 ---
 

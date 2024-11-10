@@ -212,7 +212,7 @@ After setting a new value for geometry of ring, the UV coordinates of mesh gets 
 
 Then, Saturn ring is rendered as shown here.
 
-<img class="image640" referrerpolicy="no-referrer" src="https://i.imgur.com/I8snbd4.png">
+<img class="image640" referrerpolicy="no-referrer" src="https://i.imgur.com/OZ3oUya.png">
 
 ## Shadow cast by rings
 In order to render shadow on Saturn's surface cast by rings, I've added supplementary uniform variables at the material of Saturn body.
@@ -237,40 +237,40 @@ const material_saturn = new THREE.ShaderMaterial({
 
 `u_alphaTexture` is an alpha map texture of rings, `u_ringNormal` is the normal vector of a plane on which rings lie, `u_radius1` and `u_radius2` are the inner and outer absolute radius of rings disc, where 0.2 is the radius of Saturn, and 1.3 and 2.2 are the inner and outer radius of Saturn rings disc, respectively. 
 
-Using `u_ringNormal`, $$N$$, `u_position`, $$\mathbf{p}_o$$, and an assumption that the center of rings is equal to the position of the main body, the plane equation of rings is
+Using `u_ringNormal`, $$\mathbf{n}$$, `u_position`, $$\mathbf{p}_o$$, and an assumption that the center of rings is equal to the position of the main body, the plane equation of rings is
 
 $$
-N \cdot (\mathbf{x} - \mathbf{p}_o) = 0.
+\mathbf{n} \cdot (\mathbf{x} - \mathbf{p}_o) = 0.
 $$
 
-For a point on the surface of main body, $$\mathbf{p}_s$$, the line equation passing the origin of Sun, $$\mathbf{p}_{sun}$$ and the surface point is
+For a point on the surface of main body, $$\mathbf{p}_s$$, the line equation passing the origin of Sun, $$\mathbf{p}_{\rm sun}$$ and the surface point is
 
 $$
-\mathbf{x} = \mathbf{p}_s + (\mathbf{p}_{sun} - \mathbf{p}_o) * t, ~t > 0.
+\mathbf{x} = \mathbf{p}_s + (\mathbf{p}_{\rm sun} - \mathbf{p}_o) * t, ~t > 0.
 $$
 
 Then, the intersection point between the above plane and line, $$x_p$$, satisfies
 
 $$
-\mathbf{x}_p = \mathbf{p}_s + (\mathbf{p}_{sun} - \mathbf{p}_o) * t_p
+\mathbf{x}_p = \mathbf{p}_s + (\mathbf{p}_{\rm sun} - \mathbf{p}_o) * t_p
 $$
 
 and
 
 $$
-N \cdot (\mathbf{p}_s + (\mathbf{p}_{sun} - \mathbf{p}_o) * t_p - \mathbf{p}_o) = 0.
+\mathbf{n} \cdot (\mathbf{p}_s + (\mathbf{p}_{\rm sun} - \mathbf{p}_o) * t_p - \mathbf{p}_o) = 0.
 $$
 
 When solving $$t_p$$, we obtain
 
 $$
-t_p = - \frac{N\cdot (\mathbf{p}_s - \mathbf{p}_o)}{N\cdot (\mathbf{p}_{sun} - \mathbf{p}_o)}.
+t_p = - \frac{\mathbf{n}\cdot (\mathbf{p}_s - \mathbf{p}_o)}{\mathbf{n}\cdot (\mathbf{p}_{\rm sun} - \mathbf{p}_o)}.
 $$
 
 For $$t_p > 0$$, the intersection point is
 
 $$
-\mathbf{x}_p = \mathbf{p}_s - (\mathbf{p}_{sun} - \mathbf{p}_o) * \frac{N\cdot (\mathbf{p}_s - \mathbf{p}_o)}{N\cdot (\mathbf{p}_{sun} - \mathbf{p}_o)}.
+\mathbf{x}_p = \mathbf{p}_s - (\mathbf{p}_{\rm sun} - \mathbf{p}_o) * \frac{\mathbf{n}\cdot (\mathbf{p}_s - \mathbf{p}_o)}{\mathbf{n}\cdot (\mathbf{p}_{\rm sun} - \mathbf{p}_o)}.
 $$
 
 Next, to determine whether the intersection point lies on the rings, I've compared the distance of the point, $$d$$ with the inner and outer radius of rings. 
@@ -296,7 +296,80 @@ if (s > 0.) {
 
 Finally, the realistic Saturn is here:
 
-<img class="image640" referrerpolicy="no-referrer" src="https://i.imgur.com/8nBV6rh.png">
+<img class="image640" referrerpolicy="no-referrer" src="https://i.imgur.com/nyK5N78.png">
 
+## Shadow cast by rings (advanced)
+Since I've computed eclipse shadow effect with precise mathematics, the shadow on rings cast by main body becomes blurred as the light source gets closer or larger. 
+
+|           distant light source           |          close light source          |
+|:------------------------------------:|:------------------------------------:|
+| <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/fEx7NUB.gif"> | <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/HWVxkNE.gif"> |
+
+However, even when the apparent size of the light source differs, the boundary of the shadow on main body's surface cast by the rings remains sharp and clear. To make its boundary more realistic, I've divided the light source into several areas along with the normal vector of the ring plane, and computed a shading factor for each subdivision. The below figure summarizes this method. 
+
+<img class="image640" referrerpolicy="no-referrer" src="https://i.imgur.com/aFd7fu2.jpeg">
+
+The axis of subdivision is perpendicular to the sun direction, and lies along with the normal vector of ring plane. In mathematics, it can be derived by
+
+$$
+\mathbf{v}_{\rm sun,perp} = \rm{arg}\max_{\mathbf{v}} (\mathbf{v} \cdot \mathbf{n}_{ring})
+$$
+
+such that
+
+$$
+\mathbf{v} \cdot \mathbf{v}_{\rm sun} = 0, 
+$$
+
+where $$\mathbf{n}_{\rm ring}$$ is the normal vector of ring plane and $$\mathbf{v}_{\rm sun}$$ denotes the direction vector from the surface to the origin of Sun. Then, for $$i$$-th subdivision, $$\mathbf{v}_{\rm sunRay}=\mathbf{v}_{\rm sun}+(i/DIV * R_{\rm sun}) ~\mathbf{v}_{\rm sun,perp}$$ is obtained, where $$i$$ is an integer within $$-DIV, \ldots, DIV$$, and $$DIV$$ is a parameter for creating subdivision, i.e., a total number of subdivision is $$2 * DIV + 1$$. You can use a large value of $$DIV$$ to imitate an exact shadow effect. 
+
+Because the width of subdivisions is different from each other, the shadow factor of each subdivision should be considered differently. In here, I've used the normalized width, $$\sqrt{1-(i/DIV)^2}$$, as a weight. Thus, a total shadow coefficient on a surface point of planet is the weighted sum of ring's alpha values. The below code is the additional part of fragment shader. 
+
+```glsl
+#define DIV 7
+
+#if DIV == 0
+  #define INV_DIV 1. // prevent nan
+#else
+  #define INV_DIV (1./float(DIV))
+#endif
+
+float eclipseByRings(vec3 surfacePosition, vec3 sunRadiusPerp) {
+  float totalRingAlpha = 0.;
+  for (int i = -DIV; i <= DIV; ++i) {
+    vec3 sunRay = u_sunRelPosition + INV_DIV * float(i) * sunRadiusPerp;
+    float weight = sqrt(1. - pow(float(i)*INV_DIV, 2.));
+    float s = -dot(u_ringNormal, surfacePosition - u_position) / dot(u_ringNormal, sunRay);
+    if (s > 0.) {
+      vec3 point = surfacePosition + sunRay * s;
+      float alphaRatio = (sqrt(dot(point - u_position, point - u_position)) - u_radius1) / (u_radius2 - u_radius1);
+      if (alphaRatio > 0. && alphaRatio < 1.) {
+        float ringAlpha = texture2D( u_alphaTexture, vec2(alphaRatio, 1.0) ).r;
+        totalRingAlpha += ringAlpha * weight;
+      }
+    }
+  }
+  totalRingAlpha /= (2. * float(DIV) + 1.);
+  return totalRingAlpha;
+}
+```
+
+Therefore, the main function of the previous fragment shader becomes
+
+```glsl
+// 2. Shadow of rings
+vec3 surfacePosition = u_position + vPosition;
+vec3 sunRadiusPerp = u_ringNormal - dot(sunDir, u_ringNormal)/dot(sunDir, sunDir) * sunDir;
+sunRadiusPerp = normalize(sunRadiusPerp) * u_sunRadius / length(u_sunRelPosition);
+float ringAlpha = eclipseByRings(surfacePosition, sunRadiusPerp);
+mixAmountSurface *= (1. - 0.8 * ringAlpha * hemisphereLight);
+vec3 color = mix( vec3(0.), dayColor, mixAmountSurface ); // Select day or night texture based on mix.
+```
+
+Finally, you can see that the shadow cast by rings becomes blurry as the light source gets further away from the planet.
+
+|           distant light source           |          close light source          |
+|:------------------------------------:|:------------------------------------:|
+| <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/fEx7NUB.gif"> | <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/0lIxHNB.gif"> |
 
 [^earth]: [\[Three.js\] Create a Realistic Earth with Shaders](https://sangillee.com/2024-06-07-create-realistic-earth-with-shaders/)

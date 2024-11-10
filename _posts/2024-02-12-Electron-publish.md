@@ -90,6 +90,6 @@ When you use NPM script, execute:
 ```bash
 npm run [build script] -- -p always
 ```
-`--` makes to pass the following arguments to the script.
+`--` makes to pass the following arguments to the script. Please make sure the `GH_TOKEN` environment variable is set.
 
 [^publish]: [https://www.electron.build/configuration/publish.html](https://www.electron.build/configuration/publish.html)

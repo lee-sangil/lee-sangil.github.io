@@ -33,7 +33,7 @@ The above image is the snapshot of a solar system simulator.[^solarsystem] The p
 1. [Create realistic Earth]({% post_url 2024-06-07-Create-realistic-Earth-with-shaders %})
 1. [Create realistic Sun with glow]({% post_url 2024-06-29-Create-realistic-Sun-with-shaders %})
 1. [Create realistic Saturn with rings]({% post_url 2024-11-02-Create-realistic-Saturn-with-shaders %})
-1. Create a moon with irregular shape
+1. [Create realistic Phobos with irregular shape]({% post_url 2024-11-15-Create-realistic-Phobos-with-shaders %})
 1. Shining (post-processing)
 1. Compute the orbit
 

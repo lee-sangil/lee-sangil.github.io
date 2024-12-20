@@ -86,72 +86,124 @@ gallery-jeju:
     image_path: /assets/image/log/Jeju/P8022596.jpg
     alt: "A shore of Jeju"
 ---
+<script>
+  function scrollGallery(button, direction) {
+    const galleryWindow = button.closest('.gallery-window');
+    const container = galleryWindow.querySelector('.gallery-container');
+    const scrollAmount = 300; // 한 번에 스크롤할 픽셀 수
+    container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
 
-<h2>Bohol, Philippines</h2>
-<div class="gallary-window">
-  <div class="gallary-container">
+    let new_scrollLeft = container.scrollLeft + direction * scrollAmount;
+    checkScrollVisibility(galleryWindow, new_scrollLeft, container.scrollWidth - container.clientWidth);
+  }
+
+  function checkScrollVisibility(dom, scrollLeft, maxLeft) {
+    let scroll = dom.querySelectorAll(".scroll-button");
+
+    if (scrollLeft <= 0) {
+      scroll[0].style.opacity = 0;
+      scroll[0].style.pointerEvents = 'none';
+    } else {
+      scroll[0].style.opacity = 1;
+      scroll[0].style.pointerEvents = '';
+    }
+    if (scrollLeft >= maxLeft) {
+      scroll[1].style.opacity = 0;
+      scroll[1].style.pointerEvents = 'none';
+    }else {
+      scroll[1].style.opacity = 1;
+      scroll[1].style.pointerEvents = '';
+    }
+  }
+
+  function scrollGalleryEnter(dom) {
+    const galleryWindow = dom.closest('.gallery-window');
+    const container = galleryWindow.querySelector('.gallery-container');
+    checkScrollVisibility(galleryWindow, container.scrollLeft, container.scrollWidth - container.clientWidth);
+  }
+
+  function scrollGalleryLeave(dom) {
+    scroll = dom.querySelectorAll(".scroll-button");
+    for (const element of scroll)
+      element.style.opacity = 0;
+  }
+</script>
+
+<h2 class="gallery-title">2024/03/28, Bohol, Philippines</h2>
+<div class="gallery-window" onmouseenter="scrollGalleryEnter(this)" onmouseleave="scrollGalleryLeave(this)">
+  <button class="scroll-button left" onclick="scrollGallery(this, -1)">&#10094;</button>
+  <div id="gallery-container" class="gallery-container">
     {% include gallery class="carousel" id="gallery-bohol1" caption="" %}
     {% include gallery class="carousel" id="gallery-bohol2" caption="" %}
     {% include gallery class="carousel" id="gallery-bohol3" caption="" %}
   </div>
+  <button class="scroll-button right" onclick="scrollGallery(this, 1)">&#10095;</button>
 </div>
 
-<h2>Mongolia</h2>
-<div class="gallary-window">
-  <div class="gallary-container">
+<h2 class="gallery-title">2023/09/12, Mongolia</h2>
+<div class="gallery-window" onmouseenter="scrollGalleryEnter(this)" onmouseleave="scrollGalleryLeave(this)">
+  <button class="scroll-button left" onclick="scrollGallery(this, -1)">&#10094;</button>
+  <div class="gallery-container">
     {% include gallery class="carousel" id="gallery-mongolia1" caption="" %}
     {% include gallery class="carousel" id="gallery-mongolia2" caption="" %}
   </div>
+  <button class="scroll-button right" onclick="scrollGallery(this, 1)">&#10095;</button>
 </div>
 
-<h2>Hobby</h2>
-{% include gallery id="gallery-freediving" caption="" %}
-
-<h2>Ph.D. Commencement</h2>
+<h2 class="gallery-title">2022/08/29, Ph.D. Commencement</h2>
 {% include gallery id="gallery-commencement" caption="" %}
 
-<h2>1st Homecoming</h2>
+<h2 class="gallery-title">2022/06/21, The first diving pool</h2>
+{% include gallery id="gallery-freediving" caption="" %}
+
+<h2 class="gallery-title">2019/07/08, 1st Homecoming</h2>
 {% include gallery id="gallery-homecoming" caption="" %}
 
-<h2>Ganghwa-do, Incheon, Korea</h2>
+<h2 class="gallery-title">Ganghwa-do, Incheon, Korea</h2>
 {% include gallery id="gallery-ganghwa" caption="" %}
 
-<h2>Changgyeonggung Palace, Seoul, Korea</h2>
-<div class="gallary-window">
-  <div class="gallary-container">
+<h2 class="gallery-title">Changgyeonggung Palace, Seoul, Korea</h2>
+<div class="gallery-window" onmouseenter="scrollGalleryEnter(this)" onmouseleave="scrollGalleryLeave(this)">
+  <button class="scroll-button left" onclick="scrollGallery(this, -1)">&#10094;</button>
+  <div class="gallery-container">
     {% include gallery class="carousel" id="gallery-changgeonggung-palace1" caption="" %}
     {% include gallery class="carousel" id="gallery-changgeonggung-palace2" caption="" %}
   </div>
+  <button class="scroll-button right" onclick="scrollGallery(this, 1)">&#10095;</button>
 </div>
 
-<h2>Sorae Ecology Park, Incheon, Korea</h2>
+<h2 class="gallery-title">Sorae Ecology Park, Incheon, Korea</h2>
 {% include gallery id="gallery-sorae-ecology-park" caption="" %}
 
-<h2>Canmore, Alberta, Canada</h2>
-<div class="gallary-window">
-  <div class="gallary-container">
+<h2 class="gallery-title">Canmore, Alberta, Canada</h2>
+<div class="gallery-window" onmouseenter="scrollGalleryEnter(this)" onmouseleave="scrollGalleryLeave(this)">
+  <button class="scroll-button left" onclick="scrollGallery(this, -1)">&#10094;</button>
+  <div class="gallery-container">
     {% include gallery class="carousel" id="gallery-canmore1" caption="" %}
     {% include gallery class="carousel" id="gallery-canmore2" caption="" %}
   </div>
+  <button class="scroll-button right" onclick="scrollGallery(this, 1)">&#10095;</button>
 </div>
 
-<h2>Centre Street South, Calgary, Alberta, Canada</h2>
+<h2 class="gallery-title">Centre Street South, Calgary, Alberta, Canada</h2>
 {% include gallery id="gallery-calgary" caption="" %}
 
-<h2>Seoul, Korea</h2>
+<h2 class="gallery-title">Seoul, Korea</h2>
 {% include gallery id="gallery-cityscape" caption="" %}
 
-<h2>Seoul National University, Seoul, Korea</h2>
+<h2 class="gallery-title">Seoul National University, Seoul, Korea</h2>
 {% include gallery id="gallery-snu" caption="" %}
 
-<h2>Mt. Seoraksan, Gangwon, Korea</h2>
-<div class="gallary-window">
-  <div class="gallary-container">
+<h2 class="gallery-title">Mt. Seoraksan, Gangwon, Korea</h2>
+<div class="gallery-window" onmouseenter="scrollGalleryEnter(this)" onmouseleave="scrollGalleryLeave(this)">
+  <button class="scroll-button left" onclick="scrollGallery(this, -1)">&#10094;</button>
+  <div class="gallery-container">
     {% include gallery class="carousel" id="gallery-seorak3" caption="" %}
     {% include gallery class="carousel" id="gallery-seorak1" caption="" %}
     {% include gallery class="carousel" id="gallery-seorak2" caption="" %}
   </div>
+  <button class="scroll-button right" onclick="scrollGallery(this, 1)">&#10095;</button>
 </div>
 
-<h2>A seashore, Jeju, Korea</h2>
+<h2 class="gallery-title">A seashore, Jeju, Korea</h2>
 {% include gallery id="gallery-jeju" caption="" %}

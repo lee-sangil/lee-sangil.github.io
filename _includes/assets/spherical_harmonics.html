@@ -10,10 +10,16 @@
         position: relative;
     }
     .dg {
-        /* min-height: 16px; */
+        min-height: 16px;
         max-height: calc(100% - 6px);
-        height: 100%;
+        height: fit-content;
         overflow-x: hidden;
+    }
+    .dg.main {
+        padding-bottom: 20px;
+    }
+    .dg.main > div:first-child {
+        position: relative !important;
     }
     .dg li {
         margin-bottom: 0px;

@@ -20,6 +20,7 @@ excerpt_separator: <!--more-->
 <!--more-->
 
 {% include /assets/spherical_harmonics.html %}
+<br/>
 
 Spherical Harmonics (SH) are a set of mathematical functions that define the surface of a sphere in terms of angular coordinates (latitude and longitude). They are widely used in various fields, including quantum physics, chemistry, and, computer graphics, to represent data on spherical surfaces. Especially, it has been famous since it can be used in computer vision for rendering surface dependently with view direction. In the above interactive demo, you can control the coefficients of spherical harmonics, and see the result. _Red_, _Green_, _Blue_ modes describe each color using SH coefficients, and _Height_ transforms the shape of sphere.
 

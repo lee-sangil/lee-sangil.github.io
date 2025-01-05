@@ -10,7 +10,7 @@ tags:
  - glsl
  - solar system
 header:
-  teaser: /assets/image/thumbnail/threejs.jpg
+  teaser: /assets/image/thumbnail/2024-02-16-solar-system.jpeg
 excerpt_separator: <!--more-->
 ---
 
@@ -35,6 +35,6 @@ The above image is the snapshot of a solar system simulator.[^solarsystem] The p
 1. [Create realistic Saturn with rings]({% post_url 2024-11-02-Create-realistic-Saturn-with-shaders %})
 1. [Create realistic Phobos with irregular shape]({% post_url 2024-11-15-Create-realistic-Phobos-with-shaders %})
 1. Shining (post-processing)
-1. Compute the orbit
+1. [Compute the elliptical orbit]({% post_url 2025-01-05-Elliptical-Orbit-Mechnics %})
 
 [^solarsystem]: [https://portfolio.sangillee.com/apps/solar](https://portfolio.sangillee.com/apps/solar)

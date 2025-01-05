@@ -207,9 +207,9 @@
     controls.enablePan = false;
 
     let coeffZero = { k00: 0, k1m1: 0, k10: 0, k1p1: 0, k2m2: 0, k2m1: 0, k20: 0, k2p1: 0, k2p2: 0, k3m3: 0, k3m2: 0, k3m1: 0, k30: 0, k3p1: 0, k3p2: 0, k3p3: 0, k4m4: 0, k4m3: 0, k4m2: 0, k4m1: 0, k40: 0, k4p1: 0, k4p2: 0, k4p3: 0, k4p4: 0 };
-    let coeffRed = { k00: 0, k1m1: 0, k10: 0, k1p1: 0, k2m2: 0, k2m1: 0, k20: 0, k2p1: 0, k2p2: 0, k3m3: 0, k3m2: 0, k3m1: 0, k30: 0, k3p1: 0, k3p2: 0, k3p3: 0, k4m4: 0, k4m3: 0, k4m2: 0, k4m1: 0, k40: 0, k4p1: 0, k4p2: 0, k4p3: 0, k4p4: 0 };
-    let coeffGreen = { k00: 0, k1m1: 0, k10: 0, k1p1: 0, k2m2: 0, k2m1: 0, k20: 0, k2p1: 0, k2p2: 0, k3m3: 0, k3m2: 0, k3m1: 0, k30: 0, k3p1: 0, k3p2: 0, k3p3: 0, k4m4: 0, k4m3: 0, k4m2: 0, k4m1: 0, k40: 0, k4p1: 0, k4p2: 0, k4p3: 0, k4p4: 0 };
-    let coeffBlue = { k00: 0, k1m1: 0, k10: 0, k1p1: 0, k2m2: 0, k2m1: 0, k20: 0, k2p1: 0, k2p2: 0, k3m3: 0, k3m2: 0, k3m1: 0, k30: 0, k3p1: 0, k3p2: 0, k3p3: 0, k4m4: 0, k4m3: 0, k4m2: 0, k4m1: 0, k40: 0, k4p1: 0, k4p2: 0, k4p3: 0, k4p4: 0 };
+    let coeffRed = { k00: Math.random(), k1m1: Math.random()-.5, k10: Math.random()-.5, k1p1: Math.random()-.5, k2m2: Math.random()-.5, k2m1: Math.random()-.5, k20: Math.random()-.5, k2p1: Math.random()-.5, k2p2: Math.random()-.5, k3m3: Math.random()-.5, k3m2: Math.random()-.5, k3m1: Math.random()-.5, k30: Math.random()-.5, k3p1: Math.random()-.5, k3p2: Math.random()-.5, k3p3: Math.random()-.5, k4m4: Math.random()-.5, k4m3: Math.random()-.5, k4m2: Math.random()-.5, k4m1: Math.random()-.5, k40: Math.random()-.5, k4p1: Math.random()-.5, k4p2: Math.random()-.5, k4p3: Math.random()-.5, k4p4: Math.random()-.5 };
+    let coeffGreen = { k00: Math.random(), k1m1: Math.random()-.5, k10: Math.random()-.5, k1p1: Math.random()-.5, k2m2: Math.random()-.5, k2m1: Math.random()-.5, k20: Math.random()-.5, k2p1: Math.random()-.5, k2p2: Math.random()-.5, k3m3: Math.random()-.5, k3m2: Math.random()-.5, k3m1: Math.random()-.5, k30: Math.random()-.5, k3p1: Math.random()-.5, k3p2: Math.random()-.5, k3p3: Math.random()-.5, k4m4: Math.random()-.5, k4m3: Math.random()-.5, k4m2: Math.random()-.5, k4m1: Math.random()-.5, k40: Math.random()-.5, k4p1: Math.random()-.5, k4p2: Math.random()-.5, k4p3: Math.random()-.5, k4p4: Math.random()-.5 };
+    let coeffBlue = { k00: Math.random(), k1m1: Math.random()-.5, k10: Math.random()-.5, k1p1: Math.random()-.5, k2m2: Math.random()-.5, k2m1: Math.random()-.5, k20: Math.random()-.5, k2p1: Math.random()-.5, k2p2: Math.random()-.5, k3m3: Math.random()-.5, k3m2: Math.random()-.5, k3m1: Math.random()-.5, k30: Math.random()-.5, k3p1: Math.random()-.5, k3p2: Math.random()-.5, k3p3: Math.random()-.5, k4m4: Math.random()-.5, k4m3: Math.random()-.5, k4m2: Math.random()-.5, k4m1: Math.random()-.5, k40: Math.random()-.5, k4p1: Math.random()-.5, k4p2: Math.random()-.5, k4p3: Math.random()-.5, k4p4: Math.random()-.5 };
     let coeffMono = { k00: 0, k1m1: 0, k10: 0, k1p1: 0, k2m2: 0, k2m1: 0, k20: 0, k2p1: 0, k2p2: 0, k3m3: 0, k3m2: 0, k3m1: 0, k30: 0, k3p1: 0, k3p2: 0, k3p3: 0, k4m4: 0, k4m3: 0, k4m2: 0, k4m1: 0, k40: 0, k4p1: 0, k4p2: 0, k4p3: 0, k4p4: 0 };
 
     const setting = {
@@ -328,6 +328,18 @@
             material.uniforms.coeffMono.value = newValue;
         }
     }
+
+    setting.mode = 'blue';
+    updateMode();
+    updateCoeffSH();
+
+    setting.mode = 'green';
+    updateMode();
+    updateCoeffSH();
+
+    setting.mode = 'red';
+    updateMode();
+    updateCoeffSH();
 
     function animate (msec) {
         requestAnimationFrame(animate);

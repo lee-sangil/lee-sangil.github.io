@@ -278,4 +278,4 @@ void main() {
 
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/mIonF22.gif">
 
-[^bookofshader]: [https://thebookofshaders.com](https://thebookofshaders.com)
+[^bookofshader]: [The book of shaders](https://thebookofshaders.com)

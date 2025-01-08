@@ -204,6 +204,12 @@ li ol {
    Media and embeds
    ========================================================================== */
 
+/* Equation */
+.MJXc-display {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Figures and images */
 
 .gallery {

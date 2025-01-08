@@ -280,5 +280,5 @@ $$M_0$$ represents the planetary mean anomaly at the autumn equinox of 2000, i.e
 
 The figure above shows the dot product between the ray and the vector $$\mathbf{v} = \mathbf{x}_{\text{obj}} - \mathbf{x}_{\text{earth}}$$ as a function of the true anomaly (orbital phase) of each planet or moon. $$\mathbf{x}_{obj}$$ and $$\mathbf{x}_{earth}$$ are the 3D position of a celestial object and the Earth in the reference coordinates. When the dot product is close to 1, it means the direction of the ray matches the direction of the planet or moon at that point in its orbit. These orbital phases represent the true anomaly values for each planet or moon at the autumnal equinox of the year 2000.
 
-[^wiki-kepler-law]: https://en.wikipedia.org/wiki/Kepler%27s_laws_of_planetary_motion
-[^wiki_inclination]: https://en.wikipedia.org/wiki/Orbital_inclination
+[^wiki-kepler-law]: [Kepler's_laws_of_planetary_motion](https://en.wikipedia.org/wiki/Kepler%27s_laws_of_planetary_motion)
+[^wiki_inclination]: [Orbital_inclination](https://en.wikipedia.org/wiki/Orbital_inclination)

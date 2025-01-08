@@ -61,4 +61,4 @@ For efficient learning, you can edit and test GLSL code online [^editor] or here
 {% include /assets/live_shader.html %}
 
 [^editor]: [http://editor.thebookofshaders.com](http://editor.thebookofshaders.com)
-[^precision]: [https://webgl2fundamentals.org/webgl/lessons/webgl-precision-issues.html](https://webgl2fundamentals.org/webgl/lessons/webgl-precision-issues.html)
+[^precision]: [webgl2fundamentals/webgl-precision-issues](https://webgl2fundamentals.org/webgl/lessons/webgl-precision-issues.html)

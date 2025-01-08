@@ -267,5 +267,5 @@ $$
 \end{align}
 $$
 
-[^svo]: [https://www.zora.uzh.ch/id/eprint/125453/1/ICRA14_Forster.pdf](https://www.zora.uzh.ch/id/eprint/125453/1/ICRA14_Forster.pdf)
-[^mono]: [https://link.springer.com/article/10.1007/s12555-020-0654-8](https://link.springer.com/article/10.1007/s12555-020-0654-8)
+[^svo]: [Forster, et.al, SVO, ICRA, 2014](https://www.zora.uzh.ch/id/eprint/125453/1/ICRA14_Forster.pdf)
+[^mono]: [Realtime Object-aware Monocular Depth Estimation](https://link.springer.com/article/10.1007/s12555-020-0654-8)

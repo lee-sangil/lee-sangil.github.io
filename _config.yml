@@ -98,14 +98,14 @@ author:
   avatar           : "/assets/image/thumbnail/profile.jpg" # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
   bio              : "Staff Engineer in S. LSI, Samsung"
   location         : "Seoul, South Korea"
-  # email            : "sangillee724@gmail.com"
+  email            : "sangillee724@gmail.com"
   links:
     - label: "Curriculum Vitae"
       icon: "fas fa-fw fa-file-pdf"
       url: "/assets/download/sangillee_cv.pdf"
     - label: "Email"
       icon: "fas fa-fw fa-envelope"
-      url: "mailto:sangillee724@gmail.com"
+      # url: "mailto:sangillee724@gmail.com"
     - label: "Website"
       icon: "fas fa-fw fa-link"
       # url: "https://your-website.com"
@@ -117,29 +117,29 @@ author:
       # url: "https://facebook.com/"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/lee-sangil"
+      # url: "https://github.com/lee-sangil"
     - label: "Instagram"
       icon: "fab fa-fw fa-instagram"
       # url: "https://instagram.com/"
     - label: "Google Scholar"
       icon: "fab fa-fw fa-google"
-      url: "https://scholar.google.com/citations?user=Z34jsGIAAAAJ"
+      # url: "https://scholar.google.com/citations?user=Z34jsGIAAAAJ"
     - label: "Youtube"
       icon: "fab fa-fw fa-youtube"
-      url: "https://www.youtube.com/user/aeternuslsi"
+      # url: "https://www.youtube.com/user/aeternuslsi"
     - label: "LinkedIn"
       icon: "fab fa-fw fa-linkedin"
-      url: "https://www.linkedin.com/in/lee-sangil"
+      # url: "https://www.linkedin.com/in/lee-sangil"
     - label: "Portfolio"
       icon: "fas fa-fw fa-link"
-      url: "https://portfolio.sangillee.com"
+      # url: "https://portfolio.sangillee.com"
 
 # Site Footer
 footer:
   links:
     - label: "Curriculum Vitae"
       icon: "fas fa-fw fa-file-pdf"
-      url: "/assets/download/sangillee_cv.pdf"
+      # url: "/assets/download/sangillee_cv.pdf"
     - label: "Email"
       icon: "fas fa-fw fa-envelope"
       url: "mailto:sangillee724@gmail.com"
@@ -306,6 +306,8 @@ defaults:
       comments: # true
       share: true
       related: false
+      sidebar:
+        nav: "sidebar-category"
 
 # for jekyll local server
 # host: 192.168.0.15

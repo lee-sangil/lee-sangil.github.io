@@ -1,0 +1,14 @@
+---
+layout: archive
+permalink: /mathematics/
+author_profile: true
+sidebar:
+  nav: "sidebar-category"
+---
+
+<h2 class="archive__subtitle">Mathematics</h2>
+{% for post in site.posts %}
+    {% if post.categories contains 'Mathematics' %}
+        {% include archive-single.html type='post' %}
+    {% endif %}
+{% endfor %}

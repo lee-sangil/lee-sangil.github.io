@@ -503,6 +503,10 @@
   font-weight: bold;
   text-transform: uppercase;
   border-bottom: 1px solid $border-color;
+
+  &__child {
+    margin: 0.5rem 0.5rem 0.5rem 1rem;
+  }
 }
 
 /*

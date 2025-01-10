@@ -4,6 +4,8 @@ title: LARR DVS Dynamic Environments Dataset
 author_profile: true
 toc: true
 toc_sticky: true
+sidebar:
+  nav: "sidebar-category"
 ---
 
 ## File Formats

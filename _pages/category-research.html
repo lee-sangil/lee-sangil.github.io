@@ -1,0 +1,14 @@
+---
+layout: archive
+permalink: /research/
+author_profile: true
+sidebar:
+  nav: "sidebar-category"
+---
+
+<h2 class="archive__subtitle">Research</h2>
+{% for post in site.posts %}
+    {% if post.categories contains 'Research' %}
+        {% include archive-single.html type='post' %}
+    {% endif %}
+{% endfor %}

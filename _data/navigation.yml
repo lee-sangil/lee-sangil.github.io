@@ -2,12 +2,8 @@
 main:
   # - title: "Quick-Start Guide"
   #   url: https://mmistakes.github.io/minimal-mistakes/docs/quick-start-guide/
-  - title: "Research"
-    url: /_pages/research/
   - title: "Archive"
     url: /archive/
-  - title: "Category"
-    url: /category/
   - title: "Tag"
     url: /tag/
   - title: "Log"
@@ -19,12 +15,34 @@ main:
   # - title: "Sitemap"
   #   url: /sitemap/
   
-  # sidebar-category:
-  # - title: "Programming"
-  #   children:
-  #     - title: "Three.js"
-  #       url: "/threejs"
-  #     - title: "Electron"
-  #       url:  "/electron"
-  #     - title: "GLSL"
-  #       url:  "/glsl"
+sidebar-category:
+  - title: "Research"
+    children:
+      - title: "Publication"
+        category: "Research"
+        url: "/research"
+      - title: "Patent"
+        category: "Patent"
+        url: "/patent"
+  - title: "Programming"
+    children:
+      - title: "Three.js"
+        category: "ThreeJS"
+        url: "/threejs"
+      - title: "WebGL"
+        category: "WebGL"
+        url:  "/webgl"
+      - title: "Electron"
+        category: "Electron"
+        url:  "/electron"
+      - title: "Python"
+        category: "Python"
+        url:  "/python"
+  - title: "ETC"
+    children:
+      - title: "Mathematics"
+        category: "Mathematics"
+        url: "mathematics"
+      - title: "Application"
+        category: "Application"
+        url: "application"

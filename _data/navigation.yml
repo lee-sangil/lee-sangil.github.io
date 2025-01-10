@@ -42,7 +42,7 @@ sidebar-category:
     children:
       - title: "Mathematics"
         category: "Mathematics"
-        url: "mathematics"
+        url: "/mathematics"
       - title: "Application"
         category: "Application"
-        url: "application"
+        url: "/application"

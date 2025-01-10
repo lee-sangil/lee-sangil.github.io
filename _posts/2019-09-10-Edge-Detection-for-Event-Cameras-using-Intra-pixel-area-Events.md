@@ -2,8 +2,8 @@
 title: "Edge Detection for Event Cameras using Intra-pixel-area Events"
 categories:
  - Research
- - Conference
 tags:
+ - conference
  - edge
  - event camera
  - lifetime

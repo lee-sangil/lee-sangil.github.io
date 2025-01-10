@@ -2,7 +2,6 @@
 title: "How to Create a Scene"
 categories:
  - ThreeJS
- - JavaScript
 tags:
  - javascript
  - three.js

@@ -2,8 +2,8 @@
 title: "Robust Visual Odometry via Rigid Motion Segmentation for Dynamic Environments"
 categories:
  - Research
- - Conference
 tags:
+ - conference
  - visual odometry
  - motion segmentation
  - dynamic environment

@@ -2,7 +2,6 @@
 title: "How To Update an Electron App Automatically"
 categories:
  - Electron
- - JavaScript
 tags:
  - electron
  - autoUpdater

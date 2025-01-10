@@ -2,8 +2,8 @@
 title: "Robust Real-time RGB-D Visual Odometry in Dynamic Environments via Rigid Motion Model"
 categories:
  - Research
- - Conference
 tags:
+ - conference
  - real-time
  - visual odometry
  - dynamic environment

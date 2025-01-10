@@ -2,8 +2,6 @@
 title: "Create a Realistic Saturn with Rings"
 categories:
  - ThreeJS
- - WebGL
- - JavaScript
 tags:
  - javascript
  - three.js
@@ -11,6 +9,7 @@ tags:
  - webgl
  - shader
  - solar system
+ - saturn
 header:
   teaser: /assets/image/thumbnail/2024-11-02-create-realistic-saturn-with-rings.jpg
 excerpt_separator: <!--more-->

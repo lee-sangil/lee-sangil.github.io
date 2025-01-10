@@ -2,8 +2,8 @@
 title: "Real-time Object-aware Monocular Depth Estimation in Onboard Systems"
 categories:
  - Research
- - Journal
 tags:
+ - journal
  - real-time
  - monocular
  - depth estimation

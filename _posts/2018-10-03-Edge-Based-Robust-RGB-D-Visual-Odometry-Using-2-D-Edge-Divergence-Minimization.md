@@ -2,8 +2,8 @@
 title: "Edge-Based Robust RGB-D Visual Odometry Using 2-D Edge Divergence Minimization"
 categories:
  - Research
- - Conference
 tags:
+ - conference
  - edge
  - rgbd
  - visual odometry

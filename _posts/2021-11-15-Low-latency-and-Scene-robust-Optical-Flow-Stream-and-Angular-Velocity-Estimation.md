@@ -2,8 +2,8 @@
 title: "Low-latency and Scene-robust Optical Flow Stream and Angular Velocity Estimation"
 categories:
  - Research
- - Journal
 tags:
+ - journal
  - event camera
  - optical flow
  - angular velocity

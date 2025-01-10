@@ -2,12 +2,13 @@
 title: "Shader Material"
 categories:
  - ThreeJS
- - JavaScript
 tags:
  - javascript
  - three.js
  - shader
  - material
+ - glsl
+ - webgl
 header:
   teaser: /assets/image/thumbnail/threejs.jpg
 excerpt_separator: <!--more-->

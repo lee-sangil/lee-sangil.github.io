@@ -2,8 +2,6 @@
 title: "Create a Realistic Sun with Shaders"
 categories:
  - ThreeJS
- - WebGL
- - JavaScript
 tags:
  - javascript
  - three.js
@@ -11,6 +9,7 @@ tags:
  - webgl
  - shader
  - solar system
+ - sun
 header:
   teaser: /assets/image/thumbnail/2024-06-29-create-realistic-sun-with-shaders.jpg
 excerpt_separator: <!--more-->

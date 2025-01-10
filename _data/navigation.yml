@@ -18,3 +18,13 @@ main:
   #   url: /collection-archive/
   # - title: "Sitemap"
   #   url: /sitemap/
+  
+  # sidebar-category:
+  # - title: "Programming"
+  #   children:
+  #     - title: "Three.js"
+  #       url: "/threejs"
+  #     - title: "Electron"
+  #       url:  "/electron"
+  #     - title: "GLSL"
+  #       url:  "/glsl"

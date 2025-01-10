@@ -2,7 +2,6 @@
 title: "Shader Program"
 categories:
  - WebGL
- - JavaScript
 tags:
  - javascript
  - glsl

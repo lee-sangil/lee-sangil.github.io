@@ -2,7 +2,6 @@
 title: "How To Publish an Electron App to Github at Build Time"
 categories:
  - Electron
- - JavaScript
 tags:
  - electron
  - electron-builder

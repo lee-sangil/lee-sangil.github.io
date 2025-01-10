@@ -2,8 +2,8 @@
 title: "Robust Event-based Angular Velocity Estimation in Dynamic Environments"
 categories:
  - Research
- - Dissertation
 tags:
+ - dissertation
  - event camera
  - optical flow
  - angular velocity

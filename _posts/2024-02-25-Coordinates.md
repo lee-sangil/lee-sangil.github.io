@@ -2,7 +2,6 @@
 title: "Scene Graph"
 categories:
  - ThreeJS
- - JavaScript
 tags:
  - javascript
  - three.js

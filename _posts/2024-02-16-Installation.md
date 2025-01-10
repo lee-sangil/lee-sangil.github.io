@@ -2,7 +2,6 @@
 title: "Installation"
 categories:
  - ThreeJS
- - JavaScript
 tags:
  - javascript
  - three.js

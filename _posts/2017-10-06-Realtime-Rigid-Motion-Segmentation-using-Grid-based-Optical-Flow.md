@@ -2,8 +2,8 @@
 title: "Real-time Rigid Motion Segmentation using Grid-based Optical Flow"
 categories:
  - Research
- - Conference
 tags:
+ - conference
  - motion segmentation
  - optical flow
  - real-time

@@ -2,8 +2,6 @@
 title: "Create a Realistic Earth with Shaders"
 categories:
  - ThreeJS
- - WebGL
- - JavaScript
 tags:
  - javascript
  - three.js
@@ -11,6 +9,7 @@ tags:
  - webgl
  - shader
  - solar system
+ - earth
 header:
   teaser: /assets/image/thumbnail/2024-06-07-create-realistic-earth-with-shaders.jpg
 excerpt_separator: <!--more-->

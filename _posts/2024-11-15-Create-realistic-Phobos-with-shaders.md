@@ -2,8 +2,6 @@
 title: "Create a Realistic Phobos with Irregular Shape"
 categories:
  - ThreeJS
- - WebGL
- - JavaScript
 tags:
  - javascript
  - three.js
@@ -11,6 +9,7 @@ tags:
  - webgl
  - shader
  - solar system
+ - phobos
 header:
   teaser: /assets/image/thumbnail/2024-11-15-phobos.png
 excerpt_separator: <!--more-->

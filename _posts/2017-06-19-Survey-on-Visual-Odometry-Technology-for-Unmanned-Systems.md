@@ -2,8 +2,8 @@
 title: "Survey on Visual Odometry Technology for Unmanned Systems"
 categories:
  - Research
- - Journal
 tags:
+ - journal
  - survey
  - visual odometry
 header:

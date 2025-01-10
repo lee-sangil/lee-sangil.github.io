@@ -2,7 +2,6 @@
 title: "How to Create the Solar System"
 categories:
  - ThreeJS
- - JavaScript
 tags:
  - javascript
  - three.js

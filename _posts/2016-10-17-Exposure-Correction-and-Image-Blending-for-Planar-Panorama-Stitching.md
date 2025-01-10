@@ -2,8 +2,8 @@
 title: "Exposure Correction and Image Blending for Planar Panorama Stitching"
 categories:
  - Research
- - Conference
 tags:
+ - conference
  - panorama
  - blending
  - stitching

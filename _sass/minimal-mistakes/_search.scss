@@ -158,7 +158,7 @@ $scroll-bar-width: 1.2em;
   }
 
   @include breakpoint($x-large) {
-    width: $right-sidebar-width;
+    width: $right-sidebar-width-wide;
   }
 
   &__found {
@@ -181,8 +181,8 @@ $scroll-bar-width: 1.2em;
 
   &-bg {
     position: absolute;
-    margin-top: 2em;
-    width: calc(100% - 4em);
+    margin-top: 1rem;
+    width: calc(100% - 1rem);
     z-index: 200;
     pointer-events: none;
   }
@@ -196,7 +196,7 @@ $scroll-bar-width: 1.2em;
     top: 5em;
     z-index: 200;
     width: 100%; // related to (.results,  width)
-    transition: width 0.2s;
+    // transition: width 0.2s;
   
     pointer-events: all;
     display: none;
@@ -220,19 +220,19 @@ $scroll-bar-width: 1.2em;
     }
   
     @include breakpoint($x-large) {
-      width: calc(#{$right-sidebar-width} - #{$scroll-bar-width});
+      width: calc(#{$right-sidebar-width-wide} - #{$scroll-bar-width});
     }
   }
 }
 
 .search__item {
-  margin-bottom: 0;
+  margin-bottom: 0 !important;
   @extend .archive__item;
   width: 100%;
 
   &-title {
     @extend .archive__item-title;
-    font-size: $type-size-5;
+    font-size: $type-size-6;
     font-weight: normal;
     margin: .5em 0;
 

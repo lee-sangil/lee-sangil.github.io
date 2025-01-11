@@ -98,7 +98,7 @@ author:
   avatar           : "/assets/image/thumbnail/profile.jpg" # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
   bio              : "Staff Engineer in S. LSI, Samsung"
   location         : "Seoul, South Korea"
-  email            : "sangillee724@gmail.com"
+  # email            : "sangillee724@gmail.com"
   links:
     - label: "Curriculum Vitae"
       icon: "fas fa-fw fa-file-pdf"

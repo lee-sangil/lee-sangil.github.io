@@ -64,11 +64,11 @@ The `ShaderPass` applies a custom shader to the image data produced by the previ
 ```js
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 const shaderPass = new ShaderPass(
-	new THREE.ShaderMaterial({
-		uniforms: {},
-		vertexShader: ``, // vertex shader GLSL code
-		fragmentShader: ``, // fragment shader GLSL code
-	})
+  new THREE.ShaderMaterial({
+    uniforms: {},
+    vertexShader: ``, // vertex shader GLSL code
+    fragmentShader: ``, // fragment shader GLSL code
+  })
 );
 composer.addPass(shaderPass);
 ```
@@ -153,7 +153,7 @@ camera.position.z = 8;
 // setup cube
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshStandardMaterial({
-    color: 'red',
+  color: 'red',
 })
 
 const cube = new THREE.Mesh(geometry, material);
@@ -166,7 +166,7 @@ const geo_plane = new THREE.PlaneGeometry(50,50,1,1);
 geo_plane.rotateX(-Math.PI/2);
 geo_plane.translate(0,-1,0);
 const mat_plane = new THREE.MeshStandardMaterial({
-    color: 'white',
+  color: 'white',
 })
 
 const plane = new THREE.Mesh(geo_plane, mat_plane);
@@ -179,7 +179,7 @@ const light = new THREE.PointLight( 0xffffff, 20, 10, 2 );
 light.position.set(1,3,0);
 
 light.add(new THREE.Mesh(new THREE.SphereGeometry(0.1,32,16), new THREE.MeshBasicMaterial({
-    color: 'white',
+  color: 'white',
 })));
 light.castShadow = true;
 light.shadow.radius = 1;
@@ -190,8 +190,7 @@ const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(scene, camera);
 
 // setup bloom pass
-const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight), 2, 1, 0.4);
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2, 1, 0.4);
 
 // setup FXAA pass
 const fxaaPass = new ShaderPass( FXAAShader );
@@ -210,20 +209,20 @@ controls.enableDamping = true;
 
 // add resize event listener
 function resize() {
-    const width = document.body.clientWidth;
-    const height = document.body.clientHeight;
+  const width = document.body.clientWidth;
+  const height = document.body.clientHeight;
 
-    canvas.width = width;
-    canvas.height = height;
+  canvas.width = width;
+  canvas.height = height;
 
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
 
-    renderer.setSize(width, height);
-    composer.setSize(width, height);
+  renderer.setSize(width, height);
+  composer.setSize(width, height);
 
-	fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
-	fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
+  fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
+  fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
 }
 window.onresize = resize;
 
@@ -231,11 +230,11 @@ resize();
 
 // animate
 function animate() {
-    requestAnimationFrame(animate);
-    composer.render();
+  requestAnimationFrame(animate);
+  composer.render();
 
-    cube.rotateY(0.02);
-    controls.update();
+  cube.rotateY(0.02);
+  controls.update();
 }
 
 animate();

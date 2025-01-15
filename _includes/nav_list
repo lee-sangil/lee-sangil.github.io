@@ -27,7 +27,7 @@
                   {% assign post_cnt = category[1].size %}
               {% endif %}
             {% endfor %}
-            <li class = "nav__sub-title__child"><a href="{{ child.url | relative_url }}"{% if page.url contains child.url %} class="active"{% endif %}>{{ child.title }} ({{ post_cnt }})</a></li>
+            <li class = "nav__sub-title__child"><a href="{{ child.url | relative_url }}"{% if page.url contains child.url or page.categories contains child.category %} class="active"{% endif %}>{{ child.title }} ({{ post_cnt }})</a></li>
           {% endfor %}
         </ul>
         {% endif %}

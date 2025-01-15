@@ -16,6 +16,8 @@ excerpt_separator: <!--more-->
 
 > This post explains the mathematical principles and dynamics of elliptical orbits in celestial mechanics. To fully grasp how planets move and where they are at any given time, it begins by introducing the concept of planetary orbits as ellipses, following Johannes Kepler’s first law of planetary motion. Key orbital parameters such as semi-major axis, eccentricity, periapsis, and apoapsis are introduced to describe the orbit’s shape. Also, the orientation of the orbit plane are described by using longitude of the ascending node, inclination, and argument of periapsis. Additionally, the concept of mean anomaly, true anomaly, and eccentric anomaly is discussed to calculate the planet’s position at a given time. 
 
+<!--more-->
+
 ## The Elliptical Orbits of Planets
 
 Planets in the solar system travel around the Sun along paths that are not perfect circles but ellipses. This elliptical motion was first described by Johannes Kepler in his first law of planetary motion. An ellipse can be thought of as a “stretched-out” circle, characterized by its two focuses; one of which is occupied by the Sun. The ellipse centered at the origin can be mathematically expressed in Cartesian coordinates, 

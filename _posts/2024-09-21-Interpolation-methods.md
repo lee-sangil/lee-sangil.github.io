@@ -1,5 +1,6 @@
 ---
 title: "Interpolation Methods"
+prefix: "WebGL"
 categories:
  - WebGL
 tags:

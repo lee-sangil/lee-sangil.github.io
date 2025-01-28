@@ -1,5 +1,6 @@
 ---
 title: "How To Update an Electron App Automatically"
+prefix: "Electron"
 categories:
  - Electron
 tags:

@@ -1,5 +1,6 @@
 ---
 title: "Ego Motion Estimation Method and Apparatus"
+prefix: "US 2020"
 categories:
  - Patent
 tags:

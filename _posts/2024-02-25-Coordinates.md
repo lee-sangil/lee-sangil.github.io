@@ -1,5 +1,6 @@
 ---
 title: "Scene Graph"
+prefix: "Three.js"
 categories:
  - ThreeJS
 tags:

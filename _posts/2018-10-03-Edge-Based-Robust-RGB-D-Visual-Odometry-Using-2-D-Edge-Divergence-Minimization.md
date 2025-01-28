@@ -1,5 +1,6 @@
 ---
 title: "Edge-Based Robust RGB-D Visual Odometry Using 2-D Edge Divergence Minimization"
+prefix: "IROS 2018"
 categories:
  - Research
 tags:

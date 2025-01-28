@@ -1,5 +1,6 @@
 ---
 title: "Solla Solar"
+prefix: "Application"
 categories:
  - Application
 tags:

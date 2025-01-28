@@ -1,5 +1,6 @@
 ---
 title: "Shader Design Patterns"
+prefix: "WebGL"
 categories:
  - WebGL
 tags:

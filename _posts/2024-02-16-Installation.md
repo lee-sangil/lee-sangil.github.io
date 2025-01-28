@@ -1,5 +1,6 @@
 ---
 title: "Installation"
+prefix: "Three.js"
 categories:
  - ThreeJS
 tags:

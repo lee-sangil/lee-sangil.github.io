@@ -1,5 +1,6 @@
 ---
 title: "Real-time Rigid Motion Segmentation using Grid-based Optical Flow"
+prefix: "SMC 2017"
 categories:
  - Research
 tags:

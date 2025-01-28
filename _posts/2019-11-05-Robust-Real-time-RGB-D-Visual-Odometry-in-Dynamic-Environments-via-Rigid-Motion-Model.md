@@ -1,5 +1,6 @@
 ---
 title: "Robust Real-time RGB-D Visual Odometry in Dynamic Environments via Rigid Motion Model"
+prefix: "IROS 2019"
 categories:
  - Research
 tags:

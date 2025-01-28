@@ -1,5 +1,6 @@
 ---
 title: "Edge Detection for Event Cameras using Intra-pixel-area Events"
+prefix: "BMVC 2019"
 categories:
  - Research
 tags:

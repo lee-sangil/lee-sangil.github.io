@@ -1,5 +1,6 @@
 ---
 title: "Robust Event-based Angular Velocity Estimation in Dynamic Environments"
+prefix: "Dissertation"
 categories:
  - Research
 tags:

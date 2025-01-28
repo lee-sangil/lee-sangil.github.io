@@ -1,5 +1,6 @@
 ---
 title: "Noise Functions"
+prefix: "WebGL"
 categories:
  - WebGL
 tags:

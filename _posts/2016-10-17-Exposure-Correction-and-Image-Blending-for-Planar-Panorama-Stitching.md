@@ -1,5 +1,6 @@
 ---
 title: "Exposure Correction and Image Blending for Planar Panorama Stitching"
+prefix: "ICCAS 2016"
 categories:
  - Research
 tags:

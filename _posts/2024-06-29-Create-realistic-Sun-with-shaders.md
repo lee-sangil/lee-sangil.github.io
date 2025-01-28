@@ -1,5 +1,6 @@
 ---
 title: "Create a Realistic Sun with Shaders"
+prefix: "Three.js"
 categories:
  - ThreeJS
 tags:

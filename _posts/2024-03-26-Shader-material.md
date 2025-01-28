@@ -1,5 +1,6 @@
 ---
 title: "Shader Material"
+prefix: "Three.js"
 categories:
  - ThreeJS
 tags:

@@ -1,5 +1,6 @@
 ---
 title: "Robust Visual Odometry via Rigid Motion Segmentation for Dynamic Environments"
+prefix: "Thesis"
 categories:
  - Research
 tags:

@@ -425,13 +425,22 @@ body {
   margin-bottom: 2em;
   padding-bottom: 1em;
 
-  &:not(:last-child) {
-    border-bottom: solid 1px $border-color;
-  }
+  // &:not(:last-child) { // draw border line at the bottom of the last archive item
+  //   border-bottom: solid 1px $border-color;
+  // }
 
   .archive__subtitle {
     clear: both;
     border: 0;
+    position: sticky;
+    top: calc(4rem - 2px);
+    background: white;
+    border-bottom: solid 1px $border-color;
+    z-index: 1;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    padding-left: 1rem;
+    margin: 0 -1rem;
   }
 
   + .taxonomy__section {

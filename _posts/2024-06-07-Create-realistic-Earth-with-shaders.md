@@ -667,7 +667,6 @@ function updateSystem(sec) {
     material_earth_fresnel.uniforms.u_sunRelPosition.value.x = 3*Math.cos(w_orbit*sec);
     material_earth_fresnel.uniforms.u_sunRelPosition.value.y = 0;
     material_earth_fresnel.uniforms.u_sunRelPosition.value.z = -3*Math.sin(w_orbit*sec);
-    material_sun.uniforms.u_time.value = Date.now()/1000 - time_init;
     // earth.rotateY(w_rotate);
     sun.rotateY(w_rotate);
 }

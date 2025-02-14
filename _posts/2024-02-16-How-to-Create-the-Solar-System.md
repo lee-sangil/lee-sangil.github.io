@@ -35,6 +35,7 @@ The above image is the snapshot of a solar system simulator.[^solarsystem] The p
 1. [Create realistic Saturn with rings]({% post_url 2024-11-02-Create-realistic-Saturn-with-shaders %})
 1. [Create realistic Phobos with irregular shape]({% post_url 2024-11-15-Create-realistic-Phobos-with-shaders %})
 1. [Make the Sun shine]({% post_url 2025-01-28-Selective-Bloom-Effect %})
+1. [Create Milky Way skybox]({% post_url 2025-02-14-Create-skybox %})
 1. [Compute the elliptical orbit]({% post_url 2025-01-05-Elliptical-Orbit-Mechnics %})
 
 [^solarsystem]: [https://portfolio.sangillee.com/apps/solar](https://portfolio.sangillee.com/apps/solar)

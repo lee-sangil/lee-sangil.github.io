@@ -1,7 +1,7 @@
 ---
 title: "Spherical Harmonics Visualizer"
 categories:
- - Mathematics
+ - Vision
 tags:
  - spherical harmonics
  - computer graphics

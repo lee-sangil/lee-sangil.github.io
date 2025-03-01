@@ -1,7 +1,7 @@
 ---
 title: "A Derivation of Depth Filter"
 categories:
- - Mathematics
+ - Vision
 tags:
  - visual odometry
  - depth filter

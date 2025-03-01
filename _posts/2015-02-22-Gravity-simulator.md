@@ -2,7 +2,7 @@
 title: "Gravity Simulator"
 prefix: "Application"
 categories:
- - Application
+ - ETC
 tags:
  - simulator
  - gravity

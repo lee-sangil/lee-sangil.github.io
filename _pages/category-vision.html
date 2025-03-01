@@ -1,0 +1,14 @@
+---
+layout: archive
+permalink: /vision/
+author_profile: true
+sidebar:
+  nav: "sidebar-category"
+---
+
+<h2 class="archive__subtitle">Vision</h2>
+{% for post in site.posts %}
+    {% if post.categories contains 'Vision' %}
+        {% include archive-single.html type='post' %}
+    {% endif %}
+{% endfor %}

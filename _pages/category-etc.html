@@ -1,0 +1,14 @@
+---
+layout: archive
+permalink: /etc/
+author_profile: true
+sidebar:
+  nav: "sidebar-category"
+---
+
+<h2 class="archive__subtitle">ETC</h2>
+{% for post in site.posts %}
+    {% if post.categories contains 'ETC' %}
+        {% include archive-single.html type='post' %}
+    {% endif %}
+{% endfor %}

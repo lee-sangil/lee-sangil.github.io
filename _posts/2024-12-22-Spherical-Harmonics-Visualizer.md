@@ -11,7 +11,7 @@ tags:
  - webgl
  - shader
 header:
-  teaser: /assets/image/thumbnail/2024-12-22-spherical-harmonics.jpg
+  teaser: /assets/image/thumbnail/2024-12-22-spherical-harmonics.gif
 excerpt_separator: <!--more-->
 ---
 

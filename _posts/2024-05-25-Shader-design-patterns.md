@@ -68,7 +68,8 @@ void main() {
 ```
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/WfJe18T.png">
 
-Also, you can manually design the smoothing function. 
+Also, you can manually design the smoothing function. For more information about the smoothing interpolation method, visit [Interpolation Methods]({% post_url 2024-09-21-Interpolation-methods %}).
+
 ```glsl
 varying vec2 v_position; // [0, 1]
 
@@ -140,47 +141,13 @@ void main() {
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/Crp8Idz.png">
 
 ## Random
-Unfortunately, GLSL does not provide a true random number generator. Instead, we can generate a pseudo random number with a sinusoidal function of high amplitude with `fract`. `fract` transforms the value into the range [0, 1], and the sinusoidal function produces randomness by generating a different slope for each [0, 1] piece. Also, `fract(x^2)` can generate random number since their slopes are different for each piece. However, unlike the sinusoidal function, which is bounded on [-1, 1], `x^2` can exceed the maximum value of Float, thus outputting incorrect value.
+Unfortunately, GLSL does not provide a true random number generator. Instead, we can generate a pseudo random number with a sinusoidal function of high amplitude with `fract`. `fract` transforms the value into the range [0, 1], and the sinusoidal function produces randomness by generating a different slope for each [0, 1] piece. 
+
 ```glsl
 float random(in float x) {
     return fract(sin(x)*100000.0);
 }
 ```
-
-Using MATLAB, I've generated the histogram of the above random variable.
-
-```matlab
-x = linspace(0, pi, 10000);
-
-figure();
-set(gcf, 'Position', [680 557 720 480])
-
-z = sin(x)*100000;
-%% z = x.^2*100000;
-%% z = x*100000;
-X = z - floor(z);
-
-subplot(211);
-histogram(X, 'Normalization', 'pdf');
-xlim([0, 1]);
-grid on
-xlabel('Value, X');
-ylabel('PDF, f(X)');
-set(gcf, 'color', 'w');
-
-subplot(212);
-plot(x, X, '.');
-xlim([0, pi]);
-ylabel('Value, X');
-```
-
-| formula | result |
-|:-:|:-:|
-|$$\rm sin(\it x)$$| <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/5PF9g8m.png">|
-|$$x^2$$|<img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/C0RTq75.png">|
-|$$x$$|<img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/maYqoqS.png">|
-
-Above, the histogram of $$\rm sin(\it x \rm)$$, $$x^2$$, $$x$$ are shown. As mentioned before, sinusoidal and power functions show randomness, whereas linear function has a pattern. Please notice that they have a uniform distribution.
 
 To generate a random number from two or more dimensional vector, we use dot product to produce a scalar number. 
 ```glsl
@@ -189,7 +156,7 @@ float random(in vec2 x) {
 }
 ```
 
-The above magic numbers can be chosen manually so that randomness is shown well.
+The above magic numbers can be chosen manually so that randomness is shown well. For more information about the analysis of random sequences, visit [Analysis of Random Generator]({% post_url 2025-03-29-Random %}).
 
 ## Noise
 If we called a single independent noise as random, noise means the interpolated value between random values. Thus, noise functions have a continuity, whereas random functions show discontinuity. Below are the example of random and noise.
@@ -198,7 +165,7 @@ If we called a single independent noise as random, noise means the interpolated 
 |:-:|:-:|
 |<img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/tyQR3sc.png">|<img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/Rb4cuG7.png">|
 
-As mentioned above, all vertex and fragment is blind to others, so each fragment can not read the colors nearby. However, since the random function of GLSL generates pseudo-random output rather than true random, thus each fragment can read the value of adjacent fragments. 
+As mentioned above, all vertex and fragment is blind to others, so each fragment can not read the colors nearby. However, since the random function of GLSL generates pseudo-random output rather than true random, thus each fragment can read the value of adjacent fragments. For more information about advanced noise functions, visit [Noise Functions]({% post_url 2024-07-14-Noise-functions %}).
 
 ```glsl
 float random (in vec2 x) {

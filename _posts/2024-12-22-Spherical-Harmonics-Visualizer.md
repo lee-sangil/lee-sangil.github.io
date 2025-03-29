@@ -103,4 +103,4 @@ $$
 
 where $$L$$ is the maximum degree of harmonics used in the approximation. A higher $$L$$ captures finer details but increases computational cost. The image below shows the Earth's texture rendered as an expansion of spherical harmonics. As the value of $$L$$ increases, we can see more details emerging.
 
-<img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/xU3I2SJ.gif">
+<img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/ZhzCuaC.gif">

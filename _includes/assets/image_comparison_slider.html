@@ -1,0 +1,178 @@
+<!-- Usage: {% include assets/image_comparison_slider.html image_left="filename relative to _includes" image_right="filename relative to _includes" index={0, 1, ...} %} -->
+<div class="container" id="compare-container-{{ include.index }}">
+    <!-- 왼쪽 이미지 (왼쪽만 보여지게 할 거) -->
+    <div class="img-wrapper img-left-container" id="img-left-container-{{ include.index }}">
+        <img src="" id="img-left-{{ include.index }}" alt="Image Left">
+    </div>
+
+    <!-- 오른쪽 이미지 (오른쪽만 보여지게 할 거) -->
+    <div class="img-wrapper img-right-container" id="img-right-container-{{ include.index }}">
+        <img src="" id="img-right-{{ include.index }}" alt="Image Right">
+    </div>
+
+    <!-- 슬라이더 -->
+    <div class="slider" id="slider-{{ include.index }}">
+        <div class="handle">
+        <!-- 양쪽 화살표 SVG -->
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="8 18 2 12 8 6"></polyline>
+            <polyline points="17 6 23 12 17 18"></polyline>
+        </svg>
+        </div>
+    </div>
+</div>
+
+<style>
+    img .container, .img-wrapper{
+        user-select: none;               /* 표준 */
+        -webkit-user-select: none;       /* Safari, iOS */
+        -ms-user-select: none;           /* 구형 Edge */
+        -moz-user-select: none;          /* Firefox */
+        pointer-events: none;
+    }
+
+    .container {
+        position: relative;
+        cursor: ew-resize;
+        overflow: hidden;
+        max-width: 100%;
+    }
+
+    .img-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    .img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .img-left-container {
+        clip-path: inset(0 100% 0 0); /* 초기에는 아무것도 안 보이게 */
+        z-index: 1;
+    }
+
+    .img-right-container {
+        clip-path: inset(0 0 0 100%);
+        z-index: 2;
+    }
+
+    .slider {
+        position: absolute;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        background: white;
+        box-shadow: 
+        -2px 0 5px rgba(0, 0, 0, 0.2),  /* 왼쪽 그림자 */
+        2px 0 5px rgba(0, 0, 0, 0.2);  /* 오른쪽 그림자 */
+        z-index: 3;
+    }
+
+    .handle {
+        position: absolute;
+        top: 50%;
+        left: 50%; /* 슬라이더 바 중심 */
+        transform: translate(-50%, -50%); /* 자신의 중심 맞추기 */
+        width: 24px;
+        height: 24px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        user-select: none;
+    }
+  </style>
+
+<script type="module">
+    const container = document.getElementById('compare-container-{{ include.index }}');
+    const img_right = document.getElementById('img-right-{{ include.index }}');
+    const img_left = document.getElementById('img-left-{{ include.index }}');
+    const imgLeftContainer = document.getElementById('img-left-container-{{ include.index }}');
+    const imgRightContainer = document.getElementById('img-right-container-{{ include.index }}');
+    const slider = document.getElementById('slider-{{ include.index }}');
+
+    img_left.src = `{{ include.image_left }}?t=${Date.now()}`;
+    img_right.src = `{{ include.image_right }}?t=${Date.now()}`;
+  
+    let isDragging = false;
+  
+    const updateView = (x) => {
+        const rect = container.getBoundingClientRect();
+        let offsetX = x - rect.left;
+    
+        if (offsetX < 0) offsetX = 0;
+        if (offsetX > rect.width) offsetX = rect.width;
+    
+        const leftPercent = (offsetX / rect.width) * 100;
+        const rightPercent = 100 - leftPercent;
+    
+        // imageLeft 왼쪽부터 leftPercent만큼 보이게
+        imgLeftContainer.style.clipPath = `inset(0 ${100 - leftPercent}% 0 0)`;
+        // imageRight 오른쪽부터 rightPercent만큼 보이게
+        imgRightContainer.style.clipPath = `inset(0 0 0 ${leftPercent}%)`;
+    
+        // 슬라이더 위치
+        slider.style.left = offsetX + 'px';
+    };
+  
+    container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        updateView(e.clientX);
+    });
+  
+    window.addEventListener('mousemove', (e) => {
+        if (isDragging) updateView(e.clientX);
+        event.stopPropagation();
+    });
+  
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+  
+    container.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        updateView(e.touches[0].clientX);
+    });
+  
+    container.addEventListener('touchmove', (e) => {
+        if (isDragging) updateView(e.touches[0].clientX);
+    });
+  
+    container.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+
+    function resize() {
+        const rect = container.getBoundingClientRect();
+        const width = img_right.naturalWidth;
+        const height = img_right.naturalHeight;
+
+        // container.style.width = width + 'px';
+        container.style.height = rect.width * height / width + 'px';
+
+        // 초기 슬라이더 위치 중앙
+        const initX = rect.width / 2;
+        updateView(container.getBoundingClientRect().left + initX);
+    }
+  
+    // 이미지 로딩 후 container 사이즈 맞추기
+    img_left.addEventListener('load', () => {
+        resize();
+    });
+
+    // 윈도우 크기 변화 시 container 사이즈 맞추기
+    window.addEventListener('resize', () => {
+        resize();
+    });
+  </script>

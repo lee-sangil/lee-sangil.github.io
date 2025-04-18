@@ -1,0 +1,380 @@
+<!-- Usage: { include assets/glsl_comparison_slider.html glsl_left=<script> glsl_right=<script> text_left="" text_right="" index={0, 1, ...} } -->
+<div class="container" id="compare-container-{{ include.index }}">
+    <!-- 왼쪽 이미지 (왼쪽만 보여지게 할 거) -->
+    <div class="img-wrapper img-left-container" id="img-left-container-{{ include.index }}">
+        <canvas class="glsl-container" id="glsl-left-{{ include.index }}"></canvas>
+        <p class="hidden" id="glsl-left-fragment-{{ include.index }}">{{ include.glsl_left }}</p>
+        <div class="text-wrapper left">
+            <div>{{ include.text_left }}</div>
+        </div>
+    </div>
+
+    <!-- 오른쪽 이미지 (오른쪽만 보여지게 할 거) -->
+    <div class="img-wrapper img-right-container" id="img-right-container-{{ include.index }}">
+        <canvas class="glsl-container" id="glsl-right-{{ include.index }}"></canvas>
+        <p class="hidden" id="glsl-right-fragment-{{ include.index }}">{{ include.glsl_right }}</p>
+        <div class="text-wrapper right">
+            <div>{{ include.text_right }}</div>
+        </div>
+    </div>
+
+    <!-- 슬라이더 -->
+    <div class="slider" id="slider-{{ include.index }}">
+        <div class="handle">
+        <!-- 양쪽 화살표 SVG -->
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="8 18 2 12 8 6"></polyline>
+            <polyline points="17 6 23 12 17 18"></polyline>
+        </svg>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        position: relative;
+        cursor: ew-resize;
+        overflow: hidden;
+        max-width: 100%;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .container .img-wrapper{
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+
+        user-select: none;               /* 표준 */
+        -webkit-user-select: none;       /* Safari, iOS */
+        -ms-user-select: none;           /* 구형 Edge */
+        -moz-user-select: none;          /* Firefox */
+        pointer-events: none;
+    }
+
+    .container .img-wrapper canvas {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .container .img-left-container {
+        clip-path: inset(0 100% 0 0); /* 초기에는 아무것도 안 보이게 */
+        z-index: 1;
+    }
+
+    .container .img-right-container {
+        clip-path: inset(0 0 0 100%);
+        z-index: 2;
+    }
+
+    .container .text-wrapper {
+        position: absolute;
+        top: 10px;
+        background-color: rgba(255,255,255,0.5);
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-weight: bold;
+        pointer-events: none; /* 텍스트 클릭 방지 */
+        box-shadow: rgba(0,0,0,0.3) 0px 0px 15px;
+        &.left {
+            left: 10px;
+        }
+        &.right {
+            right: 10px;
+        }
+    }
+
+    .container .slider {
+        position: absolute;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        background: white;
+        box-shadow: 
+        -2px 0 5px rgba(0, 0, 0, 0.2),  /* 왼쪽 그림자 */
+        2px 0 5px rgba(0, 0, 0, 0.2);  /* 오른쪽 그림자 */
+        z-index: 3;
+    }
+
+    .container .handle {
+        position: absolute;
+        top: 50%;
+        left: 50%; /* 슬라이더 바 중심 */
+        transform: translate(-50%, -50%); /* 자신의 중심 맞추기 */
+        width: 24px;
+        height: 24px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        user-select: none;
+    }
+  </style>
+
+<script type="module">
+    const container = document.getElementById('compare-container-{{ include.index }}');
+    const glsl_right = document.getElementById('glsl-right-{{ include.index }}');
+    const glsl_left = document.getElementById('glsl-left-{{ include.index }}');
+    const imgLeftContainer = document.getElementById('img-left-container-{{ include.index }}');
+    const imgRightContainer = document.getElementById('img-right-container-{{ include.index }}');
+    const slider = document.getElementById('slider-{{ include.index }}');
+
+    // Implement the GLSL shader
+    const canvas_left = document.getElementById('glsl-left-{{ include.index }}')
+    canvas_left.style.width = '100%';
+    canvas_left.style.height = '100%';
+
+    // get webgl context
+    const gl_left = canvas_left.getContext('webgl');
+    if (!gl_left) alert('WebGL is not supported by your browser');
+
+    // get dpr value
+    const dpr = window.devicePixelRatio;
+
+    // create shaders
+    const vertex = `// Vertex
+    precision mediump float;
+
+    attribute vec2 a_position;
+    uniform vec2 u_mousePosition;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+    varying vec2 v_position;
+
+    void main() {
+        vec2 zeroToOne = a_position;
+        v_position = a_position;
+
+        // Convert from [0,1] to [-1,+1]
+        vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+        clipSpace.y *= -1.;
+
+        gl_Position = vec4(clipSpace, 0., 1.);
+    }`;
+    const fragment_left = document.getElementById('glsl-left-fragment-{{ include.index }}').textContent;
+    let [program_left, u_resolution_left, u_time_left] = updateShader(gl_left, vertex, fragment_left);
+
+    // Implement the GLSL shader
+    const canvas_right = document.getElementById('glsl-right-{{ include.index }}')
+    canvas_right.style.width = '100%';
+    canvas_right.style.height = '100%';
+
+    // get webgl context
+    const gl_right = canvas_right.getContext('webgl');
+    if (!gl_right) alert('WebGL is not supported by your browser');
+
+    // create shaders
+    const fragment_right = document.getElementById('glsl-right-fragment-{{ include.index }}').textContent;
+
+    let [program_right, u_resolution_right, u_time_right] = updateShader(gl_right, vertex, fragment_right);
+
+    // update the dimension of canvas
+    window.addEventListener('resize', resize);
+
+    // render
+    window.requestAnimationFrame(render);
+
+    function createShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+
+        const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+        if (success) {
+            return shader;
+        }
+
+        console.log(gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+    }
+
+    function createProgram(gl, vertexShader, fragmentShader, program) {
+        if (program) {
+            gl.deleteProgram(program);
+        }
+
+        const _program = gl.createProgram();
+        gl.attachShader(_program, vertexShader);
+        gl.attachShader(_program, fragmentShader);
+        gl.linkProgram(_program);
+
+        const success = gl.getProgramParameter(_program, gl.LINK_STATUS);
+        if (success) {
+            return _program;
+        }
+
+        console.log(gl.getProgramInfoLog(_program));
+        gl.deleteProgram(_program);
+    }
+
+    function createAttribute(gl, program, name, size, value) {
+        // create a buffer
+        const buffer = gl.createBuffer();
+
+        // bind it to ARRAY_BUFFER
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(value), gl.STATIC_DRAW);
+
+        // look up where the vertex data needs to go.
+        const attributeLocation = gl.getAttribLocation(program, name);
+
+        // turn on the attribute
+        gl.enableVertexAttribArray(attributeLocation);
+
+        // tell the attribute how to get data out of buffer (ARRAY_BUFFER)
+        const normalize = false; // don't normalize the data
+        const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        const offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(attributeLocation, size, gl.FLOAT, normalize, stride, offset);
+    }
+
+    function updateShader(gl, vertexSource, fragmentSource) {
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+
+        let program;
+        program = createProgram(gl, vertexShader, fragmentShader, program);
+
+        // use program
+        gl.useProgram(program);
+    
+        // enable to cull back face
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK); // BACK (default), FRONT, FRONT_AND_BACK
+
+        // In default, if the winding order of vertices is CCW, their triangle create a front face
+        gl.frontFace(gl.CCW); // CCW (default), CW
+
+        // create attributes
+        createAttribute(gl, program, "a_position", 2, [
+            0, 0,
+            0, 1,
+            1, 1,
+            0, 0,
+            1, 1,
+            1, 0,
+        ]);
+
+        // look up uniform locations
+        let u_resolution = gl.getUniformLocation(program, "u_resolution");
+        let u_time = gl.getUniformLocation(program, "u_time");
+
+        return [program, u_resolution, u_time];
+    }
+
+    function render(t) {
+        gl_left.uniform1f(u_time_left, t * 0.001);
+        gl_right.uniform1f(u_time_right, t * 0.001);
+
+        // set color to clear canvas
+        gl_left.clearColor(0, 0, 0, 0);
+        gl_right.clearColor(0, 0, 0, 0);
+
+        // clear the canvas with the above color
+        gl_left.clear(gl_left.COLOR_BUFFER_BIT);
+        gl_right.clear(gl_right.COLOR_BUFFER_BIT);
+
+        // draw triangles
+        const primitiveType = gl_left.TRIANGLES;
+        const offset = 0;
+        const count = 6;
+        gl_left.drawArrays(primitiveType, offset, count);
+        gl_right.drawArrays(primitiveType, offset, count);
+
+        requestAnimationFrame(render.bind(this));
+    }
+  
+    // Implement the slider functionality
+    let isDragging = false;
+  
+    const updateView = (x) => {
+        const rect = container.getBoundingClientRect();
+        let offsetX = x - rect.left;
+    
+        if (offsetX < 0) offsetX = 0;
+        if (offsetX > rect.width) offsetX = rect.width;
+    
+        const leftPercent = (offsetX / rect.width) * 100;
+        const rightPercent = 100 - leftPercent;
+    
+        // imageLeft 왼쪽부터 leftPercent만큼 보이게
+        imgLeftContainer.style.clipPath = `inset(0 ${100 - leftPercent}% 0 0)`;
+        // imageRight 오른쪽부터 rightPercent만큼 보이게
+        imgRightContainer.style.clipPath = `inset(0 0 0 ${leftPercent}%)`;
+    
+        // 슬라이더 위치
+        slider.style.left = offsetX + 'px';
+    };
+  
+    container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        updateView(e.clientX);
+    });
+  
+    window.addEventListener('mousemove', (e) => {
+        if (isDragging) updateView(e.clientX);
+        event.stopPropagation();
+    });
+  
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+  
+    container.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        updateView(e.touches[0].clientX);
+    });
+  
+    container.addEventListener('touchmove', (e) => {
+        if (isDragging) updateView(e.touches[0].clientX);
+    });
+  
+    container.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+
+    function resize() {
+        const rect = container.getBoundingClientRect();
+
+        // container.style.width = width + 'px';
+        container.style.height = rect.width * 0.5 + 'px';
+
+        // 초기 슬라이더 위치 중앙
+        const initX = rect.width / 2;
+        updateView(rect.left + initX);
+
+        // get displayed canvas size in pixels
+        const displayWidth  = Math.round(canvas_left.clientWidth * dpr);
+        const displayHeight = Math.round(canvas_left.clientHeight * dpr);
+
+        // update canvas size
+        canvas_left.width = displayWidth;
+        canvas_left.height = displayHeight;
+
+        // update gl viewport size
+        gl_left.viewport(0, 0, canvas_left.width, canvas_left.height);
+        gl_left.uniform2f(u_resolution_left, canvas_left.width, canvas_left.height);
+
+        // update canvas size
+        canvas_right.width = displayWidth;
+        canvas_right.height = displayHeight;
+
+        // update gl viewport size
+        gl_right.viewport(0, 0, canvas_right.width, canvas_right.height);
+        gl_right.uniform2f(u_resolution_right, canvas_right.width, canvas_right.height);
+    }
+
+    resize();
+  </script>

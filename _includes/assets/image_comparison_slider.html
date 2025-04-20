@@ -129,10 +129,12 @@
     img_right.src = `{{ include.image_right }}?t=${Date.now()}`;
     
     let isDragging = false;
+    let x_position = 0.5; // 슬라이더 위치 (0~1)
   
     const updateView = (x) => {
         const rect = container.getBoundingClientRect();
         let offsetX = x - rect.left;
+        x_position = offsetX / rect.width; // 슬라이더 위치 비율 (0~1)
     
         if (offsetX < 0) offsetX = 0;
         if (offsetX > rect.width) offsetX = rect.width;
@@ -184,9 +186,9 @@
         // container.style.width = width + 'px';
         container.style.height = rect.width * height / width + 'px';
 
-        // 초기 슬라이더 위치 중앙
-        const initX = rect.width / 2;
-        updateView(container.getBoundingClientRect().left + initX);
+        // 슬라이더 위치
+        const initX = rect.width * x_position;
+        updateView(rect.left + initX);
     }
   
     // 이미지 로딩 후 container 사이즈 맞추기

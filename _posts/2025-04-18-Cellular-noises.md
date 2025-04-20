@@ -130,7 +130,123 @@ To compute it, we need the position of the closest seed point and its neighborin
 
 Finally, in the below code, there are two for-statements. The first one finds the closest seed point, and the second one computes the distance from all neighboring seed points. The following interactive image shows the difference between the above Voronoi distance and Voronoi boundaries described here. 
 
-{% include assets/image_comparison_slider.html image_left="/assets/image/thumbnail/2025-04-20-voronoi-distance.png" image_right="/assets/image/thumbnail/2025-04-20-voronoi-boundary.png" text_left="Distance" text_right="Boundary" index=0 %}
+{% include assets/glsl_comparison_slider.html glsl_left="
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+#define N 5.
+
+uniform vec2 u_resolution;
+uniform float u_time;
+
+vec3 random3 (vec2 p)
+{
+  vec3 q = vec3( dot(p,vec2(127.1,311.7)), 
+          dot(p,vec2(269.5,183.3)), 
+          dot(p,vec2(419.2,371.9)) );
+  return fract(sin(q)*43758.5453);
+}
+
+float voronoi (vec2 st) {
+  // Tile the space
+  vec2 i_st = floor(st);
+  vec2 f_st = fract(st);
+
+  float m_dist = N;
+
+  for (int y= -1; y <= 1; y++)
+  for (int x= -1; x <= 1; x++) {
+    // Neighbor place in the grid
+    vec2 neighbor = vec2(float(x),float(y));
+
+    // Random position from current + neighbor place in the grid
+    vec2 point = 0.5+0.5*sin(u_time+6.2831*random3(i_st + neighbor).xy);
+
+    // Distance to the point
+    float dist = length(neighbor + point - f_st);
+
+    // Keep the closer distance
+    m_dist = min(m_dist, dist);
+  }
+  return m_dist;
+}
+
+void main() {
+  vec2 st = gl_FragCoord.xy/u_resolution.xy;
+  st.x *= u_resolution.x/u_resolution.y;
+
+  float c = voronoi( N*(st) );
+    
+  gl_FragColor = vec4(vec3(c),1.0);
+}
+" glsl_right="
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+#define N 5.
+
+uniform vec2 u_resolution;
+uniform float u_time;
+
+vec3 random3 (vec2 p)
+{
+  vec3 q = vec3( dot(p,vec2(127.1,311.7)), 
+          dot(p,vec2(269.5,183.3)), 
+          dot(p,vec2(419.2,371.9)) );
+  return fract(sin(q)*43758.5453);
+}
+
+float voronoi( in vec2 x ) {
+  vec2 i_st = floor(x);
+  vec2 f_st = fract(x);
+
+  // first pass: regular voronoi
+  vec2 closest_neighbor, closest_point;
+  float min_dist = N;
+  for (int j= -1; j <= 1; j++)
+  for (int i= -1; i <= 1; i++) {
+    vec2 neighbor = vec2(float(i),float(j));
+    vec2 point = 0.5+0.5*sin(u_time+6.2831*random3(i_st + neighbor).xy);
+
+    float dist = length(neighbor + point - f_st);
+
+    if ( dist < min_dist ) {
+      min_dist = dist;
+      closest_point = neighbor + point;
+      closest_neighbor = neighbor;
+    }
+  }
+
+  // second pass: distance to borders
+  min_dist = N;
+  for (int j= -2; j <= 2; j++)
+  for (int i= -2; i <= 2; i++) {
+    if (i == 0 && j == 0) continue;
+    vec2 neighbor = closest_neighbor + vec2(float(i),float(j));
+    vec2 point = 0.5+0.5*sin(u_time+6.2831*random3(i_st + neighbor).xy);
+
+    vec2 second_closest_point = neighbor + point;
+
+    min_dist = min(min_dist, dot( 0.5*(closest_point+second_closest_point) - f_st, normalize(second_closest_point-closest_point) ));
+  }
+  return min_dist;
+}
+
+void main() {
+  vec2 st = gl_FragCoord.xy/u_resolution.xy;
+  st.x *= u_resolution.x/u_resolution.y;
+
+  // Scale
+  float c = voronoi(st*N);
+
+  // borders
+  vec3 color = vec3(0.);
+  color = mix( vec3(1.0), color, smoothstep( 0.0, 0.05, c ) );
+  gl_FragColor = vec4(color,1.0);
+}
+" text_left="Distance" text_right="Boundary" index=0 %}
 
 ```glsl
 // Created by inigo quilez - iq/2013

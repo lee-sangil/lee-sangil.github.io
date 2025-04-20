@@ -13,10 +13,17 @@ $paragraph-indent: false !default; // true, false (default)
 $indent-var: 1.3em !default;
 
 /* system typefaces */
+@font-face {
+   font-family: 'Nanum Gothic KR';
+   src: url("/assets/css/vendor/fonts/NanumGothic-Regular.ttf") format('opentype');
+   unicode-range: U+AC00-D7AF;   //한글에 해당하는 유니코드
+   font-style: normal;
+   font-weight: normal;
+}
 $serif: Georgia, Times, serif !default;
 // $sans-serif: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI",
 //   "Helvetica Neue", "Lucida Grande", Arial, sans-serif !default;
-$sans-serif: 'Open Sans', sans-serif;
+$sans-serif: 'Nanum Gothic KR', 'Open Sans', sans-serif;
 $monospace: Monaco, Consolas, "Lucida Console", monospace !default;
 
 /* sans serif typefaces */

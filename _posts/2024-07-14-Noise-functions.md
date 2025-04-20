@@ -400,7 +400,7 @@ float simplex (vec2 st) {
 
 void main() {
     vec2 st = v_position * 6.;
-    float value = Perlin(st);
+    float value = simplex(st);
     
     gl_FragColor = vec4(vec3(value), 1.);
 }

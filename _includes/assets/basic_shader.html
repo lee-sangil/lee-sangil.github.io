@@ -40,6 +40,9 @@
     wrapper.addEventListener('mouseover', ()=>{
         text.style.opacity = 0;
     });
+    wrapper.addEventListener('mousemove', ()=>{
+        text.style.opacity = 0;
+    });
     wrapper.addEventListener('mouseleave', ()=>{
         text.style.opacity = 1;
     });
@@ -137,18 +140,18 @@
     gl.uniform2f(u_angle, angle[0], angle[1]);
 
     // update uniform value with a range: [0, 1]
-    canvas.addEventListener('pointerdown', function(evt){
+    canvas.addEventListener('mousedown', function(evt){
         is_mouse_down = true;
         mouse_position[0] = dpr * evt.clientX;
         mouse_position[1] = dpr * evt.clientY;
     });
-    window.addEventListener('pointerup', function(evt){
+    window.addEventListener('mouseup', function(evt){
         is_mouse_down = false;
     });
-    canvas.addEventListener('pointerleave', function(evt){
+    canvas.addEventListener('mouseleave', function(evt){
         is_mouse_down = false;
     });
-    canvas.addEventListener('pointermove', function(evt){
+    canvas.addEventListener('mousemove', function(evt){
         evt.preventDefault();
         const invScaleW = 1 / canvas.width;
         const invScaleH = 1 / canvas.height;
@@ -162,6 +165,34 @@
             angle[1] += (dpr * evt.clientY - mouse_position[1]) * 0.01;
             mouse_position[0] = dpr * evt.clientX;
             mouse_position[1] = dpr * evt.clientY;
+
+            angle[1] = Math.min(Math.max(angle[1], 0), Math.PI/2);
+            
+            gl.uniform2f(u_angle, angle[0], angle[1]);
+        }
+    });
+
+    canvas.addEventListener('touchstart', function(evt){
+        is_mouse_down = true;
+        mouse_position[0] = dpr * evt.targetTouches[0].clientX;
+        mouse_position[1] = dpr * evt.targetTouches[0].clientY;
+    });
+    window.addEventListener('touchend', function(evt){
+        is_mouse_down = false;
+    });
+    canvas.addEventListener('touchmove', function(evt){
+        evt.preventDefault();
+        const invScaleW = 1 / canvas.width;
+        const invScaleH = 1 / canvas.height;
+        const rect = evt.target.getBoundingClientRect();
+        const x = evt.targetTouches[0].clientX - rect.left;
+        const y = evt.targetTouches[0].clientY - rect.top;
+        gl.uniform2f(u_mousePosition, dpr * x * invScaleW, dpr * y * invScaleH);
+        if (is_mouse_down) {
+            angle[0] -= (dpr * evt.targetTouches[0].clientX - mouse_position[0]) * 0.01;
+            angle[1] += (dpr * evt.targetTouches[0].clientY - mouse_position[1]) * 0.01;
+            mouse_position[0] = dpr * evt.targetTouches[0].clientX;
+            mouse_position[1] = dpr * evt.targetTouches[0].clientY;
 
             angle[1] = Math.min(Math.max(angle[1], 0), Math.PI/2);
             

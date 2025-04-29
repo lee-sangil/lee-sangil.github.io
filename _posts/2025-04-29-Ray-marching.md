@@ -198,7 +198,7 @@ void main()
   vec2 uv = gl_FragCoord.xy;
   
   // intrinsic parameter
-  vec2 f = vec2(600.);
+  vec2 f = vec2(u_resolution.x);
   vec2 c = 0.5*u_resolution.xy;
   
   // normalized image plane

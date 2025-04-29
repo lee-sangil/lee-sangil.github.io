@@ -1,6 +1,8 @@
 ---
 title: "Understanding the Variations of Cellular Noise"
 prefix: "WebGL"
+lang: "en"
+lang_ref: "2025-04-18-cellular-noise"
 categories:
  - WebGL
 tags:

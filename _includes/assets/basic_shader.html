@@ -1,22 +1,42 @@
-<div id="wrapper">
-    <p id='hover'>Touch or hover your mouse here</p>
-    <canvas id='webgl'></canvas>
+<div class="glsl-wrapper" id="wrapper-{{ include.index }}">
+    <p class="hidden" id="vertex-{{ include.index }}">{{ include.vertex }}</p>
+    <p class="hidden" id="fragment-{{ include.index }}">{{ include.fragment }}</p>
+    <p class="glsl-hover" id='hover-{{ include.index }}'>Touch or hover your mouse here</p>
+    <canvas class="glsl-canvas" id='webgl-{{ include.index }}'></canvas>
 </div>
-<script>
-    const text = document.getElementById('hover');
-    text.style.position = 'absolute';
-    text.style.left = '50%';
-    text.style.top = '50%';
-    text.style.width = '100%';
-    text.style.textAlign = 'center';
-    text.style.transform = 'translate(-50%, -50%)';
-    text.style.color = 'white';
-    text.style.opacity = 1;
-    text.style.pointerEvents = 'none';
-    text.style.transition = 'opacity 0.3s ease';
+<style>
+    .glsl-wrapper .hidden {
+        display: none;
+    }
 
-    const wrapper = document.getElementById('wrapper');
-    wrapper.style.position = 'relative';
+    .glsl-wrapper .glsl-hover {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 100%;
+        text-align: center;
+        transform: translate(-50%, -50%);
+        color: white;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .glsl-wrapper {
+        position: relative;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .glsl-wrapper .glsl-canvas {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+<script>
+    const text = document.getElementById('hover-{{ include.index }}');
+
+    const wrapper = document.getElementById('wrapper-{{ include.index }}');
     wrapper.addEventListener('mouseover', ()=>{
         text.style.opacity = 0;
     });
@@ -31,9 +51,7 @@
     });
 
     // create canvas element
-    const canvas = document.getElementById('webgl')
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
+    const canvas = document.getElementById('webgl-{{ include.index }}');
 
     // get webgl context
     const gl = canvas.getContext('webgl');
@@ -43,57 +61,8 @@
     const dpr = window.devicePixelRatio;
 
     // create shaders
-    vertex = `
-    precision mediump float;
-
-    attribute vec2 a_position;
-    attribute vec3 a_normal;
-
-    // uniform vec2 u_resolution;
-
-    varying vec2 v_position;
-    varying vec3 v_normal;
-
-    void main() {
-        // 위치를 픽셀에서 0.0과 1.0사이로 변환
-        vec2 zeroToOne = a_position;// / u_resolution;
-
-        // 0->1에서 -1->+1로 변환 (클립 공간)
-        vec2 clipSpace = zeroToOne * 2.0 - 1.0;
-        clipSpace.y *= -1.;
-
-        v_position = a_position;
-        v_normal = a_normal;
-
-        gl_Position = vec4(clipSpace, 0., 1.);
-    }
-    `;
-    fragment = `
-    precision mediump float;
-
-    uniform vec2 u_mousePosition;
-    // uniform vec2 u_resolution;
-
-    varying vec2 v_position;
-    varying vec3 v_normal;
-
-    void main() {
-        vec2 position = v_position;// / u_resolution;
-        vec2 mousePosition = u_mousePosition; // / u_resolution;
-        float x = clamp(mousePosition.x, 0., 1.);
-        float y = clamp(mousePosition.y, 0., 1.);
-
-        vec3 color = vec3(position, x);
-        color *= y;
-
-        // float color = 1.;
-        // color *= step(x, position.x);
-        // color *= step(y, position.y);
-
-        // gl_FragColor는 프래그먼트 셰이더가 설정을 담당하는 특수 변수
-        gl_FragColor = vec4(color, 1.); // 자주색 반환
-    }
-    `;
+    const vertex = document.getElementById('vertex-{{ include.index }}').textContent;
+    const fragment = document.getElementById('fragment-{{ include.index }}').textContent;
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertex);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragment);
 
@@ -130,21 +99,74 @@
 
     // look up uniform locations
     const u_mousePosition = gl.getUniformLocation(program, "u_mousePosition");
+    const u_resolution = gl.getUniformLocation(program, "u_resolution");
+    const u_angle = gl.getUniformLocation(program, "u_angle");
+    const u_time = gl.getUniformLocation(program, "u_time");
+    const u_texture = gl.getUniformLocation(program, "u_texture");
+
+    const image = new Image();
+    if (!'{{ include.texture }}') {
+        console.log('No texture provided, using default texture');
+        image.src = `assets/image/texture/checkerboard.jpg`;
+    } else {
+        console.log(`{{ include.texture }} is provided as a texture`);
+        image.src = `{{ include.texture }}?t=${Date.now()}`;
+    }
+    
+    image.onload = ()=>{
+        console.log('Image loaded');
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Set the parameters so we can render any size image.
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        // Upload the image into the texture.
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        gl.uniform1i(u_texture,  0);
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texture);
+    };
+
+    let is_mouse_down = false;
+    let mouse_position = [0, 0];
+    let angle = [0, Math.PI/6];
+    gl.uniform2f(u_angle, angle[0], angle[1]);
 
     // update uniform value with a range: [0, 1]
-    canvas.addEventListener('mousemove', function(evt){
-        const invScaleW = 1 / canvas.width;
-        const invScaleH = 1 / canvas.height;
-        gl.uniform2f(u_mousePosition, dpr*evt.offsetX * invScaleW, dpr*evt.offsetY * invScaleH);
+    canvas.addEventListener('pointerdown', function(evt){
+        is_mouse_down = true;
+        mouse_position[0] = dpr * evt.clientX;
+        mouse_position[1] = dpr * evt.clientY;
     });
-    canvas.addEventListener('touchmove', function(evt){
+    window.addEventListener('pointerup', function(evt){
+        is_mouse_down = false;
+    });
+    canvas.addEventListener('pointerleave', function(evt){
+        is_mouse_down = false;
+    });
+    canvas.addEventListener('pointermove', function(evt){
         evt.preventDefault();
         const invScaleW = 1 / canvas.width;
         const invScaleH = 1 / canvas.height;
         const rect = evt.target.getBoundingClientRect();
-        const x = evt.targetTouches[0].clientX - rect.left;
-        const y = evt.targetTouches[0].clientY - rect.top;
-        gl.uniform2f(u_mousePosition, dpr*x * invScaleW, dpr*y * invScaleH);
+        const x = evt.clientX - rect.left;
+        const y = evt.clientY - rect.top;
+        gl.uniform2f(u_mousePosition, dpr * x * invScaleW, dpr * y * invScaleH);
+
+        if (is_mouse_down) {
+            angle[0] -= (dpr * evt.clientX - mouse_position[0]) * 0.01;
+            angle[1] += (dpr * evt.clientY - mouse_position[1]) * 0.01;
+            mouse_position[0] = dpr * evt.clientX;
+            mouse_position[1] = dpr * evt.clientY;
+
+            angle[1] = Math.min(Math.max(angle[1], 0), Math.PI/2);
+            
+            gl.uniform2f(u_angle, angle[0], angle[1]);
+        }
     });
 
     // update the dimension of canvas
@@ -215,9 +237,12 @@
 
         // update gl viewport size
         gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.uniform2f(u_resolution, canvas.width, canvas.height);
     }
 
-    function render() {
+    function render(t) {
+        gl.uniform1f(u_time, t * 0.001);
+
         // set color to clear canvas
         gl.clearColor(0, 0, 0, 0);
 

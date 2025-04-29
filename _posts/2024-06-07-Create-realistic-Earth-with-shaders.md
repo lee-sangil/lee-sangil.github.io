@@ -329,7 +329,7 @@ mixAmountTexture *= mixAmountHemisphere;
 <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/UGrzvwM.gif">
 
 ## Atmosphere
-Thankfully, the Earth has an atmosphere. To generate our blue atmosphere, we have to consider that the atmosphere is visible remarkably under the light. Thus, we compute the cosine angle between sun and normal vector again. Then, in common with the glow effect in [[Create realistic Sun]], I've created an ambient circle with `u_color`, and masked with `mixAmount`. Notice that `vNormalView` denotes a normal vector of the object, represented in the camera coordinates.
+Thankfully, the Earth has an atmosphere. To generate our blue atmosphere, we have to consider that the atmosphere is visible remarkably under the light. Thus, we compute the cosine angle between sun and normal vector again. Then, in common with the glow effect in [Create realistic Sun]({% post_url 2024-06-29-Create-realistic-Sun-with-shaders %}), I've created an ambient circle with `u_color`, and masked with `mixAmount`. Notice that `vNormalView` denotes a normal vector of the object, represented in the camera coordinates.
 
 ```glsl
 uniform vec3 u_sunRelPosition;

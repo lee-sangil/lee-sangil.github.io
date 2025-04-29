@@ -86,7 +86,54 @@ function createAttribute(gl, program, name, size, value) {
 ## Entire code
 Below is an example using shader program. In the example, the color of canvas varies depending on the position of mouse pointer and coordinates. I'll explain the method of how to script vertex and fragment shaders in the next post.
 
-{% include /assets/basic_shader.html %}
+{% include /assets/basic_shader.html vertex="
+precision mediump float;
+
+attribute vec2 a_position;
+attribute vec3 a_normal;
+
+// uniform vec2 u_resolution;
+
+varying vec2 v_position;
+varying vec3 v_normal;
+
+void main() {
+    // 위치를 픽셀에서 0.0과 1.0사이로 변환
+    vec2 zeroToOne = a_position;// / u_resolution;
+
+    // 0->1에서 -1->+1로 변환 (클립 공간)
+    vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+    clipSpace.y *= -1.;
+
+    v_position = a_position;
+    v_normal = a_normal;
+
+    gl_Position = vec4(clipSpace, 0., 1.);
+}" fragment="
+precision mediump float;
+
+uniform vec2 u_mousePosition;
+// uniform vec2 u_resolution;
+
+varying vec2 v_position;
+varying vec3 v_normal;
+
+void main() {
+    vec2 position = v_position;// / u_resolution;
+    vec2 mousePosition = u_mousePosition; // / u_resolution;
+    float x = clamp(mousePosition.x, 0., 1.);
+    float y = clamp(mousePosition.y, 0., 1.);
+
+    vec3 color = vec3(position, x);
+    color *= y;
+
+    // float color = 1.;
+    // color *= step(x, position.x);
+    // color *= step(y, position.y);
+
+    // gl_FragColor는 프래그먼트 셰이더가 설정을 담당하는 특수 변수
+    gl_FragColor = vec4(color, 1.); // 자주색 반환
+}" index=0 %}
 
 #### fragment shader
 ```glsl

@@ -433,7 +433,7 @@ body {
     clear: both;
     border: 0;
     position: sticky;
-    top: calc(4rem - 2px);
+    top: calc(1rem + 2em);
     background: white;
     border-bottom: solid 1px $border-color;
     z-index: 1;

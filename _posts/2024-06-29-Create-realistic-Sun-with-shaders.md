@@ -198,7 +198,7 @@ void main() {
 <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/vwOynAW.gif">
 
 ## Fresnel
-As mentioned in the previous article[^earth], when rendering the light-emitting object, we have to consider that the boundary of the object seems to be brighter because the angle of incidence becomes small at the boundary. In the below, the Fresnel effect is described with the term, `fresnelTerm_outer`. Besides, because the light from the center of the object enters the camera more strongly, this effect is described as a term, `fresnelTerm_inner`. As the same with the glow effect, `vNormalView` has been used to render the Fresnel effect.
+As mentioned in the previous article[^earth], when rendering the light-emitting object, we have to consider that the boundary of the object seems to be brighter because the angle of incidence becomes large at the boundary. In the below, the Fresnel effect is described with the term, `fresnelTerm_outer`. Besides, because the light from the center of the object enters the camera more strongly, this effect is described as a term, `fresnelTerm_inner`. As the same with the glow effect, `vNormalView` has been used to render the Fresnel effect.
 ```glsl
 uniform vec3 u_color;
 varying vec3 vPosition;

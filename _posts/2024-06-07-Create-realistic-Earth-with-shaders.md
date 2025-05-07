@@ -360,7 +360,7 @@ The result is as follows. By the way, I've changed the background color to black
 <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/2d503pQ.png">
 
 ## Fresnel
-Finally, this is the last step. The Fresnel effect deals with the intensity of reflection depending on the angle of incidence. As the angle gets small, the reflection becomes strong. Thus, the farther from the center of the Earth, i.e. the greater the angle between the camera-surface vector and the normal vector of the surface, the less transparent the atmosphere should be. As the same with the above atmosphere, Fresnel values are also masked with day-and-night amount, `mixAmount`. 
+Finally, this is the last step. The Fresnel effect deals with the intensity of reflection depending on the angle of incidence. The closer the angle of incidence approaches 90 degrees, the stronger the reflection. Thus, the farther from the center of the Earth, i.e. the greater the angle between the camera-surface vector and the normal vector of the surface, the less transparent the atmosphere should be. As the same with the above atmosphere, Fresnel values are also masked with day-and-night amount, `mixAmount`. 
 
 ```glsl
 uniform vec3 u_sunRelPosition;

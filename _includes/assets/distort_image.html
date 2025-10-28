@@ -1,0 +1,770 @@
+<div id="wrapper">
+    <canvas id='webgl'></canvas>
+</div>
+<style>
+    #wrapper {
+        position: relative;
+        width: 100%;
+        height: 50vh;
+    }
+    canvas {
+        position: relative;
+    }
+    .dg {
+        min-height: 16px;
+        max-height: 100%;
+        height: fit-content;
+        overflow-x: hidden;
+    }
+    .dg.main {
+        padding-bottom: 20px;
+    }
+    .dg.main > div:first-child {
+        position: relative !important;
+    }
+    .dg li {
+        margin-bottom: 0px;
+    }
+    .dg ul {
+        position: inherit;
+        top: 20px;
+        height: unset !important;
+    }
+    .dg .close-button {
+        position: absolute;
+        top: 0;
+    }
+</style>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.180.0/examples/jsm/"
+    }
+}
+</script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/14.8.1/math.min.js" integrity="sha512-ix7qh7Gu4nTiTEktF0EWQAsn0cGwuiDJwuxdX4GGpivcx+PxYdJ/j0nlWyUTONg2bOQV98vk+x+Ee6zYpB5wyA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script type="module">
+    import * as THREE from 'three';
+    
+    // initial parameters for each camera model
+    let coeffBC = { fx: 198.5791, fy: 199.3163, cx: 362.4740, cy: 250.0199, k1: -0.2387, k2: 0.0456, p1: -0.0020, p2: -0.0020};
+    let coeffKB = { fx: 211.5827, fy: 211.7854, cx: 358.7755, cy: 242.8017, k1: -0.0522, k2: -0.0033, k3: 0.0098, k4: -0.0066};
+    let coeffSC = { c: 0.9902, d: 0.0166, e: 0.0, cx: 366.2676, cy: 229.1071, a0: 237.1833, a2: -0.0010, a3: 0.0, a4: 0.0};
+    let coeffUCM = { fx: 194.7012, fy: 194.7416, cx: 341.7728, cy: 261.1679, xi: 0.4826, k1: -0.0111, k2: -0.0300, p1: -0.0146, p2: 0.0137};
+    let coeffDS = { fx: 238.6252, fy: 236.9726, cx: 352.7578, cy: 240.1932, xi: -0.4419, alpha: 0.4526, k1: -0.1614, k2: 0.0180, p1: 0.0077, p2: 0.0115};
+    
+    function restore() {
+        if (guiParams.model == 'BC') {
+            Object.assign(guiParams, coeffBC);
+        } else if (guiParams.model == 'KB') {
+            Object.assign(guiParams, coeffKB);
+        } else if (guiParams.model == 'SC') {
+            Object.assign(guiParams, coeffSC);
+        } else if (guiParams.model == 'UCM') {
+            Object.assign(guiParams, coeffUCM);
+        } else if (guiParams.model == 'DS') {
+            Object.assign(guiParams, coeffDS);
+        }
+        updateShaderUniforms();
+    }
+
+    const guiParams = {
+        model: 'BC',
+        restore: restore,
+        fx: 500.0, // start with BC model
+        fy: 500.0,
+        cx: 0.0,
+        cy: 0.0,
+        k1: 0.0,
+        k2: 0.0,
+        p1: 0.0,
+        p2: 0.0,
+        k3: 0.0,
+        k4: 0.0,
+        a0: 0.0,
+        a2: 0.0,
+        a3: 0.0,
+        a4: 0.0,
+        xi: 0.0,
+        alpha: 0.0
+    };
+
+    let scene, camera, renderer, material;
+    let gui;
+    
+    // vertex shader
+    const vertexShader = /*glsl*/`
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `;
+
+    // fragment shader for Brown-Conrady distortion model
+    const fragmentShaderBC = /*glsl*/`
+        precision highp float;
+        uniform sampler2D map;
+        uniform vec2 resolution;
+        uniform float fx, fy, cx, cy;
+        uniform float k1, k2, p1, p2;
+
+        varying vec2 vUv;
+
+        void main() {
+            // convert x: (0,1) -> (0,width), y: (0,1) -> (0,height)
+            vec2 P_undistorted_px = vUv * resolution;
+
+            // normalized image coordinates
+            vec2 P_undistorted_norm = vec2(
+                (P_undistorted_px.x - cx) / fx,
+                (P_undistorted_px.y - cy) / fy
+            );
+            
+            // pre-compute radial distance
+            float r2 = dot(P_undistorted_norm, P_undistorted_norm);
+
+            // apply distortion
+            float radial_factor = 1.0 + k1 * r2 + k2 * r2 * r2;
+            vec2 tangential_factor = vec2(
+                2.0 * p1 * P_undistorted_norm.x * P_undistorted_norm.y + p2 * (r2 + 2.0 * P_undistorted_norm.x * P_undistorted_norm.x),
+                p1 * (r2 + 2.0 * P_undistorted_norm.y * P_undistorted_norm.y) + 2.0 * p2 * P_undistorted_norm.x * P_undistorted_norm.y
+            );
+
+            vec2 P_distorted_norm = P_undistorted_norm * radial_factor + tangential_factor;
+
+            // convert normalized image coordinates to UV coordinates
+            vec2 uv_distorted = P_distorted_norm * vec2(fx, fy) + vec2(cx, cy);
+            uv_distorted /= resolution;
+
+            // get color
+            if (uv_distorted.x < 0.0 || uv_distorted.x > 1.0 || 
+                uv_distorted.y < 0.0 || uv_distorted.y > 1.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            } else {
+                gl_FragColor = texture2D(map, uv_distorted);
+            }
+        }
+    `;
+
+    // fragment shader for Kannala-Brandt camera model
+    const fragmentShaderKB = /* glsl */`
+
+        precision highp float;
+        uniform sampler2D map;
+        uniform vec2 resolution;
+        uniform float fx, fy, cx, cy;
+        uniform float k1, k2, k3, k4;
+
+        varying vec2 vUv;
+
+        void main() {
+            // convert x: (0,1) -> (0,width), y: (0,1) -> (0,height)
+            vec2 P_undistorted_px = vUv * resolution;
+
+            // normalized image coordinates
+            vec2 P_undistorted_norm = vec2(
+                (P_undistorted_px.x - cx) / fx,
+                (P_undistorted_px.y - cy) / fy
+            );
+            
+            // pre-compute radial distance and angle from z-axis
+            float r = sqrt(dot(P_undistorted_norm, P_undistorted_norm));
+            float theta = atan(r, 1.0);
+            float theta2 = theta * theta;
+            float theta4 = theta2 * theta2;
+            float theta6 = theta4 * theta2;
+            float theta8 = theta4 * theta4;
+
+            // apply Kannala-Brandt polynomial to get distorted radius rd
+            float rd = theta * (1.0 + k1*theta2 + k2*theta4 + k3*theta6 + k4*theta8);
+
+            vec2 P_distorted_norm = vec2(
+                P_undistorted_norm.x * rd / r,
+                P_undistorted_norm.y * rd / r
+            );
+
+            // convert normalized image coordinates to UV coordinates
+            vec2 uv_distorted = P_distorted_norm * vec2(fx, fy) + vec2(cx, cy);
+            uv_distorted /= resolution;
+
+            // get color
+            if (uv_distorted.x < 0.0 || uv_distorted.x > 1.0 || 
+                uv_distorted.y < 0.0 || uv_distorted.y > 1.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            } else {
+                gl_FragColor = texture2D(map, uv_distorted);
+            }
+        }
+    `;
+
+    // fragment shader for Scaramuzza camera model
+    const fragmentShaderSC = /* glsl */`
+
+        precision highp float;
+        uniform sampler2D map;
+        uniform vec2 resolution;
+        uniform float c, d, e, cx, cy;
+        uniform float b0, b1, b2, b3, b4, b5, b6, b7, b8, b9; // the degree of the inverse polynomial
+
+        varying vec2 vUv;
+
+        void main() {
+            // convert x: (0,1) -> (0,width), y: (0,1) -> (0,height)
+            vec2 P_undistorted_px = vUv * resolution;
+
+            float fx = c * b0;
+            float fy = b0;
+
+            // normalized image coordinates
+            vec2 P_undistorted_norm = vec2(
+                (P_undistorted_px.x - cx) / fx,
+                (P_undistorted_px.y - cy) / fy
+            );
+            
+            // pre-compute radial distance and angle from z-axis
+            float r = sqrt(dot(P_undistorted_norm, P_undistorted_norm));
+            float theta = atan(r, 1.0);
+            float theta2 = theta * theta;
+            float theta3 = theta2 * theta;
+            float theta4 = theta2 * theta2;
+            float theta5 = theta3 * theta2;
+            float theta6 = theta3 * theta3;
+            float theta7 = theta4 * theta3;
+            float theta8 = theta4 * theta4;
+            float theta9 = theta5 * theta4;
+
+            // compute the root of Scaramuzza polynomial using its inverse form
+            float rho = b0 + b1*theta + b2*theta2 + b3*theta3 + b4*theta4 + b5*theta5 + b6*theta6 + b7*theta7 + b8*theta8 + b9*theta9;
+
+            vec2 P_distorted_xy = vec2(
+                P_undistorted_norm.x * rho / r,
+                P_undistorted_norm.y * rho / r
+            );
+
+            // convert normalized image coordinates to UV coordinates
+            vec2 uv_distorted = P_distorted_xy.xx * vec2(c, e) + P_distorted_xy.yy * vec2(d, 1.0) + vec2(cx, cy);
+            uv_distorted /= resolution;
+
+            // get color
+            if (uv_distorted.x < 0.0 || uv_distorted.x > 1.0 || 
+                uv_distorted.y < 0.0 || uv_distorted.y > 1.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            } else {
+                gl_FragColor = texture2D(map, uv_distorted);
+            }
+        }
+    `;
+
+    // fragment shader for Unified (Mei) camera model
+    const fragmentShaderUCM = /* glsl */`
+
+        precision highp float;
+        uniform sampler2D map;
+        uniform vec2 resolution;
+        uniform float fx, fy, cx, cy;
+        uniform float xi, k1, k2, p1, p2;
+
+        varying vec2 vUv;
+
+        void main() {
+            // convert x: (0,1) -> (0,width), y: (0,1) -> (0,height)
+            vec2 P_undistorted_px = vUv * resolution;
+
+            // normalized image coordinates
+            vec2 P_undistorted_norm = vec2(
+                (P_undistorted_px.x - cx) / fx,
+                (P_undistorted_px.y - cy) / fy
+            );
+            
+            // pre-compute radial distance
+            float d = sqrt(dot(P_undistorted_norm, P_undistorted_norm)+1.0); // z^2 = 1.0
+
+            vec2 P_distorted_norm = P_undistorted_norm / (1.0 + xi*d); // z = 1.0
+
+            // pre-compute radial distance
+            float r2 = dot(P_distorted_norm, P_distorted_norm);
+
+            // apply distortion
+            float radial_factor = 1.0 + k1 * r2 + k2 * r2 * r2;
+            vec2 tangential_factor = vec2(
+                2.0 * p1 * P_distorted_norm.x * P_distorted_norm.y + p2 * (r2 + 2.0 * P_distorted_norm.x * P_distorted_norm.x),
+                p1 * (r2 + 2.0 * P_distorted_norm.y * P_distorted_norm.y) + 2.0 * p2 * P_distorted_norm.x * P_distorted_norm.y
+            );
+
+            vec2 P_distorted_xy = P_distorted_norm * radial_factor + tangential_factor;
+
+            // convert normalized image coordinates to UV coordinates
+            vec2 uv_distorted = P_distorted_xy * vec2(fx, fy) + vec2(cx, cy);
+            uv_distorted /= resolution;
+
+            // get color
+            if (uv_distorted.x < 0.0 || uv_distorted.x > 1.0 || 
+                uv_distorted.y < 0.0 || uv_distorted.y > 1.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            } else {
+                gl_FragColor = texture2D(map, uv_distorted);
+            }
+        }
+    `;
+
+    // fragment shader for Double Sphere camera model
+    const fragmentShaderDS = /* glsl */`
+
+        precision highp float;
+        uniform sampler2D map;
+        uniform vec2 resolution;
+        uniform float fx, fy, cx, cy;
+        uniform float xi, alpha, k1, k2, p1, p2;
+
+        varying vec2 vUv;
+
+        void main() {
+            // convert x: (0,1) -> (0,width), y: (0,1) -> (0,height)
+            vec2 P_undistorted_px = vUv * resolution;
+
+            // normalized image coordinates
+            vec2 P_undistorted_norm = vec2(
+                (P_undistorted_px.x - cx) / fx,
+                (P_undistorted_px.y - cy) / fy
+            );
+            
+            // pre-compute radial distance and angle from z-axis
+            float d1 = sqrt(dot(P_undistorted_norm, P_undistorted_norm)+1.0); // z^2 = 1.0
+            float d2 = sqrt(dot(P_undistorted_norm, P_undistorted_norm)+pow(1.0+xi*d1, 2.0)); // z = 1.0
+
+            vec2 P_distorted_norm = P_undistorted_norm * (1.0 - alpha) / ((1.0 - alpha) * (1.0 + xi * d1) + alpha*d2); // z = 1.0
+
+            // pre-compute radial distance
+            float r2 = dot(P_distorted_norm, P_distorted_norm);
+
+            // apply distortion
+            float radial_factor = 1.0 + k1 * r2 + k2 * r2 * r2;
+            vec2 tangential_factor = vec2(
+                2.0 * p1 * P_distorted_norm.x * P_distorted_norm.y + p2 * (r2 + 2.0 * P_distorted_norm.x * P_distorted_norm.x),
+                p1 * (r2 + 2.0 * P_distorted_norm.y * P_distorted_norm.y) + 2.0 * p2 * P_distorted_norm.x * P_distorted_norm.y
+            );
+
+            vec2 P_distorted_xy = P_distorted_norm * radial_factor + tangential_factor;
+
+            // convert normalized image coordinates to UV coordinates
+            vec2 uv_distorted = P_distorted_xy * vec2(fx, fy) + vec2(cx, cy);
+            uv_distorted /= resolution;
+
+            // get color
+            if (uv_distorted.x < 0.0 || uv_distorted.x > 1.0 || 
+                uv_distorted.y < 0.0 || uv_distorted.y > 1.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            } else {
+                gl_FragColor = texture2D(map, uv_distorted);
+            }
+        }
+    `;
+
+    function init() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        
+        scene = new THREE.Scene();
+        camera = new THREE.OrthographicCamera(
+            -width/2, width/2,
+            -height/2, -height/2,
+            1, 1000
+        );
+        camera.position.z = 10;
+
+        const canvas = document.getElementById('webgl');
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setSize(width, height);
+
+        // load image
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load(
+            '/assets/image/texture/fisheye_image.jpg',
+            (tex) => {
+                const imgWidth = tex.image.width;
+                const imgHeight = tex.image.height;
+                
+                // update orthogonal camera
+                camera.left = -imgWidth/2;
+                camera.right = imgWidth/2;
+                camera.top = imgHeight/2;
+                camera.bottom = -imgHeight/2;
+                camera.updateProjectionMatrix();
+
+                // update uniforms
+                material.uniforms.resolution.value.set(imgWidth, imgHeight);
+
+                // resize
+                onWindowResize();
+                
+                animate();
+            },
+            undefined,
+            (err) => {
+                console.error('cannot load an image', err);
+            }
+        );
+
+        let uniforms = {
+            map: { value: texture },
+            resolution: { value: new THREE.Vector2(width, height) },
+            
+            fx: { value: guiParams.fx },
+            fy: { value: guiParams.fy },
+            cx: { value: guiParams.cx },
+            cy: { value: guiParams.cy },
+
+            k1: { value: guiParams.k1 },
+            k2: { value: guiParams.k2 },
+            p1: { value: guiParams.p1 },
+            p2: { value: guiParams.p2 },
+
+            // for only Kannala-Brandt
+            k3: { value: guiParams.k3 },
+            k4: { value: guiParams.k4 },
+
+            // for only the inverse form of Scaramuzza polynomial
+            b0: { value: 0.0 },
+            b1: { value: 0.0 },
+            b2: { value: 0.0 },
+            b3: { value: 0.0 },
+            b4: { value: 0.0 },
+            b5: { value: 0.0 },
+            b6: { value: 0.0 },
+            b7: { value: 0.0 },
+            b8: { value: 0.0 },
+            b9: { value: 0.0 },
+
+            xi: { value: 0.0 }, // for UCM and DS
+            alpha: { value: 0.0 } // for DS
+        };
+        
+        // shader material
+        material = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShaderBC
+        });
+
+        // create image plane
+        const geometry = new THREE.PlaneGeometry(1, 1); // 초기값 (텍스처 로드 후 크기 조정)
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.scale.set(width, height, 1); // 스케일을 초기 화면 크기로 설정
+        scene.add(mesh);
+
+        // initialize dat.gui
+        initGui();
+
+        // initial intrinsic parameters
+        restore();
+
+        // add resize event listener
+        window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function mergeExistingFields(target, source) {
+        for (const key in source)
+            if (key in target)
+                target[key].value = source[key];
+            
+        return target;
+    }
+
+    // function solveQuadraticPolynomial(a, b, c) {
+    //     if (a == 0) {
+    //         if (b == 0) return [];
+    //         else return [math.complex(-c/b)];
+    //     }
+
+    //     let p = math.complex(b*b - 4*a*c);
+    //     p = math.sqrt(p);
+
+    //     let roots = [];
+    //     roots.push(math.add(math.complex(-b/2/a), math.multiply(p, 1/2/a)));
+    //     roots.push(math.subtract(math.complex(-b/2/a), math.multiply(p, 1/2/a)));
+    //     return roots;
+    // }
+
+    // function solveCubicPolynomial(a, b, c, d) {
+    //     if (a == 0) return solveQuadraticPolynomial(b, c, d);
+
+    //     let p = math.complex(-b/(3*a));
+    //     let q = math.complex(2*b**3-9*a*b*c+27*a*a*d);
+    //     let r = math.complex(4*math.pow(b*b - 3*a*c, 3));
+    //     let s = math.sqrt(math.complex(q*q-r));
+    //     let u = math.add(math.complex(q/2), math.multiply(s, 1/2));
+    //     u = math.pow(u, 1/3);
+    //     let v = math.subtract(math.complex(q/2), math.multiply(s, 1/2));
+    //     v = math.pow(v, 1/3);
+
+    //     const w0 = math.complex(-1/(3*a));
+    //     const w1 = math.complex(1/6/a, Math.sqrt(3)/6/a);
+    //     const w2 = math.complex(1/6/a, -Math.sqrt(3)/6/a);
+
+    //     let roots = [];
+    //     roots.push(math.add(p, math.add(math.multiply(w0, u), math.multiply(w0, v))));
+    //     roots.push(math.add(p, math.add(math.multiply(w1, u), math.multiply(w2, v))));
+    //     roots.push(math.add(p, math.add(math.multiply(w2, u), math.multiply(w1, v))));
+    //     return roots;
+    // }
+
+    function solveQuarticPolynomial(a, b, c, d, e) {
+        let x = 0.0; // 초기 추정값
+        const maxIterations = 100;
+        const tolerance = 1e-7;
+
+        for (let i = 0; i < maxIterations; i++) {
+            const f_x = a * Math.pow(x, 4) + b * Math.pow(x, 3) + c * Math.pow(x, 2) + d * x + e;
+            const f_prime_x = 4 * a * Math.pow(x, 3) + 3 * b * Math.pow(x, 2) + 2 * c * x + d;
+
+            // 도함수 값이 0에 가까우면 수렴하지 않거나 근처에 극점이 있을 수 있으므로 중단
+            if (Math.abs(f_prime_x) < 1e-9) {
+                return NaN;
+            }
+
+            const h = f_x / f_prime_x; // -f(x)/f'(x) 대신 h를 정의
+            const next_x = x - h;
+
+            // 오차가 허용 오차 이내이면 수렴한 것으로 판단
+            if (Math.abs(next_x - x) < tolerance) {
+                return next_x;
+            }
+            
+            // 다음 반복을 위해 x 업데이트
+            x = next_x;
+        }
+        return NaN; // 최대 반복 횟수 초과 시 NaN 반환
+    }
+
+    function computeCoeffsInvScaramuzza() {
+        const ERROR_THRES = 0.01;
+
+        let rho = [];
+        let a0 = guiParams.a0;
+        let a2 = guiParams.a2;
+        let a3 = guiParams.a3;
+        let a4 = guiParams.a4;
+
+        for (let theta = 0; theta < Math.PI*0.9; theta += Math.PI*0.9/100) {
+            let r_n = solveQuarticPolynomial(a4, a3, a2, -Math.tan(Math.PI*0.5 - theta), a0);
+
+            if (r_n => !isNaN(r_n) && r_n >= 0)
+                rho.push(r_n);
+            else
+                rho.push(NaN);
+        }
+
+        let error_max = 1e10;
+        let degree = 1;
+
+        let inv_coeffs;
+        // while (degree < 10) {
+        //     isValid = ~isNaN(rho);
+        //     inv_coeffs = polyfit(theta(isValid), rho(isValid), degree);
+        //     rho_inv = polyval(inv_coeffs, theta);
+        //     error_max = max(abs(rho - rho_inv));
+        //     degree = degree + 1;
+        // }
+
+        material.uniforms.b0.value = 100.0;
+        material.uniforms.b1.value = 0.0;
+        material.uniforms.b2.value = 0.0;
+        material.uniforms.b3.value = 0.0;
+        material.uniforms.b4.value = 0.0;
+        material.uniforms.b5.value = 0.0;
+        material.uniforms.b6.value = 0.0;
+        material.uniforms.b7.value = 0.0;
+        material.uniforms.b8.value = 0.0;
+        material.uniforms.b9.value = 0.0;
+    }
+
+    function updateShaderUniforms() {
+        if (guiParams.model == 'BC') {
+            material.fragmentShader = fragmentShaderBC;
+        } else if (guiParams.model == 'KB') {
+            material.fragmentShader = fragmentShaderKB;
+        } else if (guiParams.model == 'SC') {
+            material.fragmentShader = fragmentShaderSC;
+        } else if (guiParams.model == 'UCM') {
+            material.fragmentShader = fragmentShaderUCM;
+        } else if (guiParams.model == 'DS') {
+            material.fragmentShader = fragmentShaderDS;
+        }
+
+        // compute and update the coefficient of the inverse Scaramuzza polynomial
+        if (guiParams.model == 'SC')
+            computeCoeffsInvScaramuzza();
+
+        mergeExistingFields(material.uniforms, guiParams);
+        material.needsUpdate = true;
+    };
+
+    function initGui() {
+        const updateGUI = () => {
+            try {
+                if (gui && gui.domElement && gui.domElement.parentNode) {
+                   gui.domElement.parentNode.removeChild(gui.domElement);
+                }
+
+            } catch (e) {
+                console.warn('Error destroying GUI:', e);
+            }
+
+            gui = new dat.GUI({ name: 'Distortion parameters' });
+            
+            const canvasContainer = document.getElementById("wrapper");
+            canvasContainer.appendChild(gui.domElement);
+            gui.domElement.style.marginRight = '0px';
+            gui.domElement.style.position = 'absolute';
+            gui.domElement.style.top = '0px';
+            gui.domElement.style.right = '0px';
+
+            // common item
+            gui.add(guiParams, 'model', {'Brown-Conrady': 'BC', 'Kannala-Brandt': 'KB', 'Unified CM': 'UCM', 'Double Sphere': 'DS'}).name('Model').listen().onChange(updateModel);
+            gui.add(guiParams, 'restore').name('Restore');
+
+            if (guiParams.model == 'SC') {
+                gui.add(guiParams, 'c', 0.1, 10.0).step(0.01).name('c').onChange(updateShaderUniforms).listen();
+                gui.add(guiParams, 'd', -5.0, 5.0).step(0.01).name('d').onChange(updateShaderUniforms).listen();
+                gui.add(guiParams, 'e', -5.0, 5.0).step(0.01).name('e').onChange(updateShaderUniforms).listen();
+            } else {
+                gui.add(guiParams, 'fx', 0, 500).step(0.01).name('fx').onChange(updateShaderUniforms).listen();
+                gui.add(guiParams, 'fy', 0, 500).step(0.01).name('fy').onChange(updateShaderUniforms).listen();
+            }
+            gui.add(guiParams, 'cx', 0, 500).step(0.01).name('cx').onChange(updateShaderUniforms).listen();
+            gui.add(guiParams, 'cy', 0, 500).step(0.01).name('cy').onChange(updateShaderUniforms).listen();
+
+            if (guiParams.model == 'BC') {
+                const rad = gui.addFolder('Radial distortion');
+                rad.add(guiParams, 'k1', -5.0, 5.0).step(0.01).name('k1').onChange(updateShaderUniforms).listen();
+                rad.add(guiParams, 'k2', -5.0, 5.0).step(0.01).name('k2').onChange(updateShaderUniforms).listen();
+                rad.open();
+
+                const tan = gui.addFolder('Tangential distortion');
+                tan.add(guiParams, 'p1', -1.0, 1.0).step(0.01).name('p1').onChange(updateShaderUniforms).listen();
+                tan.add(guiParams, 'p2', -1.0, 1.0).step(0.01).name('p2').onChange(updateShaderUniforms).listen();
+                tan.open();
+            } else if (guiParams.model == 'KB') {
+                const dist = gui.addFolder('Angular distortion');
+                dist.add(guiParams, 'k1', -1.0, 1.0).step(0.01).name('k1').onChange(updateShaderUniforms).listen();
+                dist.add(guiParams, 'k2', -1.0, 1.0).step(0.01).name('k2').onChange(updateShaderUniforms).listen();
+                dist.add(guiParams, 'k3', -1.0, 1.0).step(0.01).name('k3').onChange(updateShaderUniforms).listen();
+                dist.add(guiParams, 'k4', -1.0, 1.0).step(0.01).name('k4').onChange(updateShaderUniforms).listen();
+                dist.open();
+            } else if (guiParams.model == 'SC') {
+                const dist = gui.addFolder('Polynomial coefficients');
+                dist.add(guiParams, 'a0', -1.0, 1.0).step(0.01).name('a0').onChange(updateShaderUniforms).listen();
+                dist.add(guiParams, 'a2', -1.0, 1.0).step(0.01).name('a2').onChange(updateShaderUniforms).listen();
+                dist.add(guiParams, 'a3', -1.0, 1.0).step(0.01).name('a3').onChange(updateShaderUniforms).listen();
+                dist.add(guiParams, 'a4', -1.0, 1.0).step(0.01).name('a4').onChange(updateShaderUniforms).listen();
+                dist.open();
+            } else if (guiParams.model == 'UCM') {
+                gui.add(guiParams, 'xi', -1.0, 1.0).step(0.01).name('xi').onChange(updateShaderUniforms).listen();
+
+                const rad = gui.addFolder('Radial distortion');
+                rad.add(guiParams, 'k1', -5.0, 5.0).step(0.01).name('k1').onChange(updateShaderUniforms).listen();
+                rad.add(guiParams, 'k2', -5.0, 5.0).step(0.01).name('k2').onChange(updateShaderUniforms).listen();
+                rad.open();
+
+                const tan = gui.addFolder('Tangential distortion');
+                tan.add(guiParams, 'p1', -1.0, 1.0).step(0.01).name('p1').onChange(updateShaderUniforms).listen();
+                tan.add(guiParams, 'p2', -1.0, 1.0).step(0.01).name('p2').onChange(updateShaderUniforms).listen();
+                tan.open();
+            } else if (guiParams.model == 'DS') {
+                gui.add(guiParams, 'xi', -1.0, 1.0).step(0.01).name('xi').onChange(updateShaderUniforms).listen();
+                gui.add(guiParams, 'alpha', 0.0, 1.0).step(0.01).name('alpha').onChange(updateShaderUniforms).listen();
+
+                const rad = gui.addFolder('Radial distortion');
+                rad.add(guiParams, 'k1', -5.0, 5.0).step(0.01).name('k1').onChange(updateShaderUniforms).listen();
+                rad.add(guiParams, 'k2', -5.0, 5.0).step(0.01).name('k2').onChange(updateShaderUniforms).listen();
+                rad.open();
+
+                const tan = gui.addFolder('Tangential distortion');
+                tan.add(guiParams, 'p1', -1.0, 1.0).step(0.01).name('p1').onChange(updateShaderUniforms).listen();
+                tan.add(guiParams, 'p2', -1.0, 1.0).step(0.01).name('p2').onChange(updateShaderUniforms).listen();
+                tan.open();
+            }
+        }
+
+        const updateModel = () => {
+            if (guiParams.model == 'BC') {
+                Object.assign(guiParams, coeffBC);
+            } else if (guiParams.model == 'KB') {
+                Object.assign(guiParams, coeffKB);
+            } else if (guiParams.model == 'SC') {
+                Object.assign(guiParams, coeffSC);
+            } else if (guiParams.model == 'UCM') {
+                Object.assign(guiParams, coeffUCM);
+            } else if (guiParams.model == 'DS') {
+                Object.assign(guiParams, coeffDS);
+            }
+
+            updateGUI();
+            updateShaderUniforms();
+        }
+
+        updateGUI();
+        updateShaderUniforms();
+    }
+
+    function onWindowResize() {
+
+        const wrapperDom = document.getElementById('wrapper');
+
+        const width = wrapperDom.clientWidth;
+        const height = wrapperDom.clientHeight;
+
+        const canvas = document.getElementById('webgl');
+        canvas.width = width * window.devicePixelRatio;
+        canvas.height = height * window.devicePixelRatio;
+
+        renderer.setSize(width, height);
+
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        
+        // maintain aspect ratio of image plane
+        const mesh = scene.children[0];
+        if (mesh && material.uniforms.resolution.value.x > 0) {
+            const imgWidth = material.uniforms.resolution.value.x;
+            const imgHeight = material.uniforms.resolution.value.y;
+            const imgAspect = imgWidth / imgHeight;
+            const screenAspect = width / height;
+
+            let planeWidth, planeHeight;
+
+            if (screenAspect > imgAspect) {
+                // 화면이 이미지보다 넓음: 높이에 맞추고 너비는 계산
+                planeHeight = height;
+                planeWidth = height * imgAspect;
+            } else {
+                // 화면이 이미지보다 좁음: 너비에 맞추고 높이는 계산
+                planeWidth = width;
+                planeHeight = width / imgAspect;
+            }
+
+            mesh.scale.set(planeWidth, planeHeight, 1);
+            
+            camera.left = -width/2;
+            camera.right = width/2;
+            camera.top = height/2;
+            camera.bottom = -height/2;
+            camera.updateProjectionMatrix();
+        }
+    }
+
+    // render
+    function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+    }
+
+    window.onload = init;
+
+</script>

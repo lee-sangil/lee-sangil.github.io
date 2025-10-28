@@ -1,5 +1,5 @@
 ---
-title: "Exploring Camera Models"
+title: "Exploring Camera Models, Focusing on Distortion."
 categories:
  - Vision
 tags:
@@ -13,14 +13,18 @@ tags:
  - ds
  - matlab
 header:
-  teaser: /assets/image/thumbnail/2025-07-27-calibration.jpeg
+  teaser: /assets/image/thumbnail/2025-10-28-camera-models.jpg
 excerpt_separator: <!--more-->
 ---
 
 > This post delves into the specifics of various camera models, exploring the mathematical and geometric concepts used to represent how a camera captures the world. However, when capturing world scenes through a camera, images suffer from distortions due to the physical properties of the lens. These distortions can significantly degrade the performance of computer vision applications, 3D reconstruction, and image processing tasks. Especially, I focus on the distortion of various camera models. This post will introduce five camera models: Brown-Conrady distortion, Kannala-Brandt, Scaramuzza, Unified, and Double Sphere models, exploring their schematic representations, mathematical formulas, and parameter estimation methods.
 
 ## Camera model
-A camera model defines projection and unprojection mappings. A projection formula maps world points to image points on the image plane, whereas an unprojection formula maps image points to world points in homogeneous coordinates. For a pinhole camera model, there are several mappings, and has an explicit distortion model; world-to-normalized-plane, distortion, and, normalized-plane-to-image-plane. Brown-Conrady distortion model is placed in the middle, and processed on the normalized image plane. On the other hand, for example, the world-to-normalized-plane mapping of Scaramuzza camera model includes a distortion model inside itself. In the below, I’ll focus on describing a mapping that includes distortion model. 
+A camera model defines projection and unprojection mappings. A projection formula maps world points to image points on the image plane, whereas an unprojection formula maps image points to world points in homogeneous coordinates. For a pinhole camera model, there are several mappings, and has an explicit distortion model; world-to-normalized-plane, distortion, and, normalized-plane-to-image-plane. Brown-Conrady distortion model is placed in the middle, and processed on the normalized image plane. On the other hand, for example, the world-to-normalized-plane mapping of Scaramuzza camera model includes a distortion model inside itself. In the article, I’ll focus on describing a mapping that includes distortion model. 
+
+Additionally, in the below interactive demo, you can choose a camera model, control its coefficients, and verify their role. The initial value of their parameters is computed by the above optimization method. The Scaramuzza model will be added soon.
+
+{% include /assets/distort_image.html %}
 
 ## Brown-Conrady Distortion Model
 The Brown-Conrady model is one of the most commonly used distortion models for standard and moderately wide-angle lenses. It effectively handles both radial distortion and tangential distortion.
@@ -497,10 +501,6 @@ end
 ### Optimization
 
 Using the above `project` and `parse_param` functions depending on distortion model, and the common optimization algorithm in [Calibrating Cameras with Zhang's Method]({% post_url 2025-07-27-Calibrating-cameras-zhang-method %}), we can find the intrinsic and extrinsic parameters of the camera. 
-
-In the below interactive demo, you can choose a camera model, control its coefficients, and verify their role. The initial value of their parameters is computed by the above optimization method.
-
-{% include /assets/distort_image.html %}
 
 ## Wrap-up
 

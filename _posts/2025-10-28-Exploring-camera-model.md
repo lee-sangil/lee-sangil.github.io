@@ -1,5 +1,5 @@
 ---
-title: "Exploring Camera Models, Focusing on Distortion."
+title: "Exploring Camera Models, Focusing on Distortion"
 categories:
  - Vision
 tags:

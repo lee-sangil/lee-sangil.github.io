@@ -76,7 +76,7 @@ The Kannala-Brandt model [^kannala] is practical for fisheye lenses, which can o
 The Kannala-Brandt model uses an odd-polynomial equation to map the incident angle $$\theta$$ to the distorted radius $$r_d$$:
 
 $$
-r_d = 1 + k_1 \theta^3 + k_2 \theta^5 + k_3 \theta^7 + k_4 \theta^9 + \cdots,
+r_d = \theta + k_1 \theta^3 + k_2 \theta^5 + k_3 \theta^7 + k_4 \theta^9 + \cdots,
 $$
 
 where $$k_1, k_2, k_3, k_4, \ldots$$ are distortion coefficients and, for a 3D point $$(X, Y, Z)$$, $$\theta = \tan^{-1}(\frac{\sqrt{X^2 + Y^2}}{Z})$$ is the angle between the optical axis and the incoming light ray.

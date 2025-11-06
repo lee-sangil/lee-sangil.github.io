@@ -17,7 +17,10 @@ As a sincere gesture of thanks for your support, I am pleased to offer a few ack
 Your readership and engagement are the true rewards. Should you choose to contribute, please know that your support is deeply appreciated and directly reinvested into the growth of this blog.
 
 ## Buy me a coffee
-<a href="https://buymeacoffee.com/sangillee/"><img src="/assets/image/texture/buymeacoffee.png" width=300/></a>
+I accept donations using <a href="https://buymeacoffee.com/sangillee/">this link</a> or the QR code below.
+<br>
+
+<a href="https://buymeacoffee.com/sangillee/"><img src="/assets/image/texture/buymeacoffee.png" width=200/></a>
 
 ## Supporters
 - Y. Kim

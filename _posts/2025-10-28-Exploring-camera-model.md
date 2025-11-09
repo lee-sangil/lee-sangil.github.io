@@ -22,7 +22,7 @@ excerpt_separator: <!--more-->
 ## Camera model
 A camera model defines projection and unprojection mappings. A projection formula maps world points to image points on the image plane, whereas an unprojection formula maps image points to world points in homogeneous coordinates. For a pinhole camera model, there are several mappings, and has an explicit distortion model; world-to-normalized-plane, distortion, and, normalized-plane-to-image-plane. Brown-Conrady distortion model is placed in the middle, and processed on the normalized image plane. On the other hand, for example, the world-to-normalized-plane mapping of Scaramuzza camera model includes a distortion model inside itself. In the article, I’ll focus on describing a mapping that includes distortion model. 
 
-Additionally, in the below interactive demo, you can choose a camera model, control its coefficients, and verify their role. The initial value of their parameters is computed by the above optimization method. The Scaramuzza model will be added soon.
+Additionally, in the below interactive demo, you can choose a camera model, control its coefficients, and verify their role. The initial value of their parameters is computed by the above optimization method. 
 
 {% include /assets/distort_image.html %}
 

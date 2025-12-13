@@ -11,9 +11,12 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> This article explains how to solve roots of a cubic polynomial in the complex plane. I use the depressed form of the cubic polynomial and Cardano's formula. 
+> This article explains how to solve roots of a cubic polynomial in the complex plane. I use the depressed form of the cubic polynomial and Cardano's formula. Additionally, I demonstrate an interactive demo which visualizes the roots of a cubic polynomial. 
 
-<!-- Additionally, I demonstrate an interactive demo which visualizes the roots of a cubic polynomial.  -->
+<!--more-->
+
+{% include /assets/cubic_polynomial.html %}
+<br/>
 
 There is a cubic polynomial which has a single variable, $$x$$, and its highest exponent is 3:
 

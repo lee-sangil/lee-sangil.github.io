@@ -220,16 +220,16 @@
 
     // GUI 컨트롤 추가
     const coeffs = gui.addFolder('Coefficients');
-    coeffs.add(params, 'a4', -1.0, 1.0).name('a').onChange(updateSurface);
-    coeffs.add(params, 'a3', -1.0, 1.0).name('b').onChange(updateSurface);
-    coeffs.add(params, 'a2', -2.0, 2.0).name('c').onChange(updateSurface);
-    coeffs.add(params, 'a1', -5.0, 5.0).name('d').onChange(updateSurface);
-    coeffs.add(params, 'a0', -5.0, 5.0).name('e').onChange(updateSurface);
+    coeffs.add(params, 'a4', -1.0, 1.0).step(0.01).name('a').onChange(updateSurface);
+    coeffs.add(params, 'a3', -1.0, 1.0).step(0.01).name('b').onChange(updateSurface);
+    coeffs.add(params, 'a2', -2.0, 2.0).step(0.01).name('c').onChange(updateSurface);
+    coeffs.add(params, 'a1', -5.0, 5.0).step(0.01).name('d').onChange(updateSurface);
+    coeffs.add(params, 'a0', -5.0, 5.0).step(0.01).name('e').onChange(updateSurface);
 
     const scale = gui.addFolder('Plot scale');
-    scale.add(params, 'scaleX', 0.1, 2.0).name('X Scale').onChange(updateSurface);
-    scale.add(params, 'scaleY', 0.1, 2.0).name('Y Scale').onChange(updateSurface);
-    scale.add(params, 'scaleZ', 0.1, 2.0).name('Z Scale').onChange(updateSurface);
+    scale.add(params, 'scaleX', 0.1, 2.0).step(0.01).name('X Scale').onChange(updateSurface);
+    scale.add(params, 'scaleY', 0.1, 2.0).step(0.01).name('Y Scale').onChange(updateSurface);
+    scale.add(params, 'scaleZ', 0.1, 2.0).step(0.01).name('Z Scale').onChange(updateSurface);
 
     // 지오메트리 업데이트 함수
     function updateSurface() {

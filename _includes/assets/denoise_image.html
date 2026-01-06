@@ -1,0 +1,375 @@
+<div id="wrapper">
+    <canvas id='webgl'></canvas>
+    <svg id="enterFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
+    <svg id="leaveFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Leave Fullscreen</title><path d="M14,14H19V16H16V19H14V14M5,14H10V19H8V16H5V14M8,5H10V10H5V8H8V5M19,8V10H14V5H16V8H19Z" /></svg>
+</div>
+
+<style>
+    #wrapper {
+        position: relative;
+        width: 100%;
+        height: 50vh;
+    }
+    canvas {
+        position: relative;
+    }
+    .dg {
+        min-height: 16px;
+        max-height: 100%;
+        height: fit-content;
+        overflow-x: hidden;
+    }
+    .dg.main {
+        padding-bottom: 20px;
+    }
+    .dg.main > div:first-child {
+        position: relative !important;
+    }
+    .dg li {
+        margin-bottom: 0px;
+    }
+    .dg ul {
+        position: inherit;
+        top: 20px;
+        height: unset !important;
+    }
+    .dg .property-name {
+        width: 40%;
+    }
+    .dg .c {
+        width: 60%;
+    }
+    .dg .slider {
+        width: 70%;
+    }
+    .dg .has-slider input[type=text] {
+        width: 25%;
+    }
+    .dg .close-button {
+        position: absolute;
+        top: 0;
+    }
+    .fullscreen {
+        fill: lightgray;
+        position: absolute;
+        top: 1vh;
+        left: 1vw;
+        margin: 5px;
+        width: 24px;
+        height: 24px;
+        cursor : pointer;
+    }
+    .fullscreen:hover {
+        background-color:rgba(255,255,255,0.3);
+        border-radius: 50%;
+    }
+    #leaveFullscreen {
+        visibility: hidden;
+    }
+</style>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+
+<script type="module">
+    const webgl_dual_vs = `
+        attribute vec2 a_position;
+        varying vec2 v_uv;
+        void main() {
+            v_uv = a_position * 0.5 + 0.5;
+            gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+    `
+    const webgl_dual_fs = `
+        precision highp float;
+        varying vec2 v_uv;
+        uniform sampler2D u_u; // Primal variable (denoised image)
+        uniform sampler2D u_p; // Previous Dual variable
+        uniform vec2 u_resolution;
+        uniform float u_sigma;
+
+        void main() {
+            vec2 texel = 1.0 / u_resolution;
+            
+            // Forward difference for Gradient
+            float u_curr = texture2D(u_u, v_uv).r;
+            float u_right = texture2D(u_u, v_uv + vec2(texel.x, 0.0)).r;
+            float u_up = texture2D(u_u, v_uv + vec2(0.0, texel.y)).r;
+            
+            vec2 grad_u = vec2(u_right - u_curr, u_up - u_curr);
+            vec2 p_old = texture2D(u_p, v_uv).rg;
+            
+            // Chambolle's projection step
+            vec2 p_new = p_old + u_sigma * grad_u;
+            float norm = max(1.0, max(abs(p_new.x), abs(p_new.y)));
+            
+            gl_FragColor = vec4(p_new / norm, 0.0, 1.0);
+        }
+    `;
+
+    const webgl_primal_vs = `
+        attribute vec2 a_position;
+        varying vec2 v_uv;
+        void main() {
+            v_uv = a_position * 0.5 + 0.5;
+            gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+    `;
+
+    const webgl_primal_fs = `
+        precision highp float;
+        varying vec2 v_uv;
+        uniform sampler2D u_u;     // Primal variable (denoised image)
+        uniform sampler2D u_p;     // Updated Dual variable
+        uniform sampler2D u_f;     // Original noisy image
+        uniform vec2 u_resolution;
+        uniform float u_lambda;
+        uniform float u_tau;
+        uniform float u_theta; // Relaxation parameter
+
+        void main() {
+            vec2 texel = 1.0 / u_resolution;
+            
+            // Backward difference for Divergence
+            vec2 p_curr = texture2D(u_p, v_uv).rg;
+            vec2 p_left = texture2D(u_p, v_uv - vec2(texel.x, 0.0)).rg;
+            vec2 p_down = texture2D(u_p, v_uv - vec2(0.0, texel.y)).rg;
+            
+            float div_p = (p_curr.x - p_left.x) + (p_curr.y - p_down.y);
+            float f = texture2D(u_f, v_uv).r;
+            float u_old = texture2D(u_u, v_uv).r;
+            
+            // ROF Update
+            float u_new = (u_old + u_tau * div_p + (u_tau / u_lambda) * f) / (1.0 + u_tau / u_lambda);
+
+            // Relaxation
+            u_new = u_new + u_theta * (u_new - u_old);
+            
+            gl_FragColor = vec4(vec3(u_new), 1.0);
+        }
+    `
+    const CONFIG = {
+        view: 'primal',
+        lambda: 0.1,
+        sigma: 12.5,
+        tau: 0.01,
+        theta: 1.0,
+        imageSource: '/assets/image/texture/lena_noise.jpg'
+    };
+
+    class TVDenoiseApp {
+        constructor(image) {
+            this.canvas = document.getElementById('webgl');
+            this.gl = this.canvas.getContext('webgl');
+            const gl = this.gl;
+            
+            gl.getExtension('OES_texture_float');
+            gl.getExtension('OES_texture_float_linear');
+
+            this.imgWidth = image.width;
+            this.imgHeight = image.height;
+
+            // Programs
+            this.dualProgram = this.createProgram(webgl_dual_vs, webgl_dual_fs);
+            this.primalProgram = this.createProgram(webgl_primal_vs, webgl_primal_fs);
+
+            // Textures
+            this.texF = this.createTexture(image);
+            this.texU = [this.createEmptyTexture(), this.createEmptyTexture()];
+            this.texP = [this.createEmptyTexture(), this.createEmptyTexture()];
+
+            this.fb = gl.createFramebuffer();
+            this.quadBuf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuf);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+
+            this.render();
+        }
+
+        createProgram(vs_txt, fs_txt) {
+            const gl = this.gl;
+
+            const vs = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vs, vs_txt);
+            gl.compileShader(vs);
+
+            const fs = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fs, fs_txt);
+            gl.compileShader(fs);
+
+            const p = gl.createProgram();
+            gl.attachShader(p, vs);
+            gl.attachShader(p, fs);
+            gl.linkProgram(p);
+            return p;
+        }
+
+        createTexture(img) {
+            const gl = this.gl;
+
+            const t = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, t);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); // flip vertically
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            return t;
+        }
+
+        createEmptyTexture() {
+            const gl = this.gl;
+
+            const t = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, t);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.imgWidth, this.imgHeight, 0, gl.RGBA, gl.FLOAT, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            return t;
+        }
+
+        render() {
+            const gl = this.gl;
+            
+            // 1. Update Dual (P)
+            gl.useProgram(this.dualProgram);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texP[1], 0);
+            gl.viewport(0, 0, this.imgWidth, this.imgHeight);
+
+            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.texU[0]);
+            gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, this.texP[0]);
+            gl.uniform1i(gl.getUniformLocation(this.dualProgram, "u_u"), 0);
+            gl.uniform1i(gl.getUniformLocation(this.dualProgram, "u_p"), 1);
+            gl.uniform2f(gl.getUniformLocation(this.dualProgram, "u_resolution"), this.imgWidth, this.imgHeight);
+            gl.uniform1f(gl.getUniformLocation(this.dualProgram, "u_sigma"), CONFIG.sigma);
+
+            this.drawQuad(this.dualProgram);
+            [this.texP[0], this.texP[1]] = [this.texP[1], this.texP[0]];
+
+            // 2. Update Primal (U)
+            gl.useProgram(this.primalProgram);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texU[1], 0);
+            
+            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.texU[0]);
+            gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, this.texP[0]);
+            gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, this.texF);
+            gl.uniform1i(gl.getUniformLocation(this.primalProgram, "u_u"), 0);
+            gl.uniform1i(gl.getUniformLocation(this.primalProgram, "u_p"), 1);
+            gl.uniform1i(gl.getUniformLocation(this.primalProgram, "u_f"), 2);
+            gl.uniform2f(gl.getUniformLocation(this.primalProgram, "u_resolution"), this.imgWidth, this.imgHeight);
+            gl.uniform1f(gl.getUniformLocation(this.primalProgram, "u_lambda"), CONFIG.lambda);
+            gl.uniform1f(gl.getUniformLocation(this.primalProgram, "u_tau"), CONFIG.tau);
+            gl.uniform1f(gl.getUniformLocation(this.primalProgram, "u_theta"), CONFIG.theta);
+
+            this.drawQuad(this.primalProgram);
+            [this.texU[0], this.texU[1]] = [this.texU[1], this.texU[0]];
+
+            // Final Display
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            
+            if (CONFIG.view == 'primal')
+                this.drawQuad(this.primalProgram);
+            else if (CONFIG.view == 'dual') {
+                gl.useProgram(this.dualProgram);
+                this.drawQuad(this.dualProgram);
+            }
+
+            requestAnimationFrame(() => this.render());
+        }
+
+        drawQuad(prog) {
+            const gl = this.gl;
+
+            const aPos = gl.getAttribLocation(prog, "a_position");
+            gl.enableVertexAttribArray(aPos);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuf);
+            gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+    }
+
+    function resize() {
+        const wrapperDom = document.getElementById('wrapper');
+
+        const width = wrapperDom.clientWidth;
+        const height = wrapperDom.clientHeight;
+
+        const canvas = document.getElementById('webgl');
+        canvas.width = width;
+        canvas.height = height;
+    }
+
+    function toggleFullscreen(status) {
+        const wrapperDom = document.getElementById('wrapper');
+        const enterFullscreenDom = document.getElementById('enterFullscreen');
+        const leaveFullscreenDom = document.getElementById('leaveFullscreen');
+
+        if (status) {
+            document.body.style.overflowY = 'hidden';
+
+            wrapperDom.style.position = 'fixed';
+            wrapperDom.style.top = '0';
+            wrapperDom.style.left = '0';
+            wrapperDom.style.height = '100vh';
+            wrapperDom.style.zIndex = '1000';
+
+            enterFullscreenDom.style.visibility = 'hidden';
+            leaveFullscreenDom.style.visibility = 'visible';
+        }
+        else {
+            document.body.style.overflowY = '';
+
+            wrapperDom.style.position = '';
+            wrapperDom.style.top = '';
+            wrapperDom.style.left = '';
+            wrapperDom.style.height = '';
+            wrapperDom.style.zIndex = '';
+
+            enterFullscreenDom.style.visibility = 'visible';
+            leaveFullscreenDom.style.visibility = 'hidden';
+        }
+
+        resize();
+    }
+
+    async function init() {
+        const gui = new dat.GUI();
+        const canvasContainer = document.getElementById("wrapper");
+        canvasContainer.appendChild(gui.domElement);
+        gui.domElement.style.marginRight = '0px';
+        gui.domElement.style.position = 'absolute';
+        gui.domElement.style.top = '0px';
+        gui.domElement.style.right = '0px';
+
+        gui.add(CONFIG, 'view', {'Primal': 'primal', 'Dual': 'dual'}).name('View');
+        gui.add(CONFIG, 'lambda', 0.01, 0.5).step(0.01).name('Smoothness (λ)');
+        gui.add(CONFIG, 'sigma', 0.01, 15.0).step(0.01).name('Sigma (σ)');
+        gui.add(CONFIG, 'tau', 0.01, 0.1).step(0.01).name('Tau (τ)');
+        gui.add(CONFIG, 'theta', 0.01, 2.0).step(0.01).name('Theta (θ)');
+
+        const img = new Image();
+        img.src = CONFIG.imageSource;
+        img.onload = () => {
+            new TVDenoiseApp(img);
+            resize();
+        };
+    }
+
+    init();
+
+    const enterFullscreenDom = document.getElementById('enterFullscreen');
+    const leaveFullscreenDom = document.getElementById('leaveFullscreen');
+
+    enterFullscreenDom.addEventListener('click', ()=>toggleFullscreen(true));
+    leaveFullscreenDom.addEventListener('click', ()=>toggleFullscreen(false));
+
+    window.addEventListener('keydown', (event)=>{
+        if (event.key == "Escape") toggleFullscreen(false);
+    });
+
+    window.addEventListener('resize', resize, false);
+</script>

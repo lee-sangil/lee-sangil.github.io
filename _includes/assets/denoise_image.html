@@ -96,13 +96,15 @@
             float u_up = texture2D(u_u, v_uv + vec2(0.0, texel.y)).r;
             
             vec2 grad_u = vec2(u_right - u_curr, u_up - u_curr);
-            vec2 p_old = texture2D(u_p, v_uv).rg;
+            vec2 p_old = texture2D(u_p, v_uv).rg*2.0 - vec2(1.0);
             
             // Chambolle's projection step
             vec2 p_new = p_old + u_sigma * grad_u;
             float norm = max(1.0, max(abs(p_new.x), abs(p_new.y)));
+
+            p_new = p_new / norm;
             
-            gl_FragColor = vec4(p_new / norm, 0.0, 1.0);
+            gl_FragColor = vec4(p_new*0.5+vec2(0.5), 0.5, 1.0);
         }
     `;
 
@@ -130,9 +132,9 @@
             vec2 texel = 1.0 / u_resolution;
             
             // Backward difference for Divergence
-            vec2 p_curr = texture2D(u_p, v_uv).rg;
-            vec2 p_left = texture2D(u_p, v_uv - vec2(texel.x, 0.0)).rg;
-            vec2 p_down = texture2D(u_p, v_uv - vec2(0.0, texel.y)).rg;
+            vec2 p_curr = texture2D(u_p, v_uv).rg*2.0 - vec2(1.0);
+            vec2 p_left = texture2D(u_p, v_uv - vec2(texel.x, 0.0)).rg*2.0 - vec2(1.0);
+            vec2 p_down = texture2D(u_p, v_uv - vec2(0.0, texel.y)).rg*2.0 - vec2(1.0);
             
             float div_p = (p_curr.x - p_left.x) + (p_curr.y - p_down.y);
             float f = texture2D(u_f, v_uv).r;

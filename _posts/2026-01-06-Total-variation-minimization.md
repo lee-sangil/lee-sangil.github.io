@@ -19,6 +19,9 @@ excerpt_separator: <!--more-->
 <!--more-->
 
 {% include /assets/denoise_image.html %}
+<br/>
+
+The interactive demo above shows an image denoised using total variation minimization. It provides a viewing mode in which you can choose to display either the primal or the dual variables. The primal variable represents the denoised image itself. On the other hand, the dual variable visualizes 2D vectors encoded in the red and green channels, corresponding to the x- and y-directions, respectively, with both components linearly scaled from [-1, 1] to [0, 1], while the blue channel is fixed at 0.5. You can also adjust the parameter values and observe how the optimization process evolves.
 
 ## Image denoising
 
@@ -44,13 +47,13 @@ $$\mathcal{R}(u)$$ determines the characteristics of the output. Especially, to
 
 Therefore, the TV denoising model is defined as
 
-$$\min_{u} \int_{\Omega} |\nabla u| dx + \frac{1}{2\lambda} \|u - f\|_2^2$$
+$$\min_{u} \int_{\Omega} \|\nabla u\| dx + \frac{1}{2\lambda} \|u - f\|_2^2$$
 
 where $$\Omega$$ is an image domain. 
 
 ## Primal-Dual method
 
-However, the $$L_1$$ norm, ($$||x||$$), is non-differentiable at the origin, $$x=0$$.
+However, the $$L_1$$ norm, ($$\|x\|$$), is non-differentiable at the origin, $$x=0$$.
 To solve this efficiently, we use a dual norm to transform the minimization problem into a saddle-point problem.
 
 ### The dual formulation
@@ -72,10 +75,10 @@ The Chambolle-Pock algorithm updates the variables $$p$$ and $$u$$ iterative
 First, we minimize the objective function with respect to $$p$$
 
 $$
-p^{n+1}=\arg\max_{p \in P}​ \left( {\langle p,\nabla \bar{u}^n \rangle + \frac{1}{2\lambda} \|u - f\|_2^2 − \frac{1}{2\sigma}||p−p^n||_2^2} \right)
+p^{n+1}=\arg\max_{p \in P}​ \left( {\langle p,\nabla \bar{u}^n \rangle + \frac{1}{2\lambda} \|u - f\|_2^2 − \frac{1}{2\sigma}\|p−p^n\|_2^2} \right)
 $$
 
-The term $$-\frac{1}{2\sigma} \||p - p^n\||_2^2$$ is a proximal penalty that ensures stability.
+The term $$-\frac{1}{2\sigma} \|p - p^n\|_2^2$$ is a proximal penalty that ensures stability.
 The minus sign of the proximal penalty preserves the concavity of the optimization problem.
 Setting the derivative to zero yields
 

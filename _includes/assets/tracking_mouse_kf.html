@@ -1,0 +1,431 @@
+<div id="wrapper">
+    <canvas id='webgl'></canvas>
+    <svg id="enterFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
+    <svg id="leaveFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Leave Fullscreen</title><path d="M14,14H19V16H16V19H14V14M5,14H10V19H8V16H5V14M8,5H10V10H5V8H8V5M19,8V10H14V5H16V8H19Z" /></svg>
+</div>
+
+<style>
+    body {
+        color: black;
+    }
+    #wrapper {
+        color: white;
+        position: relative;
+        width: 100%;
+        height: 50vh;
+    }
+    canvas {
+        position: relative;
+    }
+    .dg {
+        min-height: 16px;
+        max-height: 100%;
+        height: fit-content;
+        overflow-x: hidden;
+    }
+    .dg.main {
+        padding-bottom: 20px;
+    }
+    .dg.main > div:first-child {
+        position: relative !important;
+    }
+    .dg li {
+        margin-bottom: 0px;
+    }
+    .dg ul {
+        position: inherit;
+        top: 20px;
+        height: unset !important;
+    }
+    .dg .property-name {
+        width: 40%;
+    }
+    .dg .c {
+        width: 60%;
+    }
+    .dg .slider {
+        width: 70%;
+    }
+    .dg .has-slider input[type=text] {
+        width: 25%;
+    }
+    .dg .close-button {
+        position: absolute;
+        top: 0;
+    }
+    .fullscreen {
+        fill: lightgray;
+        position: absolute;
+        top: 1vh;
+        left: 1vw;
+        margin: 5px;
+        width: 24px;
+        height: 24px;
+        cursor : pointer;
+    }
+    .fullscreen:hover {
+        background-color:rgba(255,255,255,0.3);
+        border-radius: 50%;
+    }
+    #leaveFullscreen {
+        visibility: hidden;
+    }
+</style>
+
+<script id="vs" type="x-shader/x-vertex">
+    attribute vec2 position;
+    varying vec2 vUv;
+    void main() {
+        vUv = position * 0.5 + 0.5;
+        gl_Position = vec4(position, 0.0, 1.0);
+    }
+</script>
+
+<script id="fs" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec2 vUv;
+    uniform sampler2D u_prev_frame; // 이전 프레임 텍스처
+    uniform vec2 u_resolution;
+    uniform vec2 u_mouse_est;
+    uniform vec2 u_mouse_true;
+    uniform vec2 u_mouse_true_prev;
+    uniform vec2 u_measure;
+    uniform vec2 u_variance;
+    uniform float u_pass; // 0: Update/Fade, 1: Display
+
+    float drawLine (vec2 p1, vec2 p2, vec2 uv, float a)
+    {
+        float r = 0.;
+        float one_px = 1. / u_resolution.x;
+        
+        // get dist between points
+        float d = distance(p1, p2);
+        
+        // get dist between current pixel and p1
+        float duv = distance(p1, uv);
+
+        //if point is on line, according to dist, it should match current uv 
+        r = 1.-floor(1.-(a*one_px)+distance (mix(p1, p2, clamp(duv/d, 0., 1.)),  uv));
+            
+        return r;
+    }
+
+    void main() {
+        if (u_pass < 0.5) {
+            vec4 prevColor = texture2D(u_prev_frame, vUv);
+            
+            prevColor = max(prevColor * 0.97 - 0.001, 0.0);
+
+            vec2 st = gl_FragCoord.xy;
+            vec2 diffEst = st - u_mouse_est;
+            vec2 diffObs = st - u_measure;
+            
+            float belief = exp(-0.5 * (dot(diffEst, diffEst/(max(u_variance, vec2(1.0))))));
+            float observation = 1.5 * exp(-0.5 * (dot(diffObs, diffObs/1.0)));
+            float totalIntensity = belief + observation;
+
+            float true_lines = drawLine(u_mouse_true_prev/u_resolution, u_mouse_true/u_resolution, st/u_resolution, 2.0);
+
+            vec3 colorEst = vec3(0.9, 0.0, 0.8); // 보라색 (추정)
+            vec3 colorObs = vec3(0.0, 0.8, 0.0); // 초록색 (관측)
+            vec3 colorTrue = vec3(0.0, 0.0, 1.0); // 파란색 (진짜 위치)
+            
+            vec3 current = (colorEst * belief + colorObs * observation + colorTrue * true_lines);
+            
+            gl_FragColor = vec4(current, 1.0) + prevColor;
+        } else {
+            gl_FragColor = texture2D(u_prev_frame, vUv);
+        }
+    }
+</script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+
+<script type="module">
+    const CONFIG = { process_noise: 5.0, measure_noise: 50.0 };
+
+    function randn(m, s) {
+        let u = 0, v = 0;
+        while(u===0) u = Math.random();
+        while(v===0) v = Math.random();
+        return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) * s + m;
+    }
+
+    class KalmanFilter1D {
+        constructor(initialState = 0, initialProb = [1, 0, 0, 1], processNoise = 0.1, measureNoise = 0.1) {
+            this.x = initialState;
+            this.v = 0;
+            this.P = initialProb;
+            
+            this.R = processNoise; // Process Noise
+            this.Q = measureNoise; // Measurement Noise
+        }
+
+        updateParams(processNoise, measureNoise) {
+            this.R = processNoise;
+            this.Q = measureNoise;
+        }
+
+        predict() {
+            const dt = 0.03;
+
+            // State Transition: x = x + v*dt (Assume dt is constant unit for simplicity)
+            this.x = this.x + dt*this.v;
+            // this.v = this.v;
+            
+            // Covariance Update
+            this.P = [this.P[0]+dt*(this.P[1]+this.P[2])+dt*dt*this.P[3]+this.R, this.P[1]+dt*this.P[3], this.P[2]+dt*this.P[3], this.P[3]+this.R];
+        }
+
+        correct(measurement) {
+            // Kalman Gain
+            let K = [0,0];
+            K[0] = this.P[0] / (this.P[0] + this.Q);
+            K[1] = this.P[2] / (this.P[0] + this.Q);
+            
+            // State Update
+            this.x = this.x + K[0] * (measurement - this.x);
+            this.v = this.v + K[1] * (measurement - this.x);
+
+            // Covariance Update
+            this.P[0] = -this.P[0]*(K[0] - 1);
+            this.P[1] = -this.P[1]*(K[0] - 1);
+            this.P[2] = this.P[2] - this.P[0]*K[1];
+            this.P[3] = this.P[3] - this.P[1]*K[1];
+        }
+    }
+
+    let canvas, gl;
+
+    class App {
+        constructor() {
+            canvas = document.getElementById('webgl');
+            gl = canvas.getContext('webgl', { alpha: false });
+            this.mouseX = 0;
+            this.mouseY = 0;
+            this.mouseXprev = 0;
+            this.mouseYprev = 0;
+
+            this.kfX = new KalmanFilter1D(0, [100,0,0,100], CONFIG.process_noise, CONFIG.measure_noise);
+            this.kfY = new KalmanFilter1D(0, [100,0,0,100], CONFIG.process_noise, CONFIG.measure_noise);
+
+            this.isMeasure = true;
+            
+            this.initWebGL();
+            this.render();
+
+            const onMove = (ev, x, y) => {
+                if (!this.isMeasure) return;
+
+                const rect = canvas.getBoundingClientRect();
+
+                this.mouseXprev = this.mouseX;
+                this.mouseYprev = this.mouseY;
+
+                this.mouseX = x - rect.left;
+                this.mouseY = canvas.height - (y - rect.top);
+
+                if (ev) ev.preventDefault();
+            };
+
+            const onLeave = () => {
+                this.isMeasure = false;
+            };
+
+            const onEnter = (x, y) => {
+                this.isMeasure = true;
+
+                onMove(null, x, y);
+            };
+
+            window.addEventListener('mousemove', e => onMove(e, e.clientX, e.clientY));
+            window.addEventListener('touchmove', e => onMove(e, e.touches[0].clientX, e.touches[0].clientY), {passive: false});
+            canvas.addEventListener('mouseenter', e => onEnter(e.clientX, e.clientY));
+            canvas.addEventListener('touchstart', e => onEnter(e.touches[0].clientX, e.touches[0].clientY), {passive: false});
+            canvas.addEventListener('mouseleave', onLeave);
+            canvas.addEventListener('touchend', onLeave);
+
+            window.addEventListener('resize', this.resize.bind(this));
+        }
+
+        createTexture(width, height) {
+            const tex = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            return tex;
+        }
+
+        createFBO(tex) {
+            const fbo = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+            return fbo;
+        }
+
+        initWebGL() {
+            const vs = this.compileShader(gl.VERTEX_SHADER, document.getElementById('vs').innerText);
+            const fs = this.compileShader(gl.FRAGMENT_SHADER, document.getElementById('fs').innerText);
+            this.program = gl.createProgram();
+            gl.attachShader(this.program, vs);
+            gl.attachShader(this.program, fs);
+            gl.linkProgram(this.program);
+            gl.useProgram(this.program);
+
+            const vertices = new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]);
+            gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+            const pos = gl.getAttribLocation(this.program, 'position');
+            gl.enableVertexAttribArray(pos);
+            gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+
+            this.resize();
+            
+            this.uPrev = gl.getUniformLocation(this.program, 'u_prev_frame');
+            this.uRes = gl.getUniformLocation(this.program, 'u_resolution');
+            this.uMeasure = gl.getUniformLocation(this.program, 'u_measure');
+            this.uMouseEst = gl.getUniformLocation(this.program, 'u_mouse_est');
+            this.uMouseTrue = gl.getUniformLocation(this.program, 'u_mouse_true');
+            this.uMouseTruePrev = gl.getUniformLocation(this.program, 'u_mouse_true_prev');
+            this.uVar = gl.getUniformLocation(this.program, 'u_variance');
+            this.uPass = gl.getUniformLocation(this.program, 'u_pass');
+        }
+
+        compileShader(type, src) {
+            const s = gl.createShader(type);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
+            return s;
+        }
+
+        resize() {
+            const wrapperDom = document.getElementById('wrapper');
+            const width = wrapperDom.clientWidth;
+            const height = wrapperDom.clientHeight;
+            const canvas = document.getElementById('webgl');
+            
+            canvas.width = width;
+            canvas.height = height;
+
+            gl.viewport(0, 0, width, height);
+            
+            // Create textures for ping-pong FBO
+            this.texA = this.createTexture(width, height);
+            this.texB = this.createTexture(width, height);
+            this.fboA = this.createFBO(this.texA);
+            this.fboB = this.createFBO(this.texB);
+            this.currentFBO = this.fboA;
+            this.currentTex = this.texB;
+        }
+
+        render() {
+            this.kfX.updateParams(CONFIG.process_noise, CONFIG.measure_noise);
+            this.kfY.updateParams(CONFIG.process_noise, CONFIG.measure_noise);
+            this.kfX.predict();
+            this.kfY.predict();
+            
+            let mx, my;
+            if (this.isMeasure) {
+                mx = this.mouseX + randn(0, Math.sqrt(CONFIG.measure_noise));
+                my = this.mouseY + randn(0, Math.sqrt(CONFIG.measure_noise));
+            } else {
+                mx = this.mouseXprev;
+                my = this.mouseYprev;
+            }
+            this.kfX.correct(mx);
+            this.kfY.correct(my);
+
+            // Pass 0: draw texture at FBO
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentFBO);
+            gl.uniform1f(this.uPass, 0.0);
+            gl.uniform2f(this.uMouseEst, this.kfX.x, this.kfY.x);
+            gl.uniform2f(this.uMouseTrue, this.mouseX, this.mouseY);
+            gl.uniform2f(this.uMouseTruePrev, this.mouseXprev, this.mouseYprev);
+            gl.uniform2f(this.uMeasure, mx, my);
+            gl.uniform2f(this.uVar, this.kfX.P[0], this.kfY.P[0]);
+            gl.uniform2f(this.uRes, canvas.width, canvas.height);
+            
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.currentTex); // 이전 프레임 입력
+            gl.uniform1i(this.uPrev, 0);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // Pass 1: draw texture at canvas
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.uniform1f(this.uPass, 1.0);
+            gl.bindTexture(gl.TEXTURE_2D, (this.currentFBO === this.fboA) ? this.texA : this.texB);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // Swap
+            if (this.currentFBO === this.fboA) {
+                this.currentFBO = this.fboB;
+                this.currentTex = this.texA;
+            } else {
+                this.currentFBO = this.fboA;
+                this.currentTex = this.texB;
+            }
+
+            requestAnimationFrame(() => this.render());
+        }
+    }
+
+    function toggleFullscreen(status) {
+        const wrapperDom = document.getElementById('wrapper');
+        const enterFullscreenDom = document.getElementById('enterFullscreen');
+        const leaveFullscreenDom = document.getElementById('leaveFullscreen');
+
+        if (status) {
+            document.body.style.overflowY = 'hidden';
+
+            wrapperDom.style.position = 'fixed';
+            wrapperDom.style.top = '0';
+            wrapperDom.style.left = '0';
+            wrapperDom.style.height = '100vh';
+            wrapperDom.style.zIndex = '1000';
+
+            enterFullscreenDom.style.visibility = 'hidden';
+            leaveFullscreenDom.style.visibility = 'visible';
+        }
+        else {
+            document.body.style.overflowY = '';
+
+            wrapperDom.style.position = '';
+            wrapperDom.style.top = '';
+            wrapperDom.style.left = '';
+            wrapperDom.style.height = '';
+            wrapperDom.style.zIndex = '';
+
+            enterFullscreenDom.style.visibility = 'visible';
+            leaveFullscreenDom.style.visibility = 'hidden';
+        }
+
+        app.resize();
+    }
+
+    const gui = new dat.GUI();
+    const canvasContainer = document.getElementById("wrapper");
+    canvasContainer.appendChild(gui.domElement);
+    gui.domElement.style.marginRight = '0px';
+    gui.domElement.style.position = 'absolute';
+    gui.domElement.style.top = '0px';
+    gui.domElement.style.right = '0px';
+
+    gui.add(CONFIG, 'process_noise', 0, 100.0).name('Proc. Noise (R)');
+    gui.add(CONFIG, 'measure_noise', 1, 500.0).name('Meas. Noise (Q)');
+    
+    const enterFullscreenDom = document.getElementById('enterFullscreen');
+    const leaveFullscreenDom = document.getElementById('leaveFullscreen');
+
+    enterFullscreenDom.addEventListener('click', ()=>toggleFullscreen(true));
+    leaveFullscreenDom.addEventListener('click', ()=>toggleFullscreen(false));
+
+    window.addEventListener('keydown', (event)=>{
+        if (event.key == "Escape") toggleFullscreen(false);
+    });
+    
+    const app = new App();
+</script>

@@ -184,6 +184,8 @@
             K[1] = this.P[2] / (this.P[0] + this.Q);
             
             // State Update
+            if (isNaN(measurement)) return;
+
             this.x = this.x + K[0] * (measurement - this.x);
             this.v = this.v + K[1] * (measurement - this.x);
 
@@ -201,10 +203,10 @@
         constructor() {
             canvas = document.getElementById('webgl');
             gl = canvas.getContext('webgl', { alpha: false });
-            this.mouseX = 0;
-            this.mouseY = 0;
-            this.mouseXprev = 0;
-            this.mouseYprev = 0;
+            this.mouseX = -100;
+            this.mouseY = -100;
+            this.mouseXprev = -100;
+            this.mouseYprev = -100;
 
             this.kfX = new KalmanFilter1D(0, [100,0,0,100], CONFIG.process_noise, CONFIG.measure_noise);
             this.kfY = new KalmanFilter1D(0, [100,0,0,100], CONFIG.process_noise, CONFIG.measure_noise);
@@ -235,13 +237,20 @@
             const onEnter = (x, y) => {
                 this.isMeasure = true;
 
-                onMove(null, x, y);
+                const rect = canvas.getBoundingClientRect();
+
+                this.mouseX = x - rect.left;
+                this.mouseY = canvas.height - (y - rect.top);
+                this.mouseXprev = this.mouseX;
+                this.mouseYprev = this.mouseY;
+
+                if (ev) ev.preventDefault();
             };
 
-            window.addEventListener('mousemove', e => onMove(e, e.clientX, e.clientY));
-            window.addEventListener('touchmove', e => onMove(e, e.touches[0].clientX, e.touches[0].clientY), {passive: false});
+            canvas.addEventListener('mousemove', e => onMove(e, e.clientX, e.clientY));
+            canvas.addEventListener('touchmove', e => onMove(e, e.touches[0].clientX, e.touches[0].clientY), { passive: false });
             canvas.addEventListener('mouseenter', e => onEnter(e.clientX, e.clientY));
-            canvas.addEventListener('touchstart', e => onEnter(e.touches[0].clientX, e.touches[0].clientY), {passive: false});
+            canvas.addEventListener('touchstart', e => onEnter(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
             canvas.addEventListener('mouseleave', onLeave);
             canvas.addEventListener('touchend', onLeave);
 

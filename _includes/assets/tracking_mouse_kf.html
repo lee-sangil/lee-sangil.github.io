@@ -339,11 +339,11 @@
             
             let mx, my;
             if (this.isMeasure) {
-                mx = this.mouseX + randn(0, Math.sqrt(CONFIG.measure_noise));
-                my = this.mouseY + randn(0, Math.sqrt(CONFIG.measure_noise));
+                mx = this.mouseX + randn(0, 20);
+                my = this.mouseY + randn(0, 20);
             } else {
-                mx = this.mouseXprev;
-                my = this.mouseYprev;
+                mx = this.mouseXprev + randn(0, 20);
+                my = this.mouseYprev + randn(0, 20);
             }
             this.kfX.correct(mx);
             this.kfY.correct(my);

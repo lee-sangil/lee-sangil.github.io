@@ -243,8 +243,6 @@
                 this.mouseY = canvas.height - (y - rect.top);
                 this.mouseXprev = this.mouseX;
                 this.mouseYprev = this.mouseY;
-
-                if (ev) ev.preventDefault();
             };
 
             canvas.addEventListener('mousemove', e => onMove(e, e.clientX, e.clientY));

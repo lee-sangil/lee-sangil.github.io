@@ -164,7 +164,7 @@ end
 
 - $$L_2$$ norm, $$\|\nabla u\|_2^2$$: penalizes high frequencies globally, leading to isotropic diffusion. This results in blurry edges because the squared norm penalizes large gradients rather than small gradients. Since $$L_2$$ norm is differentiable for all values, we don't need to use dual variable to solve the optimization problem.
 
-- Huber norm, $$h_{\epsilon} (\nabla u)$$: is a hybrid of the $$L_1$$ and $$L_2$$ norms, uses $$L_2$$ norm for small values and $$L_1$$ norm for large values. It prevents a staircase effect in $$L_1$$ regularizer, while being less sensitive to large gradients than $$L_2$$ regularizer. To apply Huber norm to the above optimization problem, 
+- Huber norm, $$h_{\epsilon} (\nabla u)$$: is a hybrid of the $$L_1$$ and $$L_2$$ norms, uses $$L_2$$ norm for small values and $$L_1$$ norm for large values. It prevents a staircase effect in $$L_1$$ regularizer, while being less sensitive to large gradients than $$L_2$$ regularizer.
 
 ## Wrap-up
 

@@ -1,5 +1,5 @@
 {% assign document = post | default: page %}
-{% if document.read_time or document.show_date %}
+{% if document.read_time or document.show_date or document.comments or document.show_likes %}
   <p class="page__meta">
     {% if document.show_date and document.date %}
       {% assign date = document.date %}
@@ -25,6 +25,30 @@
           {{ words | divided_by: words_per_minute }} {{ site.data.ui-text[site.locale].minute_read | default: "minute read" }}
         {% endif %}
       </span>
+    {% endif %}
+
+    {% if document.comments %}
+    <span class="page__meta-sep"></span>
+    <span class="page__meta-comments">
+      <i class="far fa-fw fa-comment" aria-hidden="true"></i>
+      <span class="comment_count" pathname="{{ document.url }}">0</span>
+    </span>
+    {% endif %}
+
+    {% if document.show_likes %}
+    <span class="page__meta-sep"></span>
+    <span class="page__meta-likes">
+      {% if document == page %}
+      <button id="like-btn-0" class="like-btn page__meta-like-btn" aria-label="Like" type="button">
+        <i id="heart-svg-0" class="far fa-fw fa-heart heart-svg" aria-hidden="true"></i>
+        <span id="like-count-0" class="like-count" pathname="{{ document.url }}">0</span>
+      </button>
+      {% include firebase-config.html index=0 style="header" meta_inline=true %}
+      {% else %}
+      <i class="far fa-fw fa-heart" aria-hidden="true"></i>
+      <span class="like-count" pathname="{{ document.url }}">0</span>
+      {% endif %}
+    </span>
     {% endif %}
   </p>
 {% endif %}

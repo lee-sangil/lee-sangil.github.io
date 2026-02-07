@@ -1,3 +1,4 @@
+{% unless include.meta_inline %}
 <style>
   .like-section { text-align: right; margin: 20px 0 0 0; }
   .like-btn {
@@ -17,7 +18,7 @@
     height: 14px;
     fill: none; /* 기본은 채우기 없음 */
     stroke: #ff4d4d; /* 테두리 색상 */
-    stroke-width: 1;
+    stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
@@ -48,6 +49,7 @@
     <span id="like-count-{{ include.index }}" class="like-count">0</span>
   </button>
 </div>
+{% endunless %}
 
 <script type="module">
   // Import the functions you need from the SDKs you need
@@ -82,24 +84,10 @@
   const likeCountSpan = document.getElementById('like-count-{{ include.index }}');
   const heartSvg = document.getElementById('heart-svg-{{ include.index }}');
 
-  // Style
-  if (`{{ include.style }}` == 'header') {
-    const likeSection = document.getElementById('like-section-{{ include.index }}');
-    likeSection.style.textAlign = 'left';
-    likeSection.style.margin = '0';
-    likeBtn.style.margin = '0';
-    likeBtn.style.padding = '0';
-
-    // Remove text for header style
-    const likeText = document.getElementById('like-text-{{ include.index }}');
-    likeText.innerText = '';
-  }
-
   // Get initial like count and listen for changes
   onValue(likeRef, (snapshot) => {
     const data = snapshot.val();
 
-    console.log('{{ include.index }}', data);
     if (data === null) {
       likeCountSpan.innerText = '0';
     } else {
@@ -109,18 +97,25 @@
     // Check if the user has liked this post (storageKey) by checking localStorage.
     if (localStorage.getItem(storageKey) === 'true') {
       likeBtn.classList.add('liked');
+      if (heartSvg && heartSvg.classList && heartSvg.classList.contains('fa-heart')) {
+        heartSvg.classList.remove('far'); heartSvg.classList.add('fas');
+      }
     } else {
       likeBtn.classList.remove('liked');
+      if (heartSvg && heartSvg.classList && heartSvg.classList.contains('fa-heart')) {
+        heartSvg.classList.remove('fas'); heartSvg.classList.add('far');
+      }
     }
   });
 
   // Click event
   likeBtn.onclick = () => {
-    console.log('Like button {{ include.index }} clicked');
     const isAlreadyLiked = localStorage.getItem(storageKey) === 'true';
 
-    heartSvg.classList.add('heart-beat');
-    setTimeout(() => heartSvg.classList.remove('heart-beat'), 400);
+    if (heartSvg) {
+      heartSvg.classList.add('heart-beat');
+      setTimeout(() => heartSvg.classList.remove('heart-beat'), 400);
+    }
 
     runTransaction(likeRef, (data) => {
       if (!data) data = 0;
@@ -134,5 +129,13 @@
       }
       return data;
     });
+
+    if (heartSvg && heartSvg.classList && heartSvg.classList.contains('fa-heart')) {
+      if (isAlreadyLiked) {
+        heartSvg.classList.remove('fas'); heartSvg.classList.add('far');
+      } else {
+        heartSvg.classList.remove('far'); heartSvg.classList.add('fas');
+      }
+    }
   };
 </script>

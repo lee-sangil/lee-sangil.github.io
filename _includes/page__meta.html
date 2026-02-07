@@ -43,7 +43,7 @@
         <i id="heart-svg-0" class="far fa-fw fa-heart heart-svg" aria-hidden="true"></i>
         <span id="like-count-0" class="like-count" pathname="{{ document.url }}">0</span>
       </button>
-      {% include firebase-config.html index=0 style="header" meta_inline=true %}
+      {% include firebase-config.html variant="meta" %}
       {% else %}
       <i class="far fa-fw fa-heart" aria-hidden="true"></i>
       <span class="like-count" pathname="{{ document.url }}">0</span>

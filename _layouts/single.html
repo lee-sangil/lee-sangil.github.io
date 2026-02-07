@@ -68,7 +68,7 @@ layout: default
           {{ content }}
           {% if page.link %}<div><a href="{{ page.link }}" class="btn btn--primary">{{ site.data.ui-text[site.locale].ext_link_label | default: "Direct Link" }}</a></div>{% endif %}
 
-          {% include firebase-config.html index=1 style="footer" %}
+          {% include firebase-config.html variant="footer" %}
 
           <!-- utterances comment -->
           <script src="https://utteranc.es/client.js"

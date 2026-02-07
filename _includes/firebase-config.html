@@ -1,4 +1,8 @@
-{% unless include.meta_inline %}
+{% comment %} variant: "meta" = page__meta 인라인(버튼만, HTML 없음), "footer" = 글 아래 전체 섹션 {% endcomment %}
+{% assign _idx = 0 %}
+{% if include.variant == "footer" %}{% assign _idx = 1 %}{% endif %}
+
+{% unless include.variant == "meta" %}
 <style>
   .like-section { text-align: right; margin: 20px 0 0 0; }
   .like-btn {
@@ -9,44 +13,27 @@
     gap: 4px;
     font-weight: bold;
   }
-  /* 좋아요 누른 상태 스타일 */
-  /* .like-btn.liked { background: #ff4d4d; color: white; } */
-
-  /* SVG 아이콘 기본 스타일 */
   .heart-svg {
-    width: 14px; /* 아이콘 크기 조절 */
-    height: 14px;
-    fill: none; /* 기본은 채우기 없음 */
-    stroke: #ff4d4d; /* 테두리 색상 */
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    width: 14px; height: 14px;
+    fill: none; stroke: #ff4d4d; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round;
   }
-  /* 좋아요 눌렀을 때 SVG 아이콘 스타일 */
-  .like-btn.liked .heart-svg {
-    fill: #ff4d4d; /* 꽉 찬 색상 */
-    stroke: #ff4d4d; /* 테두리 색상도 채우기 색상과 동일하게 */
-  }
-  
-  /* 이모지 애니메이션 */
+  .like-btn.liked .heart-svg { fill: #ff4d4d; stroke: #ff4d4d; }
   .heart-beat { animation: heartBeat 0.3s ease-in-out; }
-  
   @keyframes heartBeat {
-    0% { transform: scale(1); }
-    10% { transform: scale(0.8); }
-    50% { transform: scale(1.2); }
-    70% { transform: scale(0.9); }
+    0% { transform: scale(1); } 10% { transform: scale(0.8); }
+    50% { transform: scale(1.2); } 70% { transform: scale(0.9); }
     100% { transform: scale(1); }
   }
 </style>
 
-<div id="like-section-{{ include.index }}" class="like-section">
-  <button id="like-btn-{{ include.index }}" class="like-btn" aria-label="Like button">
-    <svg id="heart-svg-{{ include.index }}" class="heart-svg" viewBox="0 0 22 21">
+<div id="like-section-{{ _idx }}" class="like-section">
+  <button id="like-btn-{{ _idx }}" class="like-btn" aria-label="Like button">
+    <svg id="heart-svg-{{ _idx }}" class="heart-svg" viewBox="0 0 22 21">
       <path d="M11 21c-6.6-5.99-10-9.07-10-12.85 0-3.08 2.42-5.5 5.5-5.5 1.74 0 3.41.91 4.5 2.59 1.09-1.68 2.76-2.59 4.5-2.59 3.08 0 5.5 2.42 5.5 5.5 0 3.78-3.4 6.86-10 12.85z"></path>
     </svg>
-    <span id="like-text-{{ include.index }}">Like</span>
-    <span id="like-count-{{ include.index }}" class="like-count">0</span>
+    <span id="like-text-{{ _idx }}">Like</span>
+    <span id="like-count-{{ _idx }}" class="like-count">0</span>
   </button>
 </div>
 {% endunless %}
@@ -80,9 +67,9 @@
   const storageKey = `like_${postId}`; // 로컬스토리지에 저장될 고유 키
   const likeRef = ref(db, postUrl);
 
-  const likeBtn = document.getElementById('like-btn-{{ include.index }}');
-  const likeCountSpan = document.getElementById('like-count-{{ include.index }}');
-  const heartSvg = document.getElementById('heart-svg-{{ include.index }}');
+  const likeBtn = document.getElementById('like-btn-{{ _idx }}');
+  const likeCountSpan = document.getElementById('like-count-{{ _idx }}');
+  const heartSvg = document.getElementById('heart-svg-{{ _idx }}');
 
   // Get initial like count and listen for changes
   onValue(likeRef, (snapshot) => {

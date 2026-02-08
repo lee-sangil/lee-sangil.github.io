@@ -1,0 +1,655 @@
+<div id="wrapper">
+    <canvas id='webgl'></canvas>
+    <svg id="enterFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
+    <svg id="leaveFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Leave Fullscreen</title><path d="M14,14H19V16H16V19H14V14M5,14H10V19H8V16H5V14M8,5H10V10H5V8H8V5M19,8V10H14V5H16V8H19Z" /></svg>
+</div>
+
+<style>
+    body {
+        color: black;
+    }
+    #wrapper {
+        color: white;
+        position: relative;
+        width: 100%;
+        height: 60vh;
+        background-color: #1a1a1a;
+    }
+    canvas {
+        position: relative;
+        cursor: crosshair;
+    }
+    .dg {
+        min-height: 16px;
+        max-height: 100%;
+        height: fit-content;
+        overflow-x: hidden;
+    }
+    .dg.main {
+        padding-bottom: 20px;
+    }
+    .dg.main > div:first-child {
+        position: relative !important;
+    }
+    .dg li {
+        margin-bottom: 0px;
+    }
+    .dg ul {
+        position: inherit;
+        top: 20px;
+        height: unset !important;
+    }
+    .dg .property-name {
+        width: 40%;
+    }
+    .dg .c {
+        width: 60%;
+    }
+    .dg .slider {
+        width: 70%;
+    }
+    .dg .has-slider input[type=text] {
+        width: 25%;
+    }
+    .dg .close-button {
+        position: absolute;
+        top: 0;
+    }
+    .fullscreen {
+        fill: lightgray;
+        position: absolute;
+        top: 1vh;
+        left: 1vw;
+        margin: 5px;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        z-index: 10;
+    }
+    .fullscreen:hover {
+        background-color:rgba(255,255,255,0.3);
+        border-radius: 50%;
+    }
+    #leaveFullscreen {
+        visibility: hidden;
+    }
+</style>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+
+<script type="module">
+    const CONFIG = { 
+        num_particles: 300,
+        motion_noise: 3.0,
+        distance_noise: 15.0,
+        max_detection_range: 200.0
+    };
+
+    function randn(m, s) {
+        let u = 0, v = 0;
+        while(u===0) u = Math.random();
+        while(v===0) v = Math.random();
+        return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) * s + m;
+    }
+
+    class ParticleFilterLocalization {
+        constructor(numParticles, width, height, motionNoise, distanceNoise, maxRange) {
+            this.numParticles = numParticles;
+            this.particles = [];
+            this.weights = [];
+            this.motionNoise = motionNoise;
+            this.distanceNoise = distanceNoise;
+            this.maxRange = maxRange;
+            this.width = width;
+            this.height = height;
+            
+            this.initializeParticles();
+        }
+
+        initializeParticles() {
+            this.particles = [];
+            this.weights = [];
+            
+            // Initialize particles uniformly across the space
+            for (let i = 0; i < this.numParticles; i++) {
+                this.particles.push({
+                    x: Math.random() * this.width,
+                    y: Math.random() * this.height
+                });
+                this.weights.push(1.0 / this.numParticles);
+            }
+        }
+
+        updateParams(motionNoise, distanceNoise, maxRange) {
+            this.motionNoise = motionNoise;
+            this.distanceNoise = distanceNoise;
+            this.maxRange = maxRange;
+        }
+
+        updateNumParticles(numParticles) {
+            if (numParticles === this.numParticles) return;
+            
+            const oldParticles = this.particles.slice();
+            const oldWeights = this.weights.slice();
+            
+            this.numParticles = numParticles;
+            this.particles = [];
+            this.weights = [];
+            
+            for (let i = 0; i < numParticles; i++) {
+                const idx = this.systematicResampleIndex(i, numParticles, oldWeights);
+                this.particles.push({
+                    x: oldParticles[idx].x + randn(0, 5),
+                    y: oldParticles[idx].y + randn(0, 5)
+                });
+                this.weights.push(1.0 / numParticles);
+            }
+        }
+
+        predict(dx, dy) {
+            // Move particles according to motion model with noise
+            for (let i = 0; i < this.numParticles; i++) {
+                this.particles[i].x += dx + randn(0, this.motionNoise);
+                this.particles[i].y += dy + randn(0, this.motionNoise);
+                
+                // Keep particles within bounds
+                this.particles[i].x = Math.max(0, Math.min(this.width, this.particles[i].x));
+                this.particles[i].y = Math.max(0, Math.min(this.height, this.particles[i].y));
+            }
+        }
+
+        update(measuredDistance, landmarks) {
+            if (landmarks.length === 0) return false;
+            
+            // If no landmark within detection range, skip update
+            if (measuredDistance === null || measuredDistance > this.maxRange) {
+                return false;
+            }
+            
+            // Update weights based on distance measurement
+            let sumWeights = 0;
+            
+            for (let i = 0; i < this.numParticles; i++) {
+                // For each particle, find closest landmark within range
+                let minDist = Infinity;
+                for (let landmark of landmarks) {
+                    const dx = this.particles[i].x - landmark.x;
+                    const dy = this.particles[i].y - landmark.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist <= this.maxRange) {
+                        minDist = Math.min(minDist, dist);
+                    }
+                }
+                
+                // If particle has no landmark in range, low likelihood
+                if (minDist === Infinity) {
+                    this.weights[i] *= 0.01;
+                } else {
+                    // Compute likelihood: how well does this particle's closest distance match the measurement?
+                    const error = minDist - measuredDistance;
+                    const likelihood = Math.exp(-(error * error) / (2 * this.distanceNoise * this.distanceNoise));
+                    this.weights[i] *= likelihood;
+                }
+                
+                sumWeights += this.weights[i];
+            }
+            
+            // Normalize weights
+            if (sumWeights > 0) {
+                for (let i = 0; i < this.numParticles; i++) {
+                    this.weights[i] /= sumWeights;
+                }
+            } else {
+                // If all weights are zero, reset to uniform
+                for (let i = 0; i < this.numParticles; i++) {
+                    this.weights[i] = 1.0 / this.numParticles;
+                }
+            }
+            
+            // Resample if needed
+            const nEff = this.effectiveSampleSize();
+            if (nEff < this.numParticles / 3) {
+                this.resample();
+            }
+            
+            return true;
+        }
+
+        effectiveSampleSize() {
+            let sumSq = 0;
+            for (let i = 0; i < this.numParticles; i++) {
+                sumSq += this.weights[i] * this.weights[i];
+            }
+            return 1.0 / sumSq;
+        }
+
+        systematicResampleIndex(i, M, weights) {
+            const u = (i + Math.random()) / M;
+            let cumSum = 0;
+            
+            for (let j = 0; j < weights.length; j++) {
+                cumSum += weights[j];
+                if (u <= cumSum) {
+                    return j;
+                }
+            }
+            return weights.length - 1;
+        }
+
+        resample() {
+            const newParticles = [];
+            const newWeights = [];
+            
+            for (let i = 0; i < this.numParticles; i++) {
+                const idx = this.systematicResampleIndex(i, this.numParticles, this.weights);
+                newParticles.push({
+                    x: this.particles[idx].x,
+                    y: this.particles[idx].y
+                });
+                newWeights.push(1.0 / this.numParticles);
+            }
+            
+            this.particles = newParticles;
+            this.weights = newWeights;
+        }
+
+        getMean() {
+            let x = 0, y = 0;
+            for (let i = 0; i < this.numParticles; i++) {
+                x += this.weights[i] * this.particles[i].x;
+                y += this.weights[i] * this.particles[i].y;
+            }
+            return { x, y };
+        }
+    }
+
+    let canvas, ctx;
+    let landmarks = [];
+    let mouseX = 0, mouseY = 0;
+    let prevMouseX = 0, prevMouseY = 0;
+    let pf;
+    let isMouseInCanvas = false;
+    let isTouchDevice = false;
+    let mode = 'place'; // 'place' or 'move'
+    let lastUpdateTime = 0;
+
+    class App {
+        constructor() {
+            canvas = document.getElementById('webgl');
+            ctx = canvas.getContext('2d');
+            
+            this.resize();
+            
+            pf = new ParticleFilterLocalization(
+                CONFIG.num_particles,
+                canvas.width,
+                canvas.height,
+                CONFIG.motion_noise,
+                CONFIG.distance_noise,
+                CONFIG.max_detection_range
+            );
+
+            this.setupEventListeners();
+            this.render();
+
+            window.addEventListener('resize', this.resize.bind(this));
+        }
+
+        setupEventListeners() {
+            const wrapper = document.getElementById('wrapper');
+            
+            // Detect touch device
+            const checkTouch = () => {
+                if (!isTouchDevice) {
+                    isTouchDevice = true;
+                    // Touch detection complete
+                }
+            };
+
+            const onMove = (x, y) => {
+                const rect = canvas.getBoundingClientRect();
+                prevMouseX = mouseX;
+                prevMouseY = mouseY;
+                mouseX = x - rect.left;
+                mouseY = y - rect.top;
+            };
+
+            const onClick = (x, y) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = x - rect.left;
+                const clickY = y - rect.top;
+                
+                if (mode === 'place') {
+                    landmarks.push({ x: clickX, y: clickY });
+                }
+            };
+
+            const onLeave = () => {
+                isMouseInCanvas = false;
+                // Auto-reset particles when robot leaves in move mode
+                if (mode === 'move') {
+                    setTimeout(() => {
+                        if (!isMouseInCanvas) {
+                            pf.initializeParticles();
+                        }
+                    }, 200);
+                }
+            };
+
+            // Mouse events on wrapper
+            wrapper.addEventListener('mousemove', e => {
+                isMouseInCanvas = true;
+                onMove(e.clientX, e.clientY);
+            });
+
+            wrapper.addEventListener('mouseenter', () => {
+                isMouseInCanvas = true;
+            });
+
+            wrapper.addEventListener('mouseleave', () => {
+                onLeave();
+            });
+
+            // Click events on canvas (for placing landmarks)
+            canvas.addEventListener('click', e => {
+                onClick(e.clientX, e.clientY);
+            });
+
+            // Touch events on wrapper
+            wrapper.addEventListener('touchstart', e => {
+                checkTouch();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const touchX = touch.clientX - rect.left;
+                const touchY = touch.clientY - rect.top;
+                
+                if (mode === 'place') {
+                    landmarks.push({ x: touchX, y: touchY });
+                } else {
+                    isMouseInCanvas = true;
+                    mouseX = touchX;
+                    mouseY = touchY;
+                    prevMouseX = mouseX;
+                    prevMouseY = mouseY;
+                }
+                
+                e.preventDefault();
+            }, { passive: false });
+            
+            wrapper.addEventListener('touchmove', e => {
+                checkTouch();
+                const touch = e.touches[0];
+                
+                if (mode === 'move') {
+                    isMouseInCanvas = true;
+                    onMove(touch.clientX, touch.clientY);
+                }
+                
+                e.preventDefault();
+            }, { passive: false });
+
+            wrapper.addEventListener('touchend', e => {
+                if (mode === 'move') {
+                    onLeave();
+                }
+                e.preventDefault();
+            }, { passive: false });
+        }
+
+        resize() {
+            const wrapperDom = document.getElementById('wrapper');
+            const width = wrapperDom.clientWidth;
+            const height = wrapperDom.clientHeight;
+            
+            canvas.width = width;
+            canvas.height = height;
+
+            if (pf) {
+                pf.width = width;
+                pf.height = height;
+            }
+        }
+
+        render() {
+            // Update particle filter
+            pf.updateParams(CONFIG.motion_noise, CONFIG.distance_noise, CONFIG.max_detection_range);
+            pf.updateNumParticles(CONFIG.num_particles);
+
+            // In move mode, continuously update even without motion
+            if (mode === 'move' && isMouseInCanvas) {
+                const now = Date.now();
+                const dt = (now - lastUpdateTime) / 1000.0; // seconds
+                lastUpdateTime = now;
+
+                // Predict step (even with zero motion, there's process noise)
+                const dx = mouseX - prevMouseX;
+                const dy = mouseY - prevMouseY;
+                pf.predict(dx, dy);
+
+                // Update step (measurement) with noisy observation
+                if (landmarks.length > 0) {
+                    // Compute true distance to closest landmark within range
+                    let minDist = Infinity;
+                    for (let landmark of landmarks) {
+                        const ldx = mouseX - landmark.x;
+                        const ldy = mouseY - landmark.y;
+                        const dist = Math.sqrt(ldx * ldx + ldy * ldy);
+                        if (dist <= CONFIG.max_detection_range) {
+                            minDist = Math.min(minDist, dist);
+                        }
+                    }
+                    
+                    // Only update if a landmark is within detection range
+                    if (minDist !== Infinity) {
+                        // Add measurement noise
+                        const measuredDistance = minDist + randn(0, 5);
+                        pf.update(measuredDistance, landmarks);
+                    }
+                }
+                
+                // Update previous position
+                prevMouseX = mouseX;
+                prevMouseY = mouseY;
+            }
+
+            // Draw
+            this.draw();
+
+            requestAnimationFrame(() => this.render());
+        }
+
+        draw() {
+            // Clear canvas
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw landmarks
+            ctx.fillStyle = '#4CAF50';
+            ctx.strokeStyle = '#81C784';
+            ctx.lineWidth = 2;
+            for (let landmark of landmarks) {
+                ctx.beginPath();
+                ctx.arc(landmark.x, landmark.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // Mode-specific rendering
+            if (mode === 'place') {
+                // Show ghost landmark at mouse position
+                if (isMouseInCanvas) {
+                    ctx.strokeStyle = '#81C784';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.arc(mouseX, mouseY, 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            } else {
+                // Move mode: show particles, mean, and detection range
+                
+                // Draw particles
+                for (let i = 0; i < pf.numParticles; i++) {
+                    const particle = pf.particles[i];
+                    const weight = pf.weights[i];
+                    
+                    // Size and opacity based on weight
+                    const maxWeight = Math.max(...pf.weights);
+                    const normalizedWeight = weight / maxWeight;
+                    const size = 1 + normalizedWeight * 2;
+                    const alpha = normalizedWeight;
+                    
+                    ctx.fillStyle = `rgba(255, 152, 0, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Draw mean estimate
+                const mean = pf.getMean();
+                ctx.fillStyle = 'rgba(255, 0, 255, 0.6)';
+                ctx.strokeStyle = 'rgba(255, 100, 255, 0.9)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(mean.x, mean.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Draw detection range circle (no true position shown)
+                if (isMouseInCanvas) {
+                    ctx.strokeStyle = 'rgba(33, 150, 243, 0.6)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.arc(mouseX, mouseY, CONFIG.max_detection_range, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+
+            // Draw legend
+            const legendX = 10;
+            const legendY = canvas.height - 60;
+            
+            ctx.font = '12px Arial';
+            
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.arc(legendX + 8, legendY, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'white';
+            ctx.fillText('Landmarks', legendX + 20, legendY + 4);
+            
+            if (mode === 'move') {
+                ctx.fillStyle = 'rgba(255, 152, 0, 0.8)';
+                ctx.beginPath();
+                ctx.arc(legendX + 8, legendY + 20, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.fillText('Particles', legendX + 20, legendY + 24);
+                
+                ctx.fillStyle = 'rgba(255, 0, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(legendX + 8, legendY + 40, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.fillText('Mean estimate', legendX + 20, legendY + 44);
+            }
+        }
+    }
+
+    function toggleFullscreen(status) {
+        const wrapperDom = document.getElementById('wrapper');
+        const enterFullscreenDom = document.getElementById('enterFullscreen');
+        const leaveFullscreenDom = document.getElementById('leaveFullscreen');
+
+        if (status) {
+            document.body.style.overflowY = 'hidden';
+
+            wrapperDom.style.position = 'fixed';
+            wrapperDom.style.top = '0';
+            wrapperDom.style.left = '0';
+            wrapperDom.style.height = '100vh';
+            wrapperDom.style.zIndex = '1000';
+
+            enterFullscreenDom.style.visibility = 'hidden';
+            leaveFullscreenDom.style.visibility = 'visible';
+        }
+        else {
+            document.body.style.overflowY = '';
+
+            wrapperDom.style.position = '';
+            wrapperDom.style.top = '';
+            wrapperDom.style.left = '';
+            wrapperDom.style.height = '';
+            wrapperDom.style.zIndex = '';
+
+            enterFullscreenDom.style.visibility = 'visible';
+            leaveFullscreenDom.style.visibility = 'hidden';
+        }
+
+        app.resize();
+    }
+
+    const gui = new dat.GUI();
+    const canvasContainer = document.getElementById("wrapper");
+    canvasContainer.appendChild(gui.domElement);
+    gui.domElement.style.marginRight = '0px';
+    gui.domElement.style.position = 'absolute';
+    gui.domElement.style.top = '0px';
+    gui.domElement.style.right = '0px';
+
+    gui.add(CONFIG, 'num_particles', 50, 1000).step(50).name('Num Particles');
+    gui.add(CONFIG, 'motion_noise', 0.1, 20.0).name('Motion Noise');
+    gui.add(CONFIG, 'distance_noise', 1.0, 50.0).name('Distance Noise');
+    gui.add(CONFIG, 'max_detection_range', 50, 500).name('Max Detect Range');
+    
+    // Add action buttons to GUI
+    const actions = {
+        resetLandmarks: () => {
+            landmarks = [];
+        },
+        toggleMode: () => {
+            if (mode === 'place') {
+                mode = 'move';
+                canvas.style.cursor = 'default';
+                lastUpdateTime = Date.now();
+            } else {
+                mode = 'place';
+                canvas.style.cursor = 'crosshair';
+            }
+        }
+    };
+    
+    const actionsFolder = gui.addFolder('Actions');
+    actionsFolder.add(actions, 'resetLandmarks').name('Reset Landmarks');
+    
+    // Add toggle mode button
+    const toggleModeController = actionsFolder.add(actions, 'toggleMode').name('Switch to Move Mode');
+    
+    // Update toggle button text dynamically
+    const originalToggle = actions.toggleMode;
+    actions.toggleMode = function() {
+        originalToggle();
+        if (mode === 'move') {
+            toggleModeController.name('Switch to Place Mode');
+        } else {
+            toggleModeController.name('Switch to Move Mode');
+        }
+    };
+    
+    actionsFolder.open();
+    
+    const enterFullscreenDom = document.getElementById('enterFullscreen');
+    const leaveFullscreenDom = document.getElementById('leaveFullscreen');
+
+    enterFullscreenDom.addEventListener('click', ()=>toggleFullscreen(true));
+    leaveFullscreenDom.addEventListener('click', ()=>toggleFullscreen(false));
+
+    window.addEventListener('keydown', (event)=>{
+        if (event.key == "Escape") toggleFullscreen(false);
+    });
+    
+    const app = new App();
+</script>

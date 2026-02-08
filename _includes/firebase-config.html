@@ -41,10 +41,10 @@
 <script type="module">
   import { db, analytics, ref, get, runTransaction, onValue } from "/assets/js/firebase-init.js";
 
-  const postUrl = "{{ page.url }}";
+  const postUrl = "{{ document.url }}";
   const postId = btoa(postUrl).replace(/\//g, "_").replace(/=/g, ""); 
   const storageKey = `like_${postId}`; // 로컬스토리지에 저장될 고유 키
-  const likeRef = ref(db, postUrl);
+  const likeRef = ref(db, `${postUrl}/like`);
 
   const likeBtn = document.getElementById('like-btn-{{ _idx }}');
   const likeCountSpan = document.getElementById('like-count-{{ _idx }}');

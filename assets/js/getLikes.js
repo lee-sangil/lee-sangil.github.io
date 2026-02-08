@@ -10,7 +10,7 @@ function loadLikeCounts() {
     if (el.id === 'like-count-0') return;
     const path = el.getAttribute('pathname');
     if (!path) return;
-    get(ref(db, path))
+    get(ref(db, `${path}/like`))
       .then(function (snapshot) {
         el.textContent = snapshot.val() !== null ? snapshot.val() : 0;
       })

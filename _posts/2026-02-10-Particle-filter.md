@@ -10,7 +10,7 @@ tags:
  - derivation
  - monte-carlo
 header:
-  teaser: /assets/image/thumbnail/particle-filter.gif
+  teaser: /assets/image/thumbnail/2026-02-10-particle-filter.gif
 excerpt_separator: <!--more-->
 ---
 

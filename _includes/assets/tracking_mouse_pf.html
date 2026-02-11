@@ -356,7 +356,7 @@
             });
 
             // Touch events on wrapper
-            wrapper.addEventListener('touchstart', e => {
+            canvas.addEventListener('touchstart', e => {
                 checkTouch();
                 const touch = e.touches[0];
                 const rect = canvas.getBoundingClientRect();
@@ -376,7 +376,7 @@
                 e.preventDefault();
             }, { passive: false });
             
-            wrapper.addEventListener('touchmove', e => {
+            canvas.addEventListener('touchmove', e => {
                 checkTouch();
                 const touch = e.touches[0];
                 
@@ -388,7 +388,7 @@
                 e.preventDefault();
             }, { passive: false });
 
-            wrapper.addEventListener('touchend', e => {
+            canvas.addEventListener('touchend', e => {
                 if (mode === 'move') {
                     onLeave();
                 }

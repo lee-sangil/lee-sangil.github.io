@@ -2,23 +2,31 @@
 {% assign _idx = 0 %}
 {% if include.variant == "footer" %}{% assign _idx = 1 %}{% endif %}
 
+<style>
+  .like-btn {
+    outline: none;
+  }
+
+  .like-btn:focus {
+    outline: none;
+  }
+</style>
 {% unless include.variant == "meta" %}
 <style>
   .like-section { text-align: right; margin: 20px 0 0 0; }
   .like-btn {
-    background-color: white; border: none; font-size: 14px;
+    background-color: white; border: none;
     color: #586069; cursor: pointer;
     transition: all 0.3s ease; outline: none;
     display: inline-flex; align-items: center; justify-content: center;
     gap: 4px;
-    font-weight: bold;
   }
   .heart-svg {
     width: 14px; height: 14px;
     fill: none; stroke: #ff4d4d; stroke-width: 2;
     stroke-linecap: round; stroke-linejoin: round;
   }
-  .like-btn.liked .heart-svg { fill: #ff4d4d; stroke: #ff4d4d; }
+  .like-btn.liked .heart-svg { fill: #ff4d4d; stroke: #ff4d4d; outline: none; }
   .heart-beat { animation: heartBeat 0.3s ease-in-out; }
   @keyframes heartBeat {
     0% { transform: scale(1); } 10% { transform: scale(0.8); }

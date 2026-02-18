@@ -58,8 +58,16 @@
   const likeCountSpan = document.getElementById('like-count-{{ _idx }}');
   const heartSvg = document.getElementById('heart-svg-{{ _idx }}');
 
+  let isFirebaseLoaded = false;
+  likeBtn.disabled = true;
+
   // Get initial like count and listen for changes
   onValue(likeRef, (snapshot) => {
+    if (!isFirebaseLoaded) {
+      isFirebaseLoaded = true;
+      likeBtn.disabled = false;
+    }
+
     const data = snapshot.val();
 
     if (data === null) {
@@ -84,6 +92,8 @@
 
   // Click event
   likeBtn.onclick = () => {
+    if (!isFirebaseLoaded) return;
+
     const isAlreadyLiked = localStorage.getItem(storageKey) === 'true';
 
     if (heartSvg) {

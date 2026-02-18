@@ -4,7 +4,7 @@
  */
 import { db, ref, get } from "/assets/js/firebase-init.js";
 
-function loadLikeCounts() {
+$(document).ready(function() {
   const elements = document.querySelectorAll('.like-count[pathname]');
   elements.forEach(function (el) {
     if (el.id === 'like-count-0') return;
@@ -18,10 +18,4 @@ function loadLikeCounts() {
         el.textContent = 0;
       });
   });
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadLikeCounts);
-} else {
-  loadLikeCounts();
-}
+});

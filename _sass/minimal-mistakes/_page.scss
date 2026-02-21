@@ -435,10 +435,12 @@ body {
   display: inline-block;
   margin-right: 5px;
   margin-bottom: 8px;
-  padding: 5px 10px;
+  padding: 2px 8px;
   text-decoration: none;
-  border: 1px solid mix(#000, $border-color, 25%);
-  border-radius: $border-radius;
+  border: 1px solid $lighter-gray;
+  border-radius: $border-hard-radius;
+  color: $text-color;
+  background-color: $lighter-gray;
 
   &:hover {
     text-decoration: none;

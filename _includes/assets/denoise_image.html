@@ -6,9 +6,12 @@
 
 <style>
     #wrapper {
+        background-color: black;
         position: relative;
         width: 100%;
         height: 50vh;
+        display: flex;
+        justify-content: center;
     }
     canvas {
         position: relative;
@@ -296,11 +299,11 @@
 
     function resize() {
         const wrapperDom = document.getElementById('wrapper');
-
-        const width = wrapperDom.clientWidth;
-        const height = wrapperDom.clientHeight;
-
         const canvas = document.getElementById('webgl');
+
+        const height = wrapperDom.clientHeight;
+        const width = height;
+
         canvas.width = width;
         canvas.height = height;
     }

@@ -1,7 +1,7 @@
 ---
 title: "Derivation of the Particle Filter from Bayesian Filter"
 categories:
- - Vision
+ - Robotics
 tags:
  - filter
  - particle

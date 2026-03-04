@@ -1,7 +1,7 @@
 ---
 title: "Derivation of the Kalman Filter from Bayesian Filter"
 categories:
- - Vision
+ - Robotics
 tags:
  - filter
  - kalman

@@ -1,0 +1,14 @@
+---
+layout: archive
+permalink: /robotics/
+author_profile: true
+sidebar:
+  nav: "sidebar-category"
+---
+
+<h2 class="archive__subtitle">Robotics</h2>
+{% for post in site.posts %}
+    {% if post.categories contains 'Robotics' %}
+        {% include archive-single.html type='post' %}
+    {% endif %}
+{% endfor %}

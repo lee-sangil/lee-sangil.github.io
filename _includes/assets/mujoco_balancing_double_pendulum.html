@@ -1,0 +1,566 @@
+<div id="wrapper">
+    <canvas id='webgl'></canvas>
+    <svg id="enterFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
+    <svg id="leaveFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Leave Fullscreen</title><path d="M14,14H19V16H16V19H14V14M5,14H10V19H8V16H5V14M8,5H10V10H5V8H8V5M19,8V10H14V5H16V8H19Z" /></svg>
+</div>
+
+<style>
+    #wrapper {
+        position: relative;
+        width: 100%;
+        height: 50vh;
+    }
+    canvas {
+        position: relative;
+    }
+    .dg {
+        min-height: 16px;
+        max-height: 100%;
+        height: fit-content;
+        overflow-x: hidden;
+    }
+    .dg.main {
+        padding-bottom: 20px;
+    }
+    .dg.main > div:first-child {
+        position: relative !important;
+    }
+    .dg li {
+        margin-bottom: 0px;
+    }
+    .dg ul {
+        position: inherit;
+        top: 20px;
+        height: unset !important;
+    }
+    .dg .property-name {
+        width: 50%;
+    }
+    .dg .c {
+        width: 50%;
+    }
+    .dg .slider {
+        width: 70%;
+    }
+    .dg .has-slider input[type=text] {
+        width: 25%;
+    }
+    .dg .close-button {
+        position: absolute;
+        top: 0;
+    }
+    .fullscreen {
+        fill: lightgray;
+        position: absolute;
+        top: 1vh;
+        left: 1vw;
+        margin: 5px;
+        width: 24px;
+        height: 24px;
+        cursor : pointer;
+    }
+    .fullscreen:hover {
+        background-color:rgba(255,255,255,0.3);
+        border-radius: 50%;
+    }
+    #leaveFullscreen {
+        visibility: hidden;
+    }
+</style>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+
+<script type="module">
+    // ── MuJoCo WASM CDN URL ─────────────────────────────────────────────────
+    const MUJOCO_JS_URL = 'https://cdn.jsdelivr.net/npm/mujoco-js/dist/mujoco_wasm.js';
+
+    // ── DQN Constants ───────────────────────────────────────────────────────
+    const ACTION_TORQUES = [-5.0, -3.75, -2.5, -1.25, 0.0, 1.25, 2.5, 3.75, 5.0];
+    const MAX_ANGULAR_VEL = 20.0;
+    const COLOR1 = '#c0c0c0';
+    const COLOR2 = '#c92a2a';
+    const COLOR_BG = '#000000';
+
+    // ── DQN Neural Network Inference ────────────────────────────────────────
+    function matVecMul(weight, input) {
+        const out = new Float64Array(weight.length);
+        for (let i = 0; i < weight.length; i++) {
+            let sum = 0;
+            const row = weight[i];
+            for (let j = 0; j < input.length; j++) {
+                sum += row[j] * input[j];
+            }
+            out[i] = sum;
+        }
+        return out;
+    }
+
+    function addBias(x, bias) {
+        for (let i = 0; i < x.length; i++) x[i] += bias[i];
+        return x;
+    }
+
+    function relu(x) {
+        for (let i = 0; i < x.length; i++) {
+            if (x[i] < 0) x[i] = 0;
+        }
+        return x;
+    }
+
+    function dqnForward(obs, w) {
+        // Feature network
+        let x = addBias(matVecMul(w['feature.0.weight'], obs), w['feature.0.bias']);
+        relu(x);
+        x = addBias(matVecMul(w['feature.2.weight'], x), w['feature.2.bias']);
+        relu(x);
+
+        // Value stream
+        let v = addBias(matVecMul(w['value_stream.0.weight'], x), w['value_stream.0.bias']);
+        relu(v);
+        v = addBias(matVecMul(w['value_stream.2.weight'], v), w['value_stream.2.bias']);
+
+        // Advantage stream
+        let a = addBias(matVecMul(w['advantage_stream.0.weight'], x), w['advantage_stream.0.bias']);
+        relu(a);
+        a = addBias(matVecMul(w['advantage_stream.2.weight'], a), w['advantage_stream.2.bias']);
+
+        // Q = V + A - mean(A)
+        let aMean = 0;
+        for (let i = 0; i < a.length; i++) aMean += a[i];
+        aMean /= a.length;
+
+        const q = new Float64Array(a.length);
+        for (let i = 0; i < a.length; i++) {
+            q[i] = v[0] + a[i] - aMean;
+        }
+        return q;
+    }
+
+    function computeObservation(mjData) {
+        const t1 = mjData.qpos[0];
+        const t2 = mjData.qpos[1];
+        const w1 = mjData.qvel[0];
+        const w2 = mjData.qvel[1];
+
+        const L1 = CONFIG.length1, L2 = CONFIG.length2;
+        const M1 = CONFIG.mass1,   M2 = CONFIG.mass2;
+        const GG = CONFIG.gravity;
+        const LC1 = L1 / 2, LC2 = L2 / 2;
+        const I1 = M1 * L1 * L1 / 12;
+        const I2 = M2 * L2 * L2 / 12;
+
+        const t12 = t1 + t2;
+
+        // Potential energy
+        const pe = -M1 * GG * LC1 * Math.cos(t1)
+                   - M2 * GG * (L1 * Math.cos(t1) + LC2 * Math.cos(t12));
+        // Kinetic energy
+        const ke = 0.5 * (I1 + M1 * LC1*LC1 + M2 * L1*L1) * w1*w1
+                 + 0.5 * (I2 + M2 * LC2*LC2) * (w1+w2)*(w1+w2)
+                 + M2 * L1 * LC2 * Math.cos(t2) * w1 * (w1+w2);
+
+        const E = ke + pe;
+
+        const PE_HANGING  = -(M1 * GG * LC1 + M2 * GG * (L1 + LC2));
+        const E_TARGET    =  (M1 * GG * LC1 + M2 * GG * (L1 + LC2));
+
+        const E_norm   = (E - PE_HANGING) / (E_TARGET - PE_HANGING);
+        const tipH     = -L1 * Math.cos(t1) - L2 * Math.cos(t12);
+        const tip_norm = tipH / (L1 + L2);
+
+        return [
+            Math.cos(t1), Math.sin(t1), w1 / MAX_ANGULAR_VEL,
+            Math.cos(t2), Math.sin(t2), w2 / MAX_ANGULAR_VEL,
+            E_norm, tip_norm
+        ];
+    }
+
+    function selectAction(obs, weights) {
+        const q = dqnForward(obs, weights);
+        let bestIdx = 0;
+        for (let i = 1; i < q.length; i++) {
+            if (q[i] > q[bestIdx]) bestIdx = i;
+        }
+        return bestIdx;
+    }
+
+    // ── Config (dat.gui binds here) ─────────────────────────────────────────
+    // Defaults match the DDQN training model exactly
+    const CONFIG = {
+        mass1:   1.0,
+        mass2:   1.0,
+        length1: 0.5,
+        length2: 0.5,
+        damping: 0.2,
+        gravity: 9.81,
+    };
+
+    // ── MuJoCo globals ──────────────────────────────────────────────────────
+    let mujoco       = null;
+    let model        = null;
+    let data         = null;
+    let dataPerturb  = null;
+    let loadError    = null;
+    let dqnWeights   = null;
+
+    // ── Render / control state ──────────────────────────────────────────────
+    let trail          = [];
+    let lyapDiv        = 0;
+    let getInvertedOn  = false;
+    let currentTorque  = 0;
+
+    const STEPS_PER_FRAME = 4;   // 4 × 0.005 s = 0.02 s per frame (matches training)
+    const MAX_TRAIL       = 280;
+
+    // ── MJCF XML builder ────────────────────────────────────────────────────
+    function buildXML({ mass1, mass2, length1, length2, damping, gravity }) {
+        return `
+            <mujoco model="double_pendulum">
+            <option timestep="0.005" integrator="RK4" gravity="0 0 -${gravity}">
+                <flag warmstart="enable"/>
+            </option>
+            <worldbody>
+                <body name="link1">
+                    <joint name="hinge1" type="hinge" axis="0 1 0" damping="${damping}" armature="0.01"/>
+                    <geom type="capsule" fromto="0 0 0 0 0 -${length1}" size="0.04" mass="${mass1}"/>
+                    <body name="link2" pos="0 0 -${length1}">
+                        <joint name="hinge2" type="hinge" axis="0 1 0" damping="${damping}" armature="0.01"/>
+                        <geom type="capsule" fromto="0 0 0 0 0 -${length2}" size="0.04" mass="${mass2}"/>
+                    <\/body>
+                <\/body>
+            <\/worldbody>
+            <actuator>
+                <motor name="torque1" joint="hinge1" ctrlrange="-5 5"/>
+            <\/actuator>
+            <\/mujoco>`;
+    }
+
+    // ── Model loader ────────────────────────────────────────────────────────
+    function rebuildModel(q0 = 0, q1 = 0, v0 = 0, v1 = 0) {
+        // Free previous WASM objects to prevent memory leak
+        if (dataPerturb) { dataPerturb.delete(); dataPerturb = null; }
+        if (data)        { data.delete();        data        = null; }
+        if (model)       { model.delete();       model       = null; }
+
+        mujoco.FS.writeFile('/working/scene.xml', buildXML(CONFIG));
+        model       = mujoco.MjModel.loadFromXML('/working/scene.xml');
+        data        = new mujoco.MjData(model);
+        dataPerturb = new mujoco.MjData(model);
+
+        data.qpos[0] = q0;
+        data.qpos[1] = q1;
+        data.qvel[0] = v0;
+        data.qvel[1] = v1;
+        mujoco.mj_forward(model, data);
+
+        dataPerturb.qpos[0] = q0 + 1e-8;
+        dataPerturb.qpos[1] = q1;
+        dataPerturb.qvel[0] = v0;
+        dataPerturb.qvel[1] = v1;
+        mujoco.mj_forward(model, dataPerturb);
+
+        lyapDiv = 0;
+        trail   = [];
+    }
+
+    // ── MuJoCo + DQN initializer ────────────────────────────────────────────
+    async function initMuJoCo() {
+        try {
+            console.log('Fetching dqn_weights.json...');
+            const weightsResp = await fetch('/assets/model/mujoco/dqn_weights.json');
+            if (!weightsResp.ok) throw new Error(`Failed to fetch weights: ${weightsResp.status} ${weightsResp.statusText}`);
+            
+            dqnWeights = await weightsResp.json();
+            console.log('DQN weights loaded. Keys:', Object.keys(dqnWeights));
+
+            console.log('Loading MuJoCo WASM...');
+            const mod = await import(MUJOCO_JS_URL);
+            const load_mujoco = mod.default ?? mod;
+            mujoco = await load_mujoco();
+
+            mujoco.FS.mkdir('/working');
+            mujoco.FS.mount(mujoco.MEMFS, { root: '.' }, '/working');
+
+            rebuildModel(); // start hanging down (θ₁=0, θ₂=0)
+        } catch (e) {
+            loadError = e.message;
+            console.error('Load failed:', e);
+        }
+    }
+
+    // ── Canvas setup ────────────────────────────────────────────────────────
+    const canvas = document.getElementById('webgl');
+    const ctx    = canvas.getContext('2d');
+
+    function resize() {
+        const wr       = document.getElementById('wrapper');
+        canvas.width   = wr.clientWidth;
+        canvas.height  = wr.clientHeight;
+        trail = [];
+    }
+
+    // ── Coordinate helpers ──────────────────────────────────────────────────
+    function getScale() {
+        return (Math.min(canvas.width, canvas.height) * 0.33) / (CONFIG.length1 + CONFIG.length2);
+    }
+
+    function pivot() {
+        return { x: canvas.width / 2, y: canvas.height / 2 };
+    }
+
+    function endPoints() {
+        if (!data) return null;
+        const s  = getScale();
+        const p  = pivot();
+        const q1 = data.qpos[0];
+        const q2 = data.qpos[1];
+        const x1 = p.x + s * CONFIG.length1 * Math.sin(q1);
+        const y1 = p.y + s * CONFIG.length1 * Math.cos(q1);
+        const x2 = x1  + s * CONFIG.length2 * Math.sin(q1 + q2);
+        const y2 = y1  + s * CONFIG.length2 * Math.cos(q1 + q2);
+        return { p, x1, y1, x2, y2 };
+    }
+
+    // ── Renderer ────────────────────────────────────────────────────────────
+    function drawLoading() {
+        const W = canvas.width, H = canvas.height;
+        ctx.fillStyle = COLOR_BG;
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle    = loadError ? '#f03e3e' : '#a0a0a0';
+        ctx.font         = '13px monospace';
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(
+            loadError ? `Error: ${loadError}` : 'Loading MuJoCo WASM + DQN weights…',
+            W / 2, H / 2
+        );
+    }
+
+    function drawScene() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // Background
+        ctx.fillStyle = COLOR_BG;
+        ctx.fillRect(0, 0, W, H);
+
+        // Grid
+        ctx.strokeStyle = '#3e3e3e';
+        ctx.lineWidth   = 1;
+        const step = 40;
+        for (let x = 0; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+        for (let y = 0; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+        
+        const pts = endPoints();
+        if (!pts) return;
+        const { p, x1, y1, x2, y2 } = pts;
+
+        // Trail
+        if (trail.length > 1) {
+            for (let i = 1; i < trail.length; i++) {
+                const alpha = (i / trail.length) * 0.6;
+                const r = Math.round(92  + lyapDiv * 163);
+                const g = Math.round(124 - lyapDiv * 62);
+                const b = Math.round(250 - lyapDiv * 10);
+                ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+                ctx.lineWidth   = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(trail[i-1].x, trail[i-1].y);
+                ctx.lineTo(trail[i].x,   trail[i].y);
+                ctx.stroke();
+            }
+        }
+
+        // Link 1
+        ctx.strokeStyle = COLOR1;
+        ctx.lineWidth   = 2 + CONFIG.mass1 * 3;
+        ctx.lineCap     = 'round';
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(x1, y1); ctx.stroke();
+
+        // Link 2
+        ctx.strokeStyle = COLOR2;
+        ctx.lineWidth   = 2 + CONFIG.mass2 * 3;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+        // Pivot
+        ctx.fillStyle   = COLOR_BG;
+        ctx.strokeStyle = COLOR1;
+        ctx.lineWidth   = 2;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        // Joint 1
+        ctx.fillStyle   = COLOR_BG;
+        ctx.strokeStyle = COLOR1;
+        ctx.lineWidth   = 2;
+        ctx.beginPath(); ctx.arc(x1, y1, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        
+        // ── Torque arc indicator at pivot ────────────────────────────────────
+        if (getInvertedOn && Math.abs(currentTorque) > 0.01) {
+            const arcR   = 22;
+            const sweep  = -(currentTorque / 5.0) * Math.PI * 0.6; // Negate to match CCW torque convention
+            const startA = -Math.PI / 2;
+            ctx.save();
+            ctx.strokeStyle = currentTorque > 0 ? '#4ecdc4' : '#ff6b6b';
+            ctx.lineWidth   = 3;
+            ctx.globalAlpha = 0.8;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, arcR, startA, startA + sweep, sweep < 0);
+            ctx.stroke();
+            // arrow head
+            const endA = startA + sweep;
+            const ax   = p.x + arcR * Math.cos(endA);
+            const ay   = p.y + arcR * Math.sin(endA);
+            const phi  = endA + (sweep > 0 ? Math.PI / 2 : -Math.PI / 2);
+            ctx.fillStyle = currentTorque > 0 ? '#4ecdc4' : '#ff6b6b';
+            ctx.beginPath();
+            ctx.save();
+            ctx.translate(ax, ay);
+            ctx.rotate(phi);
+            ctx.moveTo(0, 0); // tip
+            ctx.lineTo(-8, -4.5);
+            ctx.lineTo(-8, 4.5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+            ctx.restore();
+        }
+    }
+
+    // ── Main loop ───────────────────────────────────────────────────────────
+    function loop() {
+        if (!mujoco || !model || !data) {
+            drawLoading();
+            requestAnimationFrame(loop);
+            return;
+        }
+
+        // ── DQN control ─────────────────────────────────────────────────────
+        if (getInvertedOn && dqnWeights) {
+            const obs       = computeObservation(data);
+            const actionIdx = selectAction(obs, dqnWeights);
+            currentTorque   = ACTION_TORQUES[actionIdx];
+            data.ctrl[0]        = currentTorque;
+            dataPerturb.ctrl[0] = currentTorque;
+        } else {
+            currentTorque       = 0;
+            data.ctrl[0]        = 0;
+            dataPerturb.ctrl[0] = 0;
+        }
+
+        // ── Physics step ────────────────────────────────────────────────────
+        for (let i = 0; i < STEPS_PER_FRAME; i++) {
+            mujoco.mj_step(model, data);
+            mujoco.mj_step(model, dataPerturb);
+
+            const dq0 = data.qpos[0] - dataPerturb.qpos[0];
+            const dq1 = data.qpos[1] - dataPerturb.qpos[1];
+            const dv0 = data.qvel[0] - dataPerturb.qvel[0];
+            const dv1 = data.qvel[1] - dataPerturb.qvel[1];
+            const diff = Math.sqrt(dq0*dq0 + dq1*dq1 + dv0*dv0 + dv1*dv1);
+
+            if (diff > 0) {
+                lyapDiv = Math.min(1, Math.log10(diff / 1e-8) / 8);
+                const norm = 1e-8 / diff;
+                dataPerturb.qpos[0] = data.qpos[0] + dq0 * norm;
+                dataPerturb.qpos[1] = data.qpos[1] + dq1 * norm;
+                dataPerturb.qvel[0] = data.qvel[0] + dv0 * norm;
+                dataPerturb.qvel[1] = data.qvel[1] + dv1 * norm;
+                mujoco.mj_forward(model, dataPerturb);
+            }
+        }
+
+        // Accumulate trail
+        const pts = endPoints();
+        if (pts) {
+            trail.push({ x: pts.x2, y: pts.y2 });
+            if (trail.length > MAX_TRAIL) trail.shift();
+        }
+
+        drawScene();
+        requestAnimationFrame(loop);
+    }
+
+    // ── Drag interaction ────────────────────────────────────────────────────
+    function setAngleFromPointer(cx, cy) {
+        if (!data) return;
+        const rect   = canvas.getBoundingClientRect();
+        const mx     = cx - rect.left;
+        const my     = cy - rect.top;
+        const p      = pivot();
+        data.qpos[0] = Math.atan2(mx - p.x, my - p.y);
+        data.qvel[0] = 0;
+        mujoco.mj_forward(model, data);
+    }
+
+    // ── Fullscreen toggle ───────────────────────────────────────────────────
+    function toggleFullscreen(on) {
+        const wr    = document.getElementById('wrapper');
+        const enter = document.getElementById('enterFullscreen');
+        const leave = document.getElementById('leaveFullscreen');
+
+        if (on) {
+            document.body.style.overflowY = 'hidden';
+            wr.style.position = 'fixed';
+            wr.style.top      = '0';
+            wr.style.left     = '0';
+            wr.style.height   = '100vh';
+            wr.style.zIndex   = '1000';
+            enter.style.visibility = 'hidden';
+            leave.style.visibility = 'visible';
+        } else {
+            document.body.style.overflowY = '';
+            wr.style.position = '';
+            wr.style.top      = '';
+            wr.style.left     = '';
+            wr.style.height   = '';
+            wr.style.zIndex   = '';
+            enter.style.visibility = 'visible';
+            leave.style.visibility = 'hidden';
+        }
+        resize();
+    }
+
+    document.getElementById('enterFullscreen').addEventListener('click', () => toggleFullscreen(true));
+    document.getElementById('leaveFullscreen').addEventListener('click', () => toggleFullscreen(false));
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') toggleFullscreen(false); });
+    window.addEventListener('resize', resize);
+
+    // ── dat.gui ─────────────────────────────────────────────────────────────
+    const gui = new dat.GUI();
+    const wr  = document.getElementById('wrapper');
+    wr.appendChild(gui.domElement);
+    Object.assign(gui.domElement.style, {
+        position:    'absolute',
+        top:         '0px',
+        right:       '0px',
+        marginRight: '0px',
+    });
+
+    function onChange() {
+        if (!mujoco || !data) return;
+        rebuildModel(data.qpos[0], data.qpos[1], data.qvel[0], data.qvel[1]);
+    }
+
+    gui.add(CONFIG, 'mass1',   0.2, 2.0 ).name('Link 1 Mass (m\u2081)' ).onChange(onChange);
+    gui.add(CONFIG, 'mass2',   0.2, 2.0 ).name('Link 2 Mass (m\u2082)' ).onChange(onChange);
+    gui.add(CONFIG, 'length1', 0.3, 1.0 ).name('Link 1 Length (L\u2081)').onChange(onChange);
+    gui.add(CONFIG, 'length2', 0.3, 1.0 ).name('Link 2 Length (L\u2082)').onChange(onChange);
+    gui.add(CONFIG, 'damping', 0.0, 0.5 ).name('Damping (b)'            ).onChange(onChange);
+    gui.add(CONFIG, 'gravity', 1.0, 20.0).name('Gravity (g)'            ).onChange(onChange);
+
+    // ── "Get Inverted" toggle ───────────────────────────────────────────────
+    const controls = { getInverted: false };
+    gui.add(controls, 'getInverted').name('Get Inverted').onChange(v => {
+        getInvertedOn = v;
+        trail = [];
+        if (!v && data) {
+            data.ctrl[0]        = 0;
+            dataPerturb.ctrl[0] = 0;
+        }
+    });
+
+    // ── Init ────────────────────────────────────────────────────────────────
+    resize();
+    loop();
+    initMuJoCo();
+</script>

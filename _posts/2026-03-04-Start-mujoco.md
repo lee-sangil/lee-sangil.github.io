@@ -11,7 +11,7 @@ tags:
  - python
  - javascript
 header:
-  teaser: /assets/image/thumbnail/2026-03-04-start-mujoco.gif
+  teaser: /assets/image/thumbnail/2026-03-04-mujoco-double-pendulum.gif
 excerpt_separator: <!--more-->
 ---
 

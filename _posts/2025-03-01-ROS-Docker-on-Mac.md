@@ -1,7 +1,7 @@
 ---
 title: "Setting up ROS Development Environment on MacOS using Docker"
 categories:
- - ETC
+ - Robotics
 tags:
  - ros
  - docker

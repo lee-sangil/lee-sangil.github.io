@@ -1,0 +1,218 @@
+<div id="solar-wrapper">
+    <div id="date-container" draggable="false">
+        <input id="year" class="date" type="number" required/>
+        <p class="separator">/</p>
+        <input id="month" class="date" type="number" required/>
+        <p class="separator">/</p>
+        <input id="date" class="date" type="number" required/>
+        <input id="time" class="date" type="text" readonly/>
+    </div>
+    <div id="controller" draggable="false">
+        <div class="button" id="time-controller" draggable="false"></div>
+        <div class="line" draggable="false"></div>
+    </div>
+    <canvas id="label-container"></canvas>
+    <canvas id="webgl-container" draggable="false"></canvas>
+    <div id="solar-loading"><span>loading...</span></div>
+    <svg id="enterFullscreen" class="solar-fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
+    <svg id="leaveFullscreen" class="solar-fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Leave Fullscreen</title><path d="M14,14H19V16H16V19H14V14M5,14H10V19H8V16H5V14M8,5H10V10H5V8H8V5M19,8V10H14V5H16V8H19Z" /></svg>
+</div>
+
+<style>
+    #solar-wrapper {
+        position: relative;
+        width: 100%;
+        height: 70vh;
+        background-color: black;
+        overflow: hidden;
+    }
+    #solar-wrapper #webgl-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+    }
+    #solar-wrapper #label-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        touch-action: none;
+        pointer-events: none;
+        z-index: 1;
+    }
+    #solar-wrapper #controller {
+        position: absolute;
+        top: 48px;
+        left: 50%;
+        z-index: 3;
+    }
+    #solar-wrapper #controller .button {
+        z-index: 4;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translateX(-50%) translateY(-50%);
+        transition: all 0.3s;
+        background-color: white;
+        opacity: 0.7;
+        width: max(6vh, 60px);
+        height: max(1vh, 10px);
+        border-radius: max(0.5vh, 5px);
+    }
+    #solar-wrapper #controller .line {
+        z-index: 3;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: white;
+        transition: width 0.3s ease-out, opacity 0.3s;
+        opacity: 0;
+        width: 0vh;
+        height: 1.5px;
+        transform: translateX(-50%) translateY(-50%);
+    }
+    #solar-wrapper #date-container {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3;
+        white-space: nowrap;
+    }
+    #solar-wrapper .date {
+        background-color: rgba(0, 0, 0, 0);
+        border-radius: max(0.5vh, 2px);
+        border: 0;
+        color: white;
+        font-family: "Lato", sans-serif;
+        font-weight: 400;
+        font-size: 14px;
+    }
+    #solar-wrapper #year {
+        width: 3em;
+        text-align: center;
+    }
+    #solar-wrapper #year:focus {
+        background-color: dodgerblue;
+    }
+    #solar-wrapper #date, #solar-wrapper #month {
+        width: 2em;
+        text-align: center;
+    }
+    #solar-wrapper #date:focus, #solar-wrapper #month:focus {
+        background-color: dodgerblue;
+    }
+    #solar-wrapper #time {
+        width: 5em;
+        text-align: left;
+    }
+    #solar-wrapper .separator {
+        margin-left: -0.3em;
+        margin-right: -0.3em;
+        width: 1em;
+        color: white;
+        display: inline;
+        font-size: 14px;
+    }
+    #solar-wrapper input::-webkit-outer-spin-button,
+    #solar-wrapper input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+    }
+    @media (hover: hover) and (pointer: fine) {
+        #solar-wrapper #controller .button {
+            transition: all 0.3s;
+        }
+        #solar-wrapper #controller:hover .button:hover {
+            box-shadow: 0px 0px 0.4vh 0.1vh gray;
+            height: max(1.5vh, 15px);
+            border-radius: max(0.6vh, 6px);
+            opacity: 1;
+            cursor: pointer;
+        }
+    }
+    @media (pointer: coarse) {
+        #solar-wrapper #controller .button {
+            height: max(1.5vh, 15px);
+            border-radius: max(0.6vh, 6px);
+            transition: all 0.3s, opacity 0s;
+        }
+    }
+    .solar-fullscreen {
+        fill: lightgray;
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        margin: 5px;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        z-index: 2;
+    }
+    .solar-fullscreen:hover {
+        background-color: rgba(255,255,255,0.3);
+        border-radius: 50%;
+    }
+    #leaveFullscreen {
+        visibility: hidden;
+    }
+    #solar-wrapper #solar-loading {
+        position: absolute;
+        inset: 0;
+        background: black;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        font-family: "Lato", sans-serif;
+        font-size: 14px;
+        font-weight: 300;
+        letter-spacing: 0.1em;
+        transition: opacity 0.6s ease;
+        pointer-events: none;
+    }
+    #solar-wrapper .GUIbutton:focus,
+    #solar-wrapper .GUIbutton:focus-visible {
+        outline: none;
+    }
+</style>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.151.3/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.151.3/examples/jsm/"
+    }
+}
+</script>
+
+<script>
+    window.__SOLAR_BASE_DIR__ = '{{ "/assets/solar" | relative_url }}';
+</script>
+
+<script type="module" src="{{ '/assets/solar/js/solar.min.js' | relative_url }}"></script>
+
+<script type="module">
+    const container = document.getElementById('solar-wrapper');
+    if (container && window.SolarApp) {
+        new window.SolarApp(container);
+    } else {
+        const check = setInterval(() => {
+            if (window.SolarApp) {
+                clearInterval(check);
+                new window.SolarApp(container);
+            }
+        }, 100);
+    }
+</script>

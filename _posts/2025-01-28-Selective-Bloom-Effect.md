@@ -21,6 +21,18 @@ excerpt_separator: <!--more-->
 
 <!--more-->
 
+This post is part of the [Solar System Simulator]({% post_url 2024-02-16-How-to-Create-the-Solar-System %}) series:
+
+1. [Three.js coordinate basics]({% post_url 2024-02-25-Coordinates %})
+1. [Three.js PBR (Physical-based rendering) material basics]({% post_url 2024-03-18-PBR %})
+1. [Create realistic Earth]({% post_url 2024-06-07-Create-realistic-Earth-with-shaders %})
+1. [Create realistic Sun with glow]({% post_url 2024-06-29-Create-realistic-Sun-with-shaders %})
+1. [Create realistic Saturn with rings]({% post_url 2024-11-02-Create-realistic-Saturn-with-shaders %})
+1. [Create realistic Phobos with irregular shape]({% post_url 2024-11-15-Create-realistic-Phobos-with-shaders %})
+1. **[Make the Sun shine]({% post_url 2025-01-28-Selective-Bloom-Effect %})**
+1. [Create Milky Way skybox]({% post_url 2025-02-14-Create-skybox %})
+1. [Compute the elliptical orbit]({% post_url 2025-01-05-Elliptical-Orbit-Mechnics %})
+
 Based on the previous posts I've written so far, we can create the realistic solar system using Three.js. To achieve even more realism, we can implement a bloom effect, which simulates the way light above a certain brightness creates a glowing aura when viewed through a camera or by the human eye. However, if we apply the bloom effect to the entire scene, other objects like planets or stars might also glow, which doesn’t look good. In this post, I will guide you through the process of applying a selective bloom effect only to the Sun. By doing this, you can make your solar system look more clean and visually appealing. 
 
 When working with Three.js, this can be achieved by using multiple `EffectComposer` instances and layers. Here’s steps for applying bloom effect to a specific object.

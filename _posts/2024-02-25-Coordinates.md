@@ -12,6 +12,18 @@ header:
 excerpt_separator: <!--more-->
 ---
 
+This post is part of the [Solar System Simulator]({% post_url 2024-02-16-How-to-Create-the-Solar-System %}) series:
+
+1. **[Three.js coordinate basics]({% post_url 2024-02-25-Coordinates %})**
+1. [Three.js PBR (Physical-based rendering) material basics]({% post_url 2024-03-18-PBR %})
+1. [Create realistic Earth]({% post_url 2024-06-07-Create-realistic-Earth-with-shaders %})
+1. [Create realistic Sun with glow]({% post_url 2024-06-29-Create-realistic-Sun-with-shaders %})
+1. [Create realistic Saturn with rings]({% post_url 2024-11-02-Create-realistic-Saturn-with-shaders %})
+1. [Create realistic Phobos with irregular shape]({% post_url 2024-11-15-Create-realistic-Phobos-with-shaders %})
+1. [Make the Sun shine]({% post_url 2025-01-28-Selective-Bloom-Effect %})
+1. [Create Milky Way skybox]({% post_url 2025-02-14-Create-skybox %})
+1. [Compute the elliptical orbit]({% post_url 2025-01-05-Elliptical-Orbit-Mechnics %})
+
 ## Sun-Earth system
 In this article, I'll create a simple Sun-Earth system. Firstly, create an orange sphere and a blue sphere which represent the Sun and the Earth, respectively.
 <!--more-->

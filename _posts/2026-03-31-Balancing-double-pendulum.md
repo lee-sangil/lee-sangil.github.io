@@ -5,6 +5,8 @@ categories:
 tags:
  - mujoco
  - robotics
+ - reinforcement-learning
+ - dqn
  - simulation
  - pendulum
  - double-pendulum

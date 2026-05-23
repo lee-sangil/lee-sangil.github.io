@@ -117,7 +117,7 @@ $$
 $$
 
 ## Update parameters
-Now, we update model parameter $$a_{n-1}, b_{n-1}, \mu_{n-1}, \sigma_{n-1}$$ using Eq. \eqref{eq:model} and \eqref{eq:propagation}.
+Now, we update model parameter $$a_{n-1}, b_{n-1}, \mu_{n-1}, \sigma_{n-1}$$ using Eqs. \eqref{eq:model} and \eqref{eq:propagation}.
 
 $$
 \begin{align}

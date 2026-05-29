@@ -8,6 +8,26 @@ layout: default
   {% include page__hero_video.html %}
 {% endif %}
 
+{% assign en_post_url = page.url %}
+{% if page.lang_ref %}
+  {% if page.lang == "ko" %}
+    {% for p in site.posts %}
+      {% if p.lang_ref == page.lang_ref %}
+        <div id="lang-alt" data-page-lang="ko" data-alt-lang-url="{{ p.url | relative_url }}" style="display:none;"></div>
+        {% assign en_post_url = p.url %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    {% for p in site.ko_posts %}
+      {% if p.lang_ref == page.lang_ref %}
+        <div id="lang-alt" data-page-lang="{{ page.lang | default: 'en' }}" data-alt-lang-url="{{ p.url | relative_url }}" style="display:none;"></div>
+        {% break %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
+
 <div id="main-wrapper">
   {% include_cached masthead.html %}
 
@@ -72,7 +92,7 @@ layout: default
           <!-- utterances comment -->
           <script src="https://utteranc.es/client.js"
           repo="lee-sangil/lee-sangil.github.io"
-          issue-term="pathname"
+          issue-term="{{ en_post_url }}"
           label="comments"
           theme="github-light"
           crossorigin="anonymous"

@@ -49,8 +49,17 @@
 <script type="module">
   import { db, analytics, ref, get, runTransaction, onValue } from "/assets/js/firebase-init.js";
 
-  const postUrl = "{{ document.url }}";
-  const postId = btoa(postUrl).replace(/\//g, "_").replace(/=/g, ""); 
+  {% assign _like_url = document.url %}
+  {% if document.lang == "ko" and document.lang_ref %}
+    {% for p in site.posts %}
+      {% if p.lang_ref == document.lang_ref %}
+        {% assign _like_url = p.url %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  const postUrl = "{{ _like_url }}";
+  const postId = btoa(postUrl).replace(/\//g, "_").replace(/=/g, "");
   const storageKey = `like_${postId}`; // 로컬스토리지에 저장될 고유 키
   const likeRef = ref(db, `${postUrl}/like`);
 

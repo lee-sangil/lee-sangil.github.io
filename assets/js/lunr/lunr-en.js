@@ -22,6 +22,19 @@ var idx = lunr(function () {
   }
 });
 
+// Build lang_ref lookup maps from the full store
+var _langMap = {};  // lang_ref -> { ko: storeIndex, en: storeIndex }
+for (var i in store) {
+  var entry = store[i];
+  if (!entry.lang_ref) continue;
+  if (!_langMap[entry.lang_ref]) _langMap[entry.lang_ref] = {};
+  if (entry.lang === 'ko') {
+    _langMap[entry.lang_ref].ko = i;
+  } else {
+    _langMap[entry.lang_ref].en = i;
+  }
+}
+
 $(document).ready(function() {
   $('input#search').on('keyup', function () {
     var resultdiv = $('#results');
@@ -38,10 +51,43 @@ $(document).ready(function() {
           }
         })
       });
+
+    // Filter and swap results based on language setting
+    var currentLang = localStorage.getItem('site-lang') || 'en';
+    var filtered = [];
+    var seen = {};  // track lang_refs already added
+
+    for (var i in result) {
+      var ref = result[i].ref;
+      var entry = store[ref];
+      var langRef = entry.lang_ref;
+
+      // If this post has a translation pair
+      if (langRef && _langMap[langRef]) {
+        // Skip if we already added this lang_ref pair
+        if (seen[langRef]) continue;
+        seen[langRef] = true;
+
+        if (currentLang === 'ko' && _langMap[langRef].ko !== undefined) {
+          // Korean mode: show Korean version
+          filtered.push({ ref: _langMap[langRef].ko, score: result[i].score });
+        } else if (currentLang === 'en' && _langMap[langRef].en !== undefined) {
+          // English mode: show English version
+          filtered.push({ ref: _langMap[langRef].en, score: result[i].score });
+        } else {
+          // Fallback: show whichever version matched
+          filtered.push(result[i]);
+        }
+      } else {
+        // No translation pair — show as-is
+        filtered.push(result[i]);
+      }
+    }
+
     resultdiv.empty();
-    resultdiv.prepend('<h3 class="results__found">'+result.length+' {{ site.data.ui-text[site.locale].results_found | default: "Result(s) found" }}</h3>');
-    for (var item in result) {
-      var ref = result[item].ref;
+    resultdiv.prepend('<h3 class="results__found">'+filtered.length+' {{ site.data.ui-text[site.locale].results_found | default: "Result(s) found" }}</h3>');
+    for (var item in filtered) {
+      var ref = filtered[item].ref;
       if(store[ref].teaser){
         var searchitem =
           '<div class="list__item">'+

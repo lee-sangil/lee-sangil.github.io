@@ -43,7 +43,9 @@ var store = [
         "categories": {{ doc.categories | jsonify }},
         "tags": {{ doc.tags | jsonify }},
         "url": {{ doc.url | relative_url | jsonify }},
-        "teaser": {{ teaser | relative_url | jsonify }}
+        "teaser": {{ teaser | relative_url | jsonify }},
+        "lang": {{ doc.lang | default: "" | jsonify }},
+        "lang_ref": {{ doc.lang_ref | default: "" | jsonify }}
       }{%- unless forloop.last and l -%},{%- endunless -%}
     {%- endfor -%}
   {%- endfor -%}]

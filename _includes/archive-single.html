@@ -10,7 +10,26 @@
   {% assign title = post.title %}
 {% endif %}
 
-<div class="{{ include.type }}__item">
+{% assign _ko_post = nil %}
+{% if post.lang_ref %}
+  {% for kp in site.ko_posts %}
+    {% if kp.lang_ref == post.lang_ref %}
+      {% assign _ko_post = kp %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+{% assign _ko_title = nil %}
+{% if _ko_post %}
+  {% assign _ko_raw = _ko_post.title | markdownify | remove: "<p>" | remove: "</p>" | strip_html %}
+  {% if _ko_post.prefix %}
+    {% capture _ko_title %}[{{ _ko_post.prefix }}] {{ _ko_raw }}{% endcapture %}
+  {% else %}
+    {% assign _ko_title = _ko_raw %}
+  {% endif %}
+{% endif %}
+
+<div class="{{ include.type }}__item" data-lang-ref="{{ post.lang_ref }}"{% if _ko_post %} data-ko-url="{{ _ko_post.url | relative_url }}" data-ko-title="{{ _ko_title }}" data-ko-excerpt="{{ _ko_post.excerpt | markdownify | strip_html | truncate: 300 | escape }}"{% endif %}>
   <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
     {% if include.type == "grid" and teaser %}
       <div class="archive__item-teaser">

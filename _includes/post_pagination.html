@@ -1,17 +1,74 @@
-{% if page.previous or page.next %}
+{% comment %}
+  For Korean collection pages, find the English counterpart to
+  anchor prev/next in the main posts list.
+{% endcomment %}
+{% assign _current_url = page.url %}
+{% if page.lang == "ko" and page.lang_ref %}
+  {% for p in site.posts %}
+    {% if p.lang_ref == page.lang_ref %}
+      {% assign _current_url = p.url %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{% assign custom_prev = nil %}
+{% assign custom_next = nil %}
+{% assign found = false %}
+{% for p in site.posts %}
+  {% if p.url == _current_url %}
+    {% assign found = true %}
+    {% continue %}
+  {% endif %}
+  {% if found and custom_prev == nil %}
+    {% assign custom_prev = p %}
+  {% endif %}
+  {% unless found %}
+    {% assign custom_next = p %}
+  {% endunless %}
+{% endfor %}
+
+{% assign prev_ko_url = nil %}
+{% assign prev_ko_title = nil %}
+{% assign next_ko_url = nil %}
+{% assign next_ko_title = nil %}
+{% if custom_prev.lang_ref %}
+  {% for p in site.ko_posts %}
+    {% if p.lang_ref == custom_prev.lang_ref %}
+      {% assign prev_ko_url = p.url | relative_url %}
+      {% assign prev_ko_title = p.title | markdownify | remove: "<p>" | remove: "</p>" %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+{% if custom_next.lang_ref %}
+  {% for p in site.ko_posts %}
+    {% if p.lang_ref == custom_next.lang_ref %}
+      {% assign next_ko_url = p.url | relative_url %}
+      {% assign next_ko_title = p.title | markdownify | remove: "<p>" | remove: "</p>" %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{% if custom_prev or custom_next %}
   <nav class="pagination pagination--post">
-    {% if page.previous %}
-      <a href="{{ page.previous.url | relative_url }}" class="pagination--pager pagination--pager-prev" title="{{ page.previous.title | markdownify | strip_html }}">
+    {% if custom_prev %}
+      <a href="{{ custom_prev.url | relative_url }}" class="pagination--pager pagination--pager-prev" title="{{ custom_prev.title | markdownify | strip_html }}"
+        {% if prev_ko_url %}data-ko-url="{{ prev_ko_url }}" data-ko-title="{{ prev_ko_title | strip_html }}"{% endif %}
+        data-en-url="{{ custom_prev.url | relative_url }}" data-en-title="{{ custom_prev.title | markdownify | strip_html }}">
         <span class="pagination--pager-label"><span class="pagination--arrow">&lsaquo;</span> {{ site.data.ui-text[site.locale].pagination_previous | default: "Previous" }}</span>
-        <span class="pagination--pager-title">{{ page.previous.title | markdownify | strip_html }}</span>
+        <span class="pagination--pager-title">{{ custom_prev.title | markdownify | strip_html }}</span>
       </a>
     {% else %}
       <span class="pagination--pager pagination--pager-prev disabled"></span>
     {% endif %}
-    {% if page.next %}
-      <a href="{{ page.next.url | relative_url }}" class="pagination--pager pagination--pager-next" title="{{ page.next.title | markdownify | strip_html }}">
+    {% if custom_next %}
+      <a href="{{ custom_next.url | relative_url }}" class="pagination--pager pagination--pager-next" title="{{ custom_next.title | markdownify | strip_html }}"
+        {% if next_ko_url %}data-ko-url="{{ next_ko_url }}" data-ko-title="{{ next_ko_title | strip_html }}"{% endif %}
+        data-en-url="{{ custom_next.url | relative_url }}" data-en-title="{{ custom_next.title | markdownify | strip_html }}">
         <span class="pagination--pager-label">{{ site.data.ui-text[site.locale].pagination_next | default: "Next" }} <span class="pagination--arrow">&rsaquo;</span></span>
-        <span class="pagination--pager-title">{{ page.next.title | markdownify | strip_html }}</span>
+        <span class="pagination--pager-title">{{ custom_next.title | markdownify | strip_html }}</span>
       </a>
     {% endif %}
   </nav>

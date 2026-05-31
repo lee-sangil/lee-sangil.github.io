@@ -1,6 +1,8 @@
 ---
 title: "Scene Graph"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2024-02-25-coordinates"
 categories:
  - ThreeJS
 tags:
@@ -103,7 +105,7 @@ $$
 y_{\rm moon} = -dist_{\rm sun-earth} \times \sin(\omega_{\rm rev, earth}\times t) - dist_{\rm earth-moon}\times \sin(\omega_{\rm rev, moon}\times t)
 $$
 
-Moreover, if we try to describe a realistic solar system, the above equations would become much more complicated because real orbit and rotation axis of the Earth are tilted. Let's revise the above code using local coordinate: Earth's orbit plane and equator plane, and Moon's orbit plane. 
+Moreover, if we try to describe a realistic solar system, the above equations would become much more complicated because real orbit and rotation axis of the Earth are tilted. To simplify this equation, instead of adding every object to a single scene, we can add each object to its respective parent object. This approach introduces the concept of a local coordinate system. For instance, adding the Earth to the Sun's coordinate system and the Moon to the Earth's coordinate system greatly simplifies position computations. Let's revise the above code by creating local coordinate systems: the Earth's orbital plane, equatorial plane, and the Moon's orbital plane.
 ```js
 const earth_orbit = new THREE.Object3D();
 const earth_equator = new THREE.Object3D();

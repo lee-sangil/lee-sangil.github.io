@@ -1,6 +1,8 @@
 ---
 title: "Gravity Simulator"
 prefix: "Application"
+lang: "en"
+lang_ref: "2015-02-22-gravity-simulator"
 categories:
  - ETC
 tags:

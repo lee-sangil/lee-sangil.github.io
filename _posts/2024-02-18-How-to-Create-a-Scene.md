@@ -1,6 +1,8 @@
 ---
 title: "How to Create a Scene"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2024-02-18-how-to-create-a-scene"
 categories:
  - ThreeJS
 tags:

@@ -1,6 +1,8 @@
 ---
 title: "How To Publish an Electron App to Github at Build Time"
 prefix: "Electron"
+lang: "en"
+lang_ref: "2024-02-12-electron-publish"
 categories:
  - Electron
 tags:

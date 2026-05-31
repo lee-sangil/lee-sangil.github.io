@@ -1,6 +1,8 @@
 ---
 title: "How to Create the Solar System"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2024-02-16-how-to-create-the-solar-system"
 categories:
  - ThreeJS
 tags:

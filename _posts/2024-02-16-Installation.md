@@ -1,6 +1,8 @@
 ---
 title: "Installation"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2024-02-16-installation"
 categories:
  - ThreeJS
 tags:

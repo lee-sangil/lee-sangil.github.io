@@ -1,6 +1,8 @@
 ---
 title: "Solla Solar"
 prefix: "Application"
+lang: "en"
+lang_ref: "2018-08-05-solla-solar"
 categories:
  - ETC
 tags:

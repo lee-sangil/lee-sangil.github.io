@@ -1,6 +1,8 @@
 ---
 title: "Shader Material"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2024-03-26-shader-material"
 categories:
  - ThreeJS
 tags:

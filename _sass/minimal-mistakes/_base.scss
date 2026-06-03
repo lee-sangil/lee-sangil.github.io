@@ -141,6 +141,20 @@ a {
   }
 }
 
+summary {
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+details {
+  border: 1px solid #e1e4e8;
+  border-radius: 4px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  background-color: #f6f8fa;
+}
+
 /* buttons */
 
 button:focus {

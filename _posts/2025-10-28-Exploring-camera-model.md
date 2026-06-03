@@ -262,7 +262,8 @@ To accommodate various camera models, we need to make modifications to how proje
 
 Each model has its dedicated projection function that implements its mathematical transformation as explained above. 
 
-#### Brown-Conrady distortion model
+<details markdown="1">
+<summary>Brown-Conrady distortion model</summary>
 
 ```matlab
 function uv = project(xyz, coeffs)
@@ -295,8 +296,10 @@ uv = [fx * x_d + cx; fy * y_d + cy];
 
 end
 ```
+</details>
 
-#### Kannala-Brandt model
+<details markdown="1">
+<summary>Kannala-Brandt model</summary>
 
 ```matlab
 function uv = project(xyz, coeffs)
@@ -323,8 +326,10 @@ uv = [fx * xy(1,:) + s * xy(2,:) + cx; fy * xy(2,:) + cy];
 
 end
 ```
+</details>
 
-#### Scaramuzza model
+<details markdown="1">
+<summary>Scaramuzza model</summary>
 
 ```matlab
 function uv = project(xyz, coeffs)
@@ -429,8 +434,10 @@ uv = [c*u + d*v + cx; e*u + v + cy];
 
 end
 ```
+</details>
 
-#### Unified Camera model
+<details markdown="1">
+<summary>Unified camera model</summary>
 
 ```matlab
 function uv = project(xyz, coeffs)
@@ -464,8 +471,10 @@ uv = [fx * x_d + s * y_d + cx; fy * y_d + cy];
 
 end
 ```
+</details>
 
-#### Double sphere model
+<details markdown="1">
+<summary>Double sphere model</summary>
 
 ```matlab
 function uv = project(xyz, coeffs)
@@ -499,6 +508,7 @@ uv = [fx * x_d + s * y_d + cx; fy * y_d + cy];
 
 end
 ```
+</details>
 
 ### Optimization
 

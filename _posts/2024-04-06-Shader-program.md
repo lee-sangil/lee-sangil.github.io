@@ -141,7 +141,9 @@ void main() {
     gl_FragColor = vec4(color, 1.); // 자주색 반환
 }" index=0 %}
 
-#### fragment shader
+<details markdown="1">
+<summary>fragment shader</summary>
+
 ```glsl
 // frag.js
 const fragment = /* glsl */ `
@@ -164,8 +166,11 @@ void main() {
 `
 export default fragment
 ```
+</details>
 
-#### vertex shader
+<details markdown="1">
+<summary>vertex shader</summary>
+
 ```glsl
 // vert.js
 const vertex = /* glsl */ `
@@ -193,8 +198,11 @@ void main() {
 `
 export default vertex
 ```
+</details>
 
-#### script
+<details markdown="1">
+<summary>main script</summary>
+
 ```js
 import fragment from './frag.js'
 import vertex from './vert.js'
@@ -349,3 +357,5 @@ function render() {
     requestAnimationFrame(render.bind(this));
 }
 ```
+
+</details>

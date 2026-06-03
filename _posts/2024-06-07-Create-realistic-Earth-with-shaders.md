@@ -282,7 +282,7 @@ $$
 and
 
 $$
-x = \frac{1}{2\theta_{sm}} * (\theta_{sm}^2 + \theta_s^2 - \theta_m^2)
+x = \frac{1}{2\theta_{sm}} (\theta_{sm}^2 + \theta_s^2 - \theta_m^2)
 $$
 
 that is the intersected position between 
@@ -407,7 +407,9 @@ As compared the below image to the previous one, you can see the surface blurrin
 
 Up to here, the overall fragment and vertex shader codes, and Three.js javascript code are below.
 
-#### Earth's fragment shader
+<details markdown="1">
+<summary>Earth's fragment shader</summary>
+
 ```glsl
 uniform sampler2D u_dayTexture;
 uniform sampler2D u_nightTexture;
@@ -504,8 +506,12 @@ void main( void ) {
     gl_FragColor = vec4(color, 1.);
 }
 ```
+</details>
 
-#### Earth's vertex shader
+
+<details markdown="1">
+<summary>Earth's vertex shader</summary>
+
 ```glsl
 varying vec2 vUv;
 varying vec3 vNormal;
@@ -531,8 +537,11 @@ void main() {
     vTbn = mat3(t, b, n);
 }
 ```
+</details>
 
-#### Add-on vertex shader
+<details markdown="1">
+<summary>Add-on vertex shader</summary>
+
 ```glsl
 varying vec2 vUv;
 varying vec3 vNormal;
@@ -549,8 +558,11 @@ void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 ```
+</details>
 
-#### main.js
+<details markdown="1">
+<summary>main.js</summary>
+
 ```js
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -695,6 +707,7 @@ function animate (msec) {
 }
 animate();
 ```
+</details>
 
 [^PBR]: [\[Three.js\] PBR (Physical-based rendering) Material](https://sangillee.com/2024-03-18-pbr/)
 [^shaderpattern]: [\[WebGL\] Shader Design Patterns](https://sangillee.com/2024-05-25-shader-design-patterns/)

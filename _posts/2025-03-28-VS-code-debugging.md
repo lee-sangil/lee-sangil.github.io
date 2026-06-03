@@ -1,5 +1,7 @@
 ---
 title: "Debugging C++ with VS Code"
+lang: "en"
+lang_ref: "2025-03-28-vs-code-debugging"
 categories:
  - ETC
 tags:

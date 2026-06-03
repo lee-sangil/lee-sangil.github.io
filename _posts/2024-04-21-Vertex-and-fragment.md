@@ -1,6 +1,8 @@
 ---
 title: "Vertex and Fragment"
 prefix: "WebGL"
+lang: "en"
+lang_ref: "2024-04-21-vertex-and-fragment"
 categories:
  - WebGL
 tags:
@@ -36,7 +38,7 @@ void main() {
     gl_Position = vec4(clipSpace, 0., 1.);
 }
 ```
-`precision mediump float` sets the precision of `float` as medium level. If needed, you can choose `lowp` or `highp`. The lower precision has low computational load but narrow range, and the opposite is true for higher precision. `lowp`, `mediump`, and `highp` represent a number with 9bit, 16bit, and 16bit at least, respectively. Their size depends on the system. [^precision]
+`precision mediump float` sets the precision of `float` as medium level. If needed, you can choose `lowp` or `highp`. The lower precision has low computational load but narrow range, and the opposite is true for higher precision. `lowp`, `mediump`, and `highp` represent a number with 9bit, 16bit, and 32bit at least, respectively. Their size depends on the system. [^precision]
 
 `attribute vec2 a_position` declares an attribute variable that is defined outside. In the above example, `a_position` denotes the normalized position of pixel in the canvas, thus being represented as floating number of [0, 1]. Necessarily, since the clipspace of WebGL ranges from -1 to 1, don't forget to convert from [0, 1] to [-1, 1] outputing `clipspace`.
 

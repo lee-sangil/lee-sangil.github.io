@@ -1,5 +1,7 @@
 ---
 title: "A Derivation of Depth Filter"
+lang: "en"
+lang_ref: "2024-07-28-depth-filter"
 categories:
  - Vision
 tags:

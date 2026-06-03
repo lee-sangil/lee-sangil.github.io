@@ -1,5 +1,7 @@
 ---
 title: "Policy Gradient Methods: REINFORCE, Actor-Critic, A3C, and A2C"
+lang: "en"
+lang_ref: "2026-05-23-policy-gradient-method"
 categories:
  - Robotics
 tags:

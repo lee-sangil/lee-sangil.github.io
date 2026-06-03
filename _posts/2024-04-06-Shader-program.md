@@ -1,6 +1,8 @@
 ---
 title: "Shader Program"
 prefix: "WebGL"
+lang: "en"
+lang_ref: "2024-04-06-shader-program"
 categories:
  - WebGL
 tags:
@@ -58,8 +60,12 @@ function createProgram(gl, vertexShader, fragmentShader) {
 
 Finally, `gl.useProgram()` notifies WebGL to use the program. 
 
+```js
+gl.useProgram(program);
+```
+
 ## Create attribute variable
-We can create the attributes of vertex such as position and normal. Using these attributes, we can configure its color physically. Given `value` of an attribute, we have to create buffer in advance. This buffer have to be created for every attribute, since it belongs to a single attribute. Next, `gl.bindBuffer` binds buffer to ARRAY_BUFFER and `gl.bufferData` initializes buffer with a format. Then, we can access the buffer through a `name` and its `attributeLocation`. `gl.enableVertexAttribArray` activates the attribute, and `gl.vertexAttribPointer` sets the value of attribute.
+We can create the attributes of vertex such as position and normal. Using these attributes, we can configure its color based on fundamental physics. Given `value` of an attribute, we have to create buffer in advance. This buffer have to be created for every attribute, since it belongs to a single attribute. Next, `gl.bindBuffer` binds buffer to ARRAY_BUFFER and `gl.bufferData` initializes buffer with a format. Then, we can access the buffer through a `name` and its `attributeLocation`. `gl.enableVertexAttribArray` activates the attribute, and `gl.vertexAttribPointer` sets the value of attribute.
 ```js
 function createAttribute(gl, program, name, size, value) {
     // create a buffer

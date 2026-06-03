@@ -1,6 +1,8 @@
 ---
 title: "How to Compute Faster 2-D Convolution in Python"
 prefix: "Python"
+lang: "en"
+lang_ref: "2024-07-27-how-to-compute-faster-conv2d-python"
 categories:
  - Python
 tags:

@@ -1,5 +1,7 @@
 ---
 title: "Derivation of the Particle Filter from Bayesian Filter"
+lang: "en"
+lang_ref: "2026-02-10-particle-filter"
 categories:
  - Robotics
 tags:

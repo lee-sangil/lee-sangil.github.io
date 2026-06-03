@@ -1,6 +1,8 @@
 ---
 title: "Create the Milky Way Skybox"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2025-02-14-create-skybox"
 categories:
  - ThreeJS
 tags:

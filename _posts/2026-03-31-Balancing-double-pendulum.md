@@ -1,5 +1,7 @@
 ---
 title: "Balancing a Double Pendulum with DQN and MuJoCo"
+lang: "en"
+lang_ref: "2026-03-31-balancing-double-pendulum"
 categories:
  - Robotics
 tags:

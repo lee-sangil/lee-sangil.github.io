@@ -1,6 +1,8 @@
 ---
 title: "Post-processing"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2025-01-15-post-processing"
 categories:
  - ThreeJS
 tags:

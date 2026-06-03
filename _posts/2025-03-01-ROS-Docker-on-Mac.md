@@ -1,5 +1,7 @@
 ---
 title: "Setting up ROS Development Environment on MacOS using Docker"
+lang: "en"
+lang_ref: "2025-03-01-ros-docker-on-mac"
 categories:
  - Robotics
 tags:

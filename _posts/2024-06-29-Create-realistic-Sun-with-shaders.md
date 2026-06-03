@@ -1,6 +1,8 @@
 ---
 title: "Create a Realistic Sun with Shaders"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2024-06-29-create-realistic-sun-with-shaders"
 categories:
  - ThreeJS
 tags:

@@ -1,5 +1,7 @@
 ---
 title: "Calibrating Cameras with Zhang's Method"
+lang: "en"
+lang_ref: "2025-07-27-calibrating-cameras-zhang-method"
 categories:
  - Vision
 tags:

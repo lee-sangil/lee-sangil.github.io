@@ -1,6 +1,8 @@
 ---
 title: "Create a Realistic Earth with Shaders"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2024-06-07-create-realistic-earth-with-shaders"
 categories:
  - ThreeJS
 tags:
@@ -16,7 +18,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> Let's return to creating a realistic Earth using Three.js. Unlike the previous Earth[^PBR], we are going to render Earth using shader material. First, we will describe the day and night with two different textures, since there are city lights at night. Second, I'll make an effect for mountain shadow and ocean reflection to make texture more realistic. Also, I'll depict the flowing cloud and its shadow. Third, a high-quality eclipse shadow will be cast on the surface of Earth. At last, I'll render the atmosphere and its Fresnel effect.
+> Let's return to creating a realistic Earth using Three.js. Unlike the previous Earth[^PBR], we are going to render Earth using shader material. First, we will describe the day and night with two different textures, since there are city lights at night. Second, I'll make an effect for mountain shadow and ocean reflection to make texture more realistic. Also, I'll depict clouds and its shadow. Third, a high-quality eclipse shadow will be cast on the surface of Earth. At last, I'll render the atmosphere and its Fresnel effect.
 
 <!--more-->
 
@@ -220,7 +222,7 @@ cloudsColor.a *= clamp(mixAmountHemisphere, 0.1, 1.);
 
 <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/n9ucXEr.gif">
 
-For calculating the shadow of cloud, we first compute `dot(vNormal, sunDir) * vNormal - sunDir` in texture coordinates. This means a vector parallel to the surface, indicating the position of the cloud texture UV map through which sunlight penetrates from the surface texture UV position. 
+Since the cloud is located above the ground surface, we compute cloud shadows to add a sense of depth and volume. For calculating the shadow of cloud, we first compute `dot(vNormal, sunDir) * vNormal - sunDir` in texture coordinates. This means a vector parallel to the surface, indicating the position of the cloud texture UV map through which sunlight penetrates from the surface texture UV position. 
 
 <img class="image480" referrerpolicy="no-referrer" src="https://i.imgur.com/ulM5bPQ.jpeg">
 
@@ -240,7 +242,7 @@ The below figure describes how to compute the brightness of the surface while co
 
 <img class="image480" referrerpolicy="no-referrer" src="https://i.imgur.com/9qeYhX3.jpeg">
 
-In the above, I have computed how much lighting source is hided by the Moon. Let $$R_s$$ and $$R_m$$ be the actual radius of the Sun and Moon. Given vectors, $${v}_{se}$$ and $${v}_{me}$$, denoting a vector from Earth to the Sun and Moon, respectively, the apparent radius of the Sun and Moon, $$\theta_{s}$$ and $$\theta_{m}$$, are
+For simplicity, the shapes of the Sun and the Moon are approximated as spheres. Also, when viewing the Sun in 2D, the intensity of light emitted from each position (whether at the center or the periphery) is assumed to be uniform. Let $$R_s$$ and $$R_m$$ be the actual radius of the Sun and Moon. Given vectors, $${v}_{se}$$ and $${v}_{me}$$, denoting a vector from Earth to the Sun and Moon, respectively, the apparent radius of the Sun and Moon, $$\theta_{s}$$ and $$\theta_{m}$$, are
 
 $$
 \theta_{s} = \sin^{-1} {\frac{R_s}{d_{se}}} \approx \frac{R_s}{d_{se}}

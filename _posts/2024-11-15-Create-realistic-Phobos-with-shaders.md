@@ -1,6 +1,8 @@
 ---
 title: "Create a Realistic Phobos with Irregular Shape"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2024-11-15-create-realistic-phobos-with-shaders"
 categories:
  - ThreeJS
 tags:
@@ -32,7 +34,7 @@ This post is part of the [Solar System Simulator]({% post_url 2024-02-16-How-to-
 1. [Create Milky Way skybox]({% post_url 2025-02-14-Create-skybox %})
 1. [Compute the elliptical orbit]({% post_url 2025-01-05-Elliptical-Orbit-Mechnics %})
 
-In the previous posts[^earth], I've described mountains, valleys, and clouds, but they are drawn on the surface of sphere and their shadows make the sphere look like a 3D model. The variation in altitude on Earth’s surface is negligible compared to its radius, making it possible to describe it sufficiently with the previous methods. However, since the altitude variation on Phobos is not small enough relative to its radius, another geometry different from that of Earth should be used. Please see the below code.
+In the previous posts[^earth], I've described mountains, valleys, and clouds, but they are drawn on the surface of sphere and their shadows make the sphere look like a complex 3D model. The variation in altitude on Earth’s surface is negligible compared to its radius, making it possible to describe it sufficiently with the previous methods. However, since the altitude variation on Phobos is not small enough relative to its radius, another geometry different from that of Earth should be used. Please see the below code.
 
 ```glsl
 uniform sampler2D u_dispTexture;

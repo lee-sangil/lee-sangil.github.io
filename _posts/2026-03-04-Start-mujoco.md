@@ -1,5 +1,7 @@
 ---
 title: "Getting Started with MuJoCo on macOS"
+lang: "en"
+lang_ref: "2026-03-04-start-mujoco"
 categories:
  - Robotics
 tags:

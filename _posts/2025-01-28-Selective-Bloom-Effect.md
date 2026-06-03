@@ -1,6 +1,8 @@
 ---
 title: "Make the Sun Shine"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2025-01-28-selective-bloom-effect"
 categories:
  - ThreeJS
 tags:

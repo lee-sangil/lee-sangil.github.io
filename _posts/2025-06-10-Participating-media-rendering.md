@@ -1,6 +1,8 @@
 ---
 title: "Implementing Volume Rendering in GLSL"
 prefix: "WebGL"
+lang: "en"
+lang_ref: "2025-06-10-participating-media-rendering"
 categories:
  - WebGL
 tags:

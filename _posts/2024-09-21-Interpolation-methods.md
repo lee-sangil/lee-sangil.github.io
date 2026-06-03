@@ -1,6 +1,8 @@
 ---
 title: "Interpolation Methods"
 prefix: "WebGL"
+lang: "en"
+lang_ref: "2024-09-21-interpolation-methods"
 categories:
  - WebGL
 tags:
@@ -41,7 +43,7 @@ However, this method results in discontinuities at the data points unless succes
 Contrary to flat interpolation, linear interpolation can provide continuity. Given a point, the distance of a vertex from the point determines its contribution to the point. Then, the normalized contribution, `t`, is used to compute an interpolated value. When `t=0`, the interpolation function yields `x`, in case of `t=1`, `y` is outputted. This nature is the same for all interpolation methods. In here, the value of contribution, `t`, is proportional to the distance from the `x`, i.e., `0`. This is implemented in the following code
 ```c
 float interp(float x, float y, float t) {
-    return x + (y - x) * t;
+    return (1.0-t)*x + t*y;
 }
 ```
 
@@ -217,7 +219,7 @@ float noiseCurve (in vec2 x) {
 }
 ```
 
-The error between the original and the approximated method is negligible and can be ignored enough. I've illustrated each interpolation result for random data points and its error.
+The error between the original and the approximated method is negligible and can be ignored enough. I've illustrated each interpolation result for random data points and its error. You can observe that the scale of the error plot is on the order of $$10^{−3}$$ relative to that of the data plot.
 
 |                Original                 |               Approximate               |                Error                 |
 |:---------------------------------------:|:---------------------------------------:|:------------------------------------:|

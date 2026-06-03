@@ -1,5 +1,7 @@
 ---
 title: "When Looking at a Parabola in Perspective"
+lang: "en"
+lang_ref: "2025-03-08-looking-parabola-perspective"
 categories:
  - Mathematics
 tags:

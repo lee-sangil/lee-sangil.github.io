@@ -1,5 +1,7 @@
 ---
 title: "Denoising Image with Total Variation Minimization"
+lang: "en"
+lang_ref: "2026-01-06-total-variation-minimization"
 categories:
  - Vision
 tags:

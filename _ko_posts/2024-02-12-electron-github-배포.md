@@ -18,12 +18,12 @@ excerpt_separator: <!--more-->
 
 <!--more-->
 
-먼저 `electron-builder`를 설치해야 한다:
+먼저 `electron-builder`를 설치해야 한다.
 ```bash
 npm install --save-dev electron-builder
 ```
 
-그런 다음 `package.json`에 아래와 같이 repository와 build 옵션을 추가한다:
+그런 다음 `package.json`에 아래와 같이 repository와 build 옵션을 추가한다.
 ```json
 // package.json
 {
@@ -55,7 +55,7 @@ npm install --save-dev electron-builder
 `releaseInfo`는 릴리스 업데이트를 요약하는 "releaseName", "releaseNotes", "releaseNotesFile", "releaseDate" 값을 포함한다.
 
 ### Vue와 함께 쓰는 Electron-builder
-Vue와 함께 Electron을 사용하는 경우, 아래와 같이 `vue.config.js`에서 builder를 설정해야 한다:
+Vue와 함께 Electron을 사용하는 경우, 아래와 같이 `vue.config.js`에서 builder를 설정해야 한다.
 ```js
 module.exports = defineConfig({
     ...
@@ -82,13 +82,13 @@ module.exports = defineConfig({
 ```
 
 ### 배포
-릴리스를 배포하려면 publish 인자(`-p` 또는 `--publish`)를 사용하여 아래 명령을 실행한다:
+릴리스를 배포하려면 publish 인자(`-p` 또는 `--publish`)를 사용하여 아래 명령을 실행한다.
 ```bash
 vue-cli-service electron:build --publish always
 ```
 `always`는 현재 빌드를 강제로 배포한다. 선택지는 "onTag", "onTagOrDraft", "always", "never"이다. [^publish]
 
-NPM 스크립트를 사용하는 경우에는 다음과 같이 실행한다:
+NPM 스크립트를 사용하는 경우에는 다음과 같이 실행한다.
 ```bash
 npm run [build script] -- -p always
 ```

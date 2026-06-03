@@ -1,6 +1,8 @@
 ---
 title: "Calibrating Skywatcher's Sky Adventurer"
 prefix: "Astrophotography"
+lang: "en"
+lang_ref: "2025-08-11-calibrating-star-adventurer"
 categories:
  - ETC
 tags:

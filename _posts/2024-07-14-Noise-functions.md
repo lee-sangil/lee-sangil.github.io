@@ -1,6 +1,8 @@
 ---
 title: "Noise Functions"
 prefix: "WebGL"
+lang: "en"
+lang_ref: "2024-07-14-noise-functions"
 categories:
  - WebGL
 tags:
@@ -18,7 +20,7 @@ excerpt_separator: <!--more-->
 <!--more-->
 
 ## Value noise
-This is the simplest noise function using four random values per each vertex. As mentioned in here[^shaderpattern], GLSL does not support a true random function, but pseudo-random function. Thus, a vertex can read the random value of adjacent vertices from indexing, i.e., `random(x + vec2(1., 0.))`. By interpolating the value of four vertices, we can generate a noise value. To make the noise value smooth at the boundary, we can use `smoothstep()` or a custom stepper (timing) function. I'll address the interpolation methods in the upcoming article. Then, when you increase the scale of the input of the noise function, the resolution of the noise pattern will increase. 
+This is the simplest noise function using four random values per each vertex. As mentioned in here[^shaderpattern], GLSL does not support a true random function, but pseudo-random function. Thus, a vertex can read the random value of adjacent vertices from indexing, i.e., `random(x + vec2(1., 0.))`. By interpolating the value of four vertices, we can generate a noise value. To make the noise value smooth at the boundary, we can use `smoothstep()` or a custom stepper (timing) function. I'll address the interpolation methods in [the upcoming article]({% post_url 2024-09-21-Interpolation-methods %}). Then, when you increase the scale of the input of the noise function, the resolution of the noise pattern will increase. 
 
 ```glsl
 // Fragment
@@ -58,7 +60,7 @@ void main() {
 
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/DLSAFiz.png">
 
-However, the result is so bricky, and this limitation would not be resolved by another interpolation method. 
+Increasing the scale of the noise function input, `st`, results in a higher-resolution noise pattern. However, the result is so bricky, and this limitation would not be resolved by another interpolation method. 
 
 ## Perlin noise
 A Perlin noise is suggested by Ken Perlin to represent the natural complexity while reducing blocky pattern. Contrary to the Value noise, Perlin noise generates a random vector at each vertex. First, compute four gradient vectors of adjacent vertices. Second, compute the dot product between each gradient vector and the offset vector from the corresponding vertex to candidate point. This dot product will be zero at corners, and it denotes the z value of the plane that intersects XY plane at corner and has a normal vector `n = (g_x, g_y, -1)` where `(g_x, g_y)` is the gradient vector. The final value of the candidate point is obtained by interpolating these four dot product values. At last, we can normalize the value by multiplying by 0.5 and adding 0.5. For a single cell, let me depict the dot product value of each gradient vector and compare the gradient vector of vertices and the vector field of the noise function. The color ranges from -5 (blue) to 5 (orange).
@@ -332,6 +334,8 @@ if (x0.x > x0.y) {
 } else {
     i1 = vec2(0.0, 1.0);
 }
+// i2 = vec2(1.0)
+
 vec2 x1 = x0 - (i1 - vec2(G));
 vec2 x2 = x0 - (vec2(1.0) - 2.0 * vec2(G));
 ```

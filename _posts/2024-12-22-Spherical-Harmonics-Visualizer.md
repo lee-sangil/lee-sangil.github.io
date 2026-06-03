@@ -1,5 +1,7 @@
 ---
 title: "Spherical Harmonics Visualizer"
+lang: "en"
+lang_ref: "2024-12-22-spherical-harmonics-visualizer"
 categories:
  - Vision
 tags:

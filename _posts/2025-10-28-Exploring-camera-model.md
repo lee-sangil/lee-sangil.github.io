@@ -1,5 +1,7 @@
 ---
 title: "Exploring Camera Models, Focusing on Distortion"
+lang: "en"
+lang_ref: "2025-10-28-exploring-camera-model"
 categories:
  - Vision
 tags:

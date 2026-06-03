@@ -1,5 +1,7 @@
 ---
 title: "Solving the Roots of a Cubic Polynomial"
+lang: "en"
+lang_ref: "2025-11-19-solving-cubic-polynomial"
 categories:
  - Mathematics
 tags:

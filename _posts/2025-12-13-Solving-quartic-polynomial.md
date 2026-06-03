@@ -1,5 +1,7 @@
 ---
 title: "Solving the Roots of a Quartic Polynomial"
+lang: "en"
+lang_ref: "2025-12-13-solving-quartic-polynomial"
 categories:
  - Mathematics
 tags:

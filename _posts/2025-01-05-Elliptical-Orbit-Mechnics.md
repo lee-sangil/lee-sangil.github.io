@@ -1,5 +1,7 @@
 ---
 title: "Elliptical Orbit Geometry and Mechanics"
+lang: "en"
+lang_ref: "2025-01-05-elliptical-orbit-mechnics"
 categories:
  - Mathematics
 tags:

@@ -19,7 +19,7 @@ excerpt_separator: <!--more-->
 {% include /assets/solar_system.html %}
 <br/>
 
-The above is an interactive solar system simulator. I will introduce the knowledge required to create the simulator. The posts will be serialized in the order of contents below.
+The above is an interactive solar system simulator. This simulator represents the actual positions of the planets and satellites, offering various interactions through the right panel. You can change the camera viewpoint using mouse or touch controls, and clicking on a planet or satellite will bring that object to the center of the screen. This series introduces the foundational knowledge required to build this simulator. The posts will be serialized in the order of contents below.
 
 <!--more-->
 

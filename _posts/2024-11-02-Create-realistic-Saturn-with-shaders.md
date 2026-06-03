@@ -1,6 +1,8 @@
 ---
 title: "Create a Realistic Saturn with Rings"
 prefix: "Three.js"
+lang: "en"
+lang_ref: "2024-11-02-create-realistic-saturn-with-shaders"
 categories:
  - ThreeJS
 tags:
@@ -317,7 +319,7 @@ Since I've computed eclipse shadow effect with precise mathematics, the shadow o
 |:------------------------------------:|:------------------------------------:|
 | <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/fEx7NUB.gif"> | <img class="image" referrerpolicy="no-referrer" src="https://i.imgur.com/HWVxkNE.gif"> |
 
-However, even when the apparent size of the light source differs, the boundary of the shadow on main body's surface cast by the rings remains sharp and clear. To make its boundary more realistic, I've divided the light source into several areas along with the normal vector of the ring plane, and computed a shading factor for each subdivision. The below figure summarizes this method. 
+However, even when the apparent size of the light source differs, the boundary of the shadow on main body's surface cast by the rings remains sharp and clear. This is because the light source was assumed to be a point rather than a sphere with physical volume. To make its boundary more realistic, I've divided the light source into several areas along with the normal vector of the ring plane, and computed a shading factor for each subdivision. The below figure summarizes this method. 
 
 <img class="image640" referrerpolicy="no-referrer" src="https://i.imgur.com/aFd7fu2.jpeg">
 
@@ -333,7 +335,7 @@ $$
 \mathbf{v} \cdot \mathbf{v}_{\rm sun} = 0, 
 $$
 
-where $$\mathbf{n}_{\rm ring}$$ is the normal vector of ring plane and $$\mathbf{v}_{\rm sun}$$ denotes the direction vector from the surface to the origin of Sun. Then, for $$i$$-th subdivision, $$\mathbf{v}_{\rm sunRay}=\mathbf{v}_{\rm sun}+(i/DIV * R_{\rm sun}) ~\mathbf{v}_{\rm sun,perp}$$ is obtained, where $$i$$ is an integer within $$-DIV, \ldots, DIV$$, and $$DIV$$ is a parameter for creating subdivision, i.e., a total number of subdivision is $$2 * DIV + 1$$. You can use a large value of $$DIV$$ to imitate an exact shadow effect. 
+where $$\mathbf{n}_{\rm ring}$$ is the normal vector of ring plane and $$\mathbf{v}_{\rm sun}$$ denotes the direction vector from the surface to the origin of Sun. Then, for $$i$$-th subdivision, $$\mathbf{v}_{\rm sunRay}=\mathbf{v}_{\rm sun}+(i/DIV * R_{\rm sun}) ~\mathbf{v}_{\rm sun,perp}$$ is obtained, where $$i$$ is an integer within $$-DIV, \ldots, DIV$$, and $$DIV$$ is a parameter for creating subdivision, i.e., a total number of subdivision is $$2 * DIV + 1$$. You can use a large value of $$DIV$$ to imitate an exact shadow effect. Considering the trade-off with computational load, a value of 7 is appropriate.
 
 Because the width of subdivisions is different from each other, the shadow factor of each subdivision should be considered differently. In here, I've used the normalized width, $$\sqrt{1-(i/DIV)^2}$$, as a weight. Thus, a total shadow coefficient on a surface point of planet is the weighted sum of ring's alpha values. The below code is the additional part of fragment shader. 
 
@@ -378,7 +380,7 @@ mixAmountSurface *= (1. - 0.8 * ringAlpha * hemisphereLight);
 vec3 color = mix( vec3(0.), dayColor, mixAmountSurface ); // Select day or night texture based on mix.
 ```
 
-Finally, you can see that the shadow cast by rings becomes blurry as the light source gets further away from the planet.
+Finally, you can see that the shadow cast by rings becomes sharp as the light source gets further away from the planet.
 
 |           distant light source           |          close light source          |
 |:------------------------------------:|:------------------------------------:|

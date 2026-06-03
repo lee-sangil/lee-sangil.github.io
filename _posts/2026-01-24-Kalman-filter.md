@@ -1,5 +1,7 @@
 ---
 title: "Derivation of the Kalman Filter from Bayesian Filter"
+lang: "en"
+lang_ref: "2026-01-24-kalman-filter"
 categories:
  - Robotics
 tags:

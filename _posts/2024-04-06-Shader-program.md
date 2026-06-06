@@ -142,7 +142,7 @@ void main() {
 }" index=0 %}
 
 <details markdown="1">
-<summary>fragment shader</summary>
+<summary>Fragment shader</summary>
 
 ```glsl
 // frag.js
@@ -169,7 +169,7 @@ export default fragment
 </details>
 
 <details markdown="1">
-<summary>vertex shader</summary>
+<summary>Vertex shader</summary>
 
 ```glsl
 // vert.js
@@ -201,7 +201,7 @@ export default vertex
 </details>
 
 <details markdown="1">
-<summary>main script</summary>
+<summary>Main script</summary>
 
 ```js
 import fragment from './frag.js'

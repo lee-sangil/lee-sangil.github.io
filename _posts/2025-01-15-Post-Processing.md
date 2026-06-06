@@ -61,8 +61,8 @@ The above passes are pre-built-in classes defined in Three.js. On the other hand
 
 The `ShaderPass` applies a custom shader to the image data produced by the previous pass in the pipeline. It uses two main components:
 
-- Vertex Shader: Defines how the geometry is processed (usually minimal work in post-processing).
-- Fragment Shader: Defines how pixels are shaded or manipulated. This is where most of the work happens for post-processing effects.
+- **Vertex Shader**: Defines how the geometry is processed (usually minimal work in post-processing).
+- **Fragment Shader**: Defines how pixels are shaded or manipulated. This is where most of the work happens for post-processing effects.
 
 ```js
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
@@ -126,6 +126,9 @@ Here’s a simple example to integrate post-processing into Three.js scene: I've
 |       Without blooming effect        |         With blooming effect         |
 |:------------------------------------:|:------------------------------------:|
 | <img class="image480" referrerpolicy="no-referrer" src="https://i.imgur.com/5SvGe26.gif"> | <img class="image480" referrerpolicy="no-referrer" src="https://i.imgur.com/F07TbAg.gif"> |
+
+<details markdown="1">
+<summary>Example code</summary>
 
 ```js
 import * as THREE from 'three'
@@ -242,3 +245,4 @@ function animate() {
 
 animate();
 ```
+</details>

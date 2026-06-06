@@ -43,9 +43,10 @@ When working with Three.js, this can be achieved by using multiple `EffectCompos
 
 Three.js `Layers` allow you to selectively render objects in your scene. There are 32 available layers (0-31), and objects can belong to one or more of them. Layers are represented using a bit-mask. For instance:
 
-- Layer 0: 1
-- Layer 1: 2
-- ...
+- Layer 0: `1<<0`
+- Layer 1: `1<<1`
+- Layer 0 and 1: `1<<0 || 1<<1`
+- Layer 31: `1<<31`
 
 An object assigned to multiple layers has a bit-mask equal to the sum of the respective layer values. For example, an object on layers 0 and 1 has a bit-mask of $1 + 2 = 3$. If no layer is assigned, the bit-mask is 0, making the object invisible. A camera object also have a `Layers` property. They only render objects that share at least one layer with the camera. By default, both cameras and objects belong to layer 0. Objects can be assigned to other layers using the layers property:
 
@@ -188,6 +189,10 @@ composer.render(); // Merge layers 0 (non-bloom) and 1 (bloom)
 ## Example code
 
 In the below, I provide a test code for the selective blooming post-processing with simplified two objects, Sun and Earth.
+
+<details markdown="1">
+<summary>Example code</summary>
+
 ```js
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -334,5 +339,6 @@ function animate () {
 }
 animate();
 ```
+</details>
 
 <img class="image480" referrerpolicy="no-referrer" src="https://i.imgur.com/FIdpq7j.gif">

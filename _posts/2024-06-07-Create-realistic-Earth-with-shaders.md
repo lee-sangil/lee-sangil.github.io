@@ -561,7 +561,7 @@ void main() {
 </details>
 
 <details markdown="1">
-<summary>main.js</summary>
+<summary>Main script</summary>
 
 ```js
 import * as THREE from 'three'

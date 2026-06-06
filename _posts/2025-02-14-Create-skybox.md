@@ -56,7 +56,7 @@ const material = new THREE.ShaderMaterial({
 material.uniforms.tEquirect.value = texture;
 ```
 
-The `side: THREE.BackSide` rendering ensures that the stars are visible from within the box, surrounding our scene completely. Lastly, we create a large box geometry. Since our shader maps the texture equirectangularly, a cube can effectively display the entire sky without distortion.
+The `side: THREE.BackSide` rendering ensures that the stars are rendered on the inside of the box. Finally, we create a large box geometry to surround the camera, ensuring that the camera always remains within the box. Since our shader maps the texture equirectangularly, a cube can effectively display the entire sky without distortion.
 
 ```js
 const plane = new THREE.BoxGeometry(100, 100, 100); // set the size manually depending on the map scale

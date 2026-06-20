@@ -35,13 +35,13 @@ To recover $$u$$, we solve an optimization problem that balances two competing g
 
 - Fidelity: the recovered image $$u$$ should be close to the observation, $$f$$.
     
-- Regularization: the recovered image $$u$$ should not be overfitted to the observation, while enforcing smoothness. 
+- Regularization: the recovered image $$u$$ should be smooth. 
 
 The general objective function to minimize is
 
 $$ E(u) = \mathcal{R}(u) + \frac{1}{2\lambda} \|u - f\|_2^2$$
 
-where $$\mathcal{R}(u)$$ is the regularizer and $$\lambda$$ controls the trade-off between two terms.
+where $$\mathcal{R}(u)$$ is the regularizer and $$\lambda$$ controls the trade-off between two terms. By considering the two terms simultaneously, the recovered image is forced to have a smooth surface while fitting to the observations.
 
 ## Total variation minimization
 

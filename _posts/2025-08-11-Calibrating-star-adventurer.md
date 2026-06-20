@@ -23,7 +23,7 @@ excerpt_separator: <!--more-->
 <img class="imageWideFull" referrerpolicy="no-referrer" src="https://i.imgur.com/uGDaz7W.png">
 
 ## Calibrate polar scope axis
-This process aligns the polar scope's axis with the right ascension (RA) axis.
+This process aligns the polar scope's axis with the right ascension (RA) axis of the equatorial mount.
 * Position the mount so that a bright, distant point is in the center of the polar scope.
 * Rotate the mounting platform a half-turn.
 * Check if the pointed object is still centered in the polar scope; if not, use the adjustment screws to correct the polar scope's axis direction.
@@ -47,6 +47,7 @@ Standard time and solar time differ because standard time follows socially agree
 
 ## Match date with time
 * Rotate mounting platform to align with the current month, date, and time, based on standard time.
-* Once Polaris is positioned properly according to the polar scope's reticle, the setup for astrophotography is complete.
+* Since the image of polar scope is inverted vertically, position Polaris at the '6' direction on the reticle.
+* This completes the setup for astrophotography.
 
 Alternatively, you can use a polar scope application such as PS Align Pro. However, you should still follow the first step of the calibration process above and ensure the '0' and '6' on the reticle face the up and down directions of the mount, regardless of the longitude and latitude of the current location, before placing Polaris on the reticle.

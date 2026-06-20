@@ -110,7 +110,7 @@ vec3 compute_color(in vec3 ro, in vec3 rd) {
 ```
 
 ### Light attenuation
-In the computation above, the color of a deeper point has a lesser impact on the final rendering because the light scattered at the point loses its energy as it traverses the interior of the object. However, we should also consider the intensity of light, which is inputted at the point. If the point is beneath the surface, not only does the color of the point decrease, but the intensity of the light also decreases. The attenuated intensity of light at a point, $$p$$, is computed as
+In the computation above, the color of a deeper point has a lesser impact on the final rendering because the light scattered at the point loses its energy as it traverses the interior of the object. Meanwhile, we should also consider the intensity of light, which is inputted at the point. If the point is beneath the surface, not only does the color of the point decrease, but the intensity of the light also decreases. The attenuated intensity of light at a point, $$p$$, is computed as
 
 ```glsl
 float compute_intensity(in vec3 p) {
@@ -255,7 +255,7 @@ vec3 reflect(vec3 I, vec3 N) {
 
 ### Fresnel effect
 
-The reflectance of a surface between dielectric materials varies with the incidence angle. As the angle approaches 90 degrees, the reflectance increases and reaches 1. In this article, I’ve used Schlick’s approximation to calculate the Fresnel reflectance coefficient.
+The reflectance of a surface between dielectric materials varies with the incidence angle. As the angle approaches 90 degrees, the reflectance increases and reaches 1. This is called the Fresnel effect. In this article, I’ve used Schlick’s approximation to calculate the Fresnel reflectance coefficient.
 
 ```glsl
 float compute_fresnel_reflectance(float eta, float u, float f0, float f90) {

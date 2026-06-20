@@ -122,10 +122,10 @@ Finally, to refine the estimated parameters and account for lens distortion (rad
 The provided MATLAB code demonstrates a practical implementation of Zhang's method. Let's walk through the key functions:
 
 ### Detect checkerboard's points
-This function, part of MATLAB's Computer Vision Toolbox, is used to automatically detect the checkerboard corners in a set of input images. It returns the pixel coordinates of these corners, `imagePoints`, and the size of the checkerboard grid, `boardSize`.
+The function, `detectCheckerboardPoints`, a part of MATLAB's Computer Vision Toolbox, is used to automatically detect the checkerboard corners in a set of input images. It returns the pixel coordinates of these corners, `imagePoints`, and the size of the checkerboard grid, `boardSize`.
 
 ### Compute homography
-This function calculates the homography matrix `H` that maps 3D world points (`P_w`) on the checkerboard plane to 2D image points (`P_i`). It constructs a system of linear equations `A*h = 0`, where `h` is a vector containing the elements of the homography matrix, and then solves for `h` using Singular Value Decomposition (SVD).
+The function, `computeHomography`, calculates the homography matrix `H` that maps 3D world points (`P_w`) on the checkerboard plane to 2D image points (`P_i`). It constructs a system of linear equations `A*h = 0`, where `h` is a vector containing the elements of the homography matrix, and then solves for `h` using Singular Value Decomposition (SVD).
 ```matlab
 function H = computeHomography(P_w, P_i)
     numPoints = size(P_w,1);

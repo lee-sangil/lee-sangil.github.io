@@ -702,7 +702,7 @@ void main()
 You can notice that subdivision code is repeated in for-statement as a hierarchy level increases. Thus, we can also implement the hierarchical Voronoi using a recursive function, however, GLSL does not support recursive functions unfortunately.
 
 ## Wrap-up
-Using the above various versions of Voronoi noise, we can create various fractal Brownian motion. The following are some examples. 
+Using the above various versions of Voronoi noise, we can create various fractal Brownian motion (refer to [this post]({% post_url 2025-04-18-Cellular-noises %})). The following are some examples. 
 
 | Voronoi distance                     | Voronoise                            |
 | :----------------------------------: | :----------------------------------: |

@@ -19,7 +19,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> This post delves into the specifics of various camera models, exploring the mathematical and geometric concepts used to represent how a camera captures the world. However, when capturing world scenes through a camera, images suffer from distortions due to the physical properties of the lens. These distortions can significantly degrade the performance of computer vision applications, 3D reconstruction, and image processing tasks. Especially, I focus on the distortion of various camera models. This post will introduce five camera models: Brown-Conrady distortion, Kannala-Brandt, Scaramuzza, Unified, and Double Sphere models, exploring their schematic representations, mathematical formulas, and parameter estimation methods.
+> This post delves into the specifics of various camera models, exploring the mathematical and geometric concepts used to represent how a camera captures the world. However, when capturing world scenes through a camera, images suffer from distortions due to the physical properties of the lens. These distortions can significantly degrade the performance of computer vision applications, 3D reconstruction, and image processing tasks. This post will introduce five camera models: Brown-Conrady distortion, Kannala-Brandt, Scaramuzza, Unified, and Double Sphere models, exploring their schematic representations, mathematical formulas, and parameter estimation methods. Especially, I focus on the distortion of various camera models.
 
 ## Camera model
 A camera model defines projection and unprojection mappings. A projection formula maps world points to image points on the image plane, whereas an unprojection formula maps image points to world points in homogeneous coordinates. For a pinhole camera model, there are several mappings, and has an explicit distortion model; world-to-normalized-plane, distortion, and, normalized-plane-to-image-plane. Brown-Conrady distortion model is placed in the middle, and processed on the normalized image plane. On the other hand, for example, the world-to-normalized-plane mapping of Scaramuzza camera model includes a distortion model inside itself. In the article, I’ll focus on describing a mapping that includes distortion model. 
@@ -369,13 +369,13 @@ uv = [c*u + d*v + cx; e*u + v + cy];
 end
 ```
 
-In the above function, a for-loop can degenerate the computing performance. Thus, to boost the performance, we compute the coefficients of the inverse polynomial equation in advance using multiple samples. A high value of `sample_ratio` ensures a high accuracy at a large incident angle, however increasing non-linearity and the degree of the inverse polynomial equation.
+In the above function, a for-loop as many times as the number of pixels can degenerate the computing performance. Thus, to boost the performance, we compute the coefficients of the inverse polynomial equation in advance using multiple samples. A high value of `sample_ratio` ensures a high accuracy at a large incident angle, however increasing non-linearity and the degree of the inverse polynomial equation.
 ```matlab
 function inv_coeffs = find_poly_inv(coeffs, num_sample, sample_ratio, error_thres, max_degree)
 % This function finds the inverse form of the given polynomial function.
 % This function is used for making the projection computation of Scaramuzza
 % model faster.
-theta = linspace(0, pi * sample_ratio, num_sample);
+theta = linspace(0, pi * sample_ratio, num_sample); % num_sample << num_pixel
 rho = zeros(1, length(theta));
 
 a0 = coeffs(1);

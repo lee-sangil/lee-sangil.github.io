@@ -50,22 +50,33 @@
      Post pagination navigation links
      ========================================================================== */
 
+.pagination--sm { display: flex; justify-content: center; }
+.pagination--lg { display: none; justify-content: center; }
+
+@media (min-width: 27.5em) {
+  .pagination--sm { display: none; }
+  .pagination--lg { display: flex; }
+}
+
 .pagination {
   @include clearfix();
-  float: left;
+  float: none;
   margin-top: 1em;
   padding-top: 1em;
+  text-align: center;
 
   ul {
     margin: 0;
     padding: 0;
     list-style-type: none;
     font-family: $sans-serif;
+    display: flex;
+    justify-content: center;
   }
 
   li {
     display: block;
-    float: left;
+    float: none;
     margin-left: -1px;
 
     a {

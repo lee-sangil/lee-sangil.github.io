@@ -1,0 +1,595 @@
+<div id="wrapper">
+    <canvas id="webgl"></canvas>
+    
+    <!-- EE Camera Viewport Border -->
+    <div id="eeBorder"></div>
+    <canvas id="lidarview"></canvas>
+    
+    <div id="statusBar">Loading MuJoCo...</div>
+    <div id="camLabel">Camera</div>
+    <div id="lidarLabel">LiDAR</div>
+    
+    <svg id="enterFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
+    <svg id="leaveFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Leave Fullscreen</title><path d="M14,14H19V16H16V19H14V14M5,14H10V19H8V16H5V14M8,5H10V10H5V8H8V5M19,8V10H14V5H16V8H19Z" /></svg>
+</div>
+
+<style>
+    /* 캔버스가 CSS 공간 내에 완벽하게 맞도록 강제합니다. */
+    #wrapper { position: relative; width: 100%; height: 60vh; background-color: #1a1a2e; overflow: hidden; }
+    #webgl { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+    
+    .dg { min-height: 16px; max-height: 100%; height: fit-content; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
+    .dg.main { padding-bottom: 20px; }
+    .dg.main > div:first-child { position: relative !important; }
+    .dg li { margin-bottom: 0px; }
+    .dg ul { position: inherit; top: 20px; height: unset !important; }
+    .dg .property-name { width: 30%; }
+    .dg .c { width: 70%; }
+    .dg .slider { width: 70%; }
+    .dg .has-slider input[type=text] { width: 25%; }
+    .dg .close-button { position: absolute; top: 0; }
+    
+    .fullscreen { fill: lightgray; position: absolute; top: 1vh; left: 1vw; margin: 5px; width: 24px; height: 24px; cursor : pointer; z-index: 100; }
+    .fullscreen:hover { background-color:rgba(255,255,255,0.3); border-radius: 50%; }
+    #leaveFullscreen { visibility: hidden; }
+    
+    /* PIP Views (150x150 Square) */
+    #eeBorder { position: absolute; bottom: 15px; left: 15px; width: 150px; height: 150px; border: 2px solid rgba(255,255,255,0.4); border-radius: 4px; pointer-events: none; z-index: 10; }
+    #lidarview { position: absolute; bottom: 15px; left: 180px; width: 150px; height: 150px; border: 2px solid rgba(255,255,255,0.4); border-radius: 4px; background: rgba(0,0,0,0.85); z-index: 10; -webkit-user-select: none; user-select: none;}
+    
+    /* Labels */
+    #camLabel, #lidarLabel { position: absolute; color: rgba(255,255,255,0.8); font-size: 11px; font-weight: bold; font-family: monospace; z-index: 11; pointer-events: none; }
+    #camLabel { bottom: 170px; left: 15px; }
+    #lidarLabel { bottom: 170px; left: 180px; }
+    
+    #statusBar { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #fff; font-family: monospace; font-size: 14px; z-index: 20; background: rgba(0,0,0,0.7); padding: 12px 24px; border-radius: 6px; }
+    #statusBar.hidden { display: none; }
+</style>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.180.0/build/three.module.js';
+
+// ── URLs ────────────────────────────────────────────────────────────────
+const MUJOCO_JS_URL = 'https://cdn.jsdelivr.net/npm/mujoco-js/dist/mujoco_wasm.js';
+const MENAGERIE_BASE = 'https://raw.githubusercontent.com/google-deepmind/mujoco_menagerie/main/universal_robots_ur10e/';
+
+// ── Globals ─────────────────────────────────────────────────────────────
+let mujoco, mjModel, mjData;
+let scene, mainCamera, renderer, gui, eeCamera;
+let geomMeshes = [];
+
+// LiDAR의 시각적 스케일을 키우기 위해 Range를 1.0m로 축소합니다.
+const N_LIDAR = 72, LIDAR_RANGE = 1.0; 
+
+let W, H;
+const PIP_SIZE = 150;
+const PIP_M_X = 15; 
+const PIP_M_Y = 15;
+
+let simRunning = false;
+let rayLines; // 👈 3D 공간에 광선을 그릴 객체
+
+const guiParams = {
+    q1: 3.14, q2: -1.57, q3: 1.57, q4: -1.57, q5: -1.57, q6: 0,
+    simulate: true,
+    reset: function() {
+        guiParams.q1=3.14; guiParams.q2=-1.57; guiParams.q3=1.57;
+        guiParams.q4=-1.57; guiParams.q5=-1.57; guiParams.q6=0;
+        resetSim();
+    }
+};
+
+// ── Three.js Texture Generator (격자 텍스처 자동 생성) ────────────────
+function createGridTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    ctx.fillStyle = '#19334c'; 
+    ctx.fillRect(0, 0, 512, 512);
+    
+    ctx.fillStyle = '#334c66'; 
+    ctx.fillRect(0, 0, 256, 256);
+    ctx.fillRect(256, 256, 256, 256);
+    
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(10, 10); 
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+}
+const gridTexture = createGridTexture();
+
+// ── MuJoCo & Asset Loader ───────────────────────────────────────────────
+async function loadMuJoCo() {
+    const status = document.getElementById('statusBar');
+    try {
+        status.textContent = 'Loading MuJoCo WASM...';
+        const mod = await import(MUJOCO_JS_URL);
+        mujoco = await (mod.default ?? mod)();
+
+        mujoco.FS.mkdir('/working');
+        mujoco.FS.mkdir('/working/assets');
+
+        status.textContent = 'Fetching Scene & Robot XML...';
+        let sceneXml = await fetch(MENAGERIE_BASE + 'scene.xml').then(r => r.text());
+        let ur10eXml = await fetch(MENAGERIE_BASE + 'ur10e.xml').then(r => r.text());
+        
+        const extraObjects = `
+            <geom type="plane" size="5 5 0.1" material="grid"/>
+            <body name="red_box" pos="0.6 0.2 0.05">
+                <freejoint/>
+                <geom type="box" size="0.05 0.05 0.05" rgba="1 0.2 0.2 1" mass="0.1"/>
+            <` + `/body>
+            <body name="green_sphere" pos="0.7 0 0.05">
+                <freejoint/>
+                <geom type="sphere" size="0.05" rgba="0.2 1 0.2 1" mass="0.1"/>
+            <` + `/body>
+            <body name="blue_cylinder" pos="0.6 -0.2 0.05">
+                <freejoint/>
+                <geom type="cylinder" size="0.05 0.05" rgba="0.2 0.2 1 1" mass="0.1"/>
+            <` + `/body>
+        `;
+        sceneXml = sceneXml.replace('</' + 'worldbody>', extraObjects + '\n</' + 'worldbody>');
+
+        const assetXML = `
+            <asset>
+                <texture type="2d" name="grid" builtin="checker"
+                        width="512" height="512" rgb1=".1 .2 .3" rgb2=".2 .3 .4"/>
+                <material name="grid" texture="grid" texrepeat="4 4" texuniform="true"/>
+            </asset>
+        `;
+        sceneXml = sceneXml.replace('<worldbody>', assetXML + '\n<worldbody>');
+
+        // 2. 명시적인 센서 사이트 주입 
+        // 바닥을 똑바로 쳐다보도록 xyaxes="1 0 0 0 -1 0" 적용 
+        let sensorInjection = `
+            <camera name="ee_cam" pos="0 0.1 0" xyaxes="1 0 0 0 1 0" fovy="60"/>
+        `;
+        for (let i = 0; i < N_LIDAR; i++) {
+            let angleRad = i * (2 * Math.PI / N_LIDAR);
+            let zx = Math.cos(angleRad).toFixed(4);
+            let zy = Math.sin(angleRad).toFixed(4);
+            sensorInjection += `    <site name="ray_${i}" zaxis="${zy} 0 ${zx}" size="0.005" pos="0 0.12 0" rgba="0.5 0.5 0.5 0"/>\n`;
+        }
+        
+        ur10eXml = ur10eXml.replace('<site name="attachment_site"', sensorInjection + '\n<site name="attachment_site"');
+
+        // 3. LiDAR Rangefinder 추가 (스케일을 1.0으로 조정)
+        let rfSensors = '<sensor>\n';
+        for (let i = 0; i < N_LIDAR; i++) {
+            rfSensors += `    <rangefinder name="rf_${i}" site="ray_${i}" cutoff="1.0"/>\n`;
+        }
+        rfSensors += '</' + 'sensor>\n';
+        sceneXml = sceneXml.replace('</' + 'mujoco>', rfSensors + '\n</' + 'mujoco>');
+
+        mujoco.FS.writeFile('/working/scene.xml', sceneXml);
+        mujoco.FS.writeFile('/working/ur10e.xml', ur10eXml);
+
+        status.textContent = 'Fetching Mesh Assets...';
+        const fileRegex = /file="([^"]+\.obj)"/g;
+        const filesToFetch = new Set();
+        let match;
+        while ((match = fileRegex.exec(ur10eXml)) !== null) filesToFetch.add(match[1]);
+
+        await Promise.all(Array.from(filesToFetch).map(async (filename) => {
+            const url = MENAGERIE_BASE + 'assets/' + filename;
+            const res = await fetch(url);
+            if (res.ok) {
+                const buf = await res.arrayBuffer();
+                mujoco.FS.writeFile('/working/assets/' + filename, new Uint8Array(buf));
+            }
+        }));
+
+        status.textContent = 'Compiling Model...';
+        
+        try {
+            mjModel = mujoco.MjModel.loadFromXML('/working/scene.xml');
+            mjData = new mujoco.MjData(mjModel);
+        } catch(compileError) {
+            throw new Error("MuJoCo XML Compilation Failed: " + compileError);
+        }
+
+        resetSim();
+        status.classList.add('hidden');
+        simRunning = true;
+    } catch (e) {
+        status.textContent = 'Error: ' + e;
+        console.error('MuJoCo Load Error:', e);
+    }
+}
+
+function resetSim() {
+    if (!mjModel || !mjData) return;
+    mujoco.mj_resetData(mjModel, mjData);
+    mjData.ctrl[0] = guiParams.q1; mjData.ctrl[1] = guiParams.q2;
+    mjData.ctrl[2] = guiParams.q3; mjData.ctrl[3] = guiParams.q4;
+    mjData.ctrl[4] = guiParams.q5; mjData.ctrl[5] = guiParams.q6;
+    
+    for(let i=0; i<6; i++) mjData.qpos[i] = mjData.ctrl[i];
+    mujoco.mj_forward(mjModel, mjData);
+}
+
+function stepSim() {
+    if (!simRunning || !mjModel || !mjData) return;
+    mjData.ctrl[0] = guiParams.q1; mjData.ctrl[1] = guiParams.q2;
+    mjData.ctrl[2] = guiParams.q3; mjData.ctrl[3] = guiParams.q4;
+    mjData.ctrl[4] = guiParams.q5; mjData.ctrl[5] = guiParams.q6;
+
+    if (guiParams.simulate) {
+        for (let i = 0; i < 10; i++) mujoco.mj_step(mjModel, mjData);
+    } else {
+        mujoco.mj_forward(mjModel, mjData);
+    }
+}
+
+// ── Three.js Zero-Loader Mesh Extraction ────────────────────────────────
+function createMeshFromMuJoCo(meshId) {
+    const vertadr = mjModel.mesh_vertadr[meshId];
+    const vertnum = mjModel.mesh_vertnum[meshId];
+    const faceadr = mjModel.mesh_faceadr[meshId];
+    const facenum = mjModel.mesh_facenum[meshId];
+
+    const vertices = new Float32Array(vertnum * 3);
+    for (let i = 0; i < vertnum; i++) {
+        const mx = mjModel.mesh_vert[vertadr * 3 + i * 3 + 0];
+        const my = mjModel.mesh_vert[vertadr * 3 + i * 3 + 1];
+        const mz = mjModel.mesh_vert[vertadr * 3 + i * 3 + 2];
+        vertices[i * 3 + 0] = mx;
+        vertices[i * 3 + 1] = mz;
+        vertices[i * 3 + 2] = -my;
+    }
+
+    const indices = new Uint32Array(facenum * 3);
+    for (let i = 0; i < facenum * 3; i++) {
+        indices[i] = mjModel.mesh_face[faceadr * 3 + i];
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    geometry.computeVertexNormals();
+    return geometry;
+}
+
+function buildSceneFromModel() {
+    const ngeom = mjModel.ngeom;
+
+    for (let g = 0; g < ngeom; g++) {
+        const geomType = mjModel.geom_type[g];
+        const geomSize = [mjModel.geom_size[g*3], mjModel.geom_size[g*3+1], mjModel.geom_size[g*3+2]];
+        const geomRgba = [mjModel.geom_rgba[g*4], mjModel.geom_rgba[g*4+1], mjModel.geom_rgba[g*4+2], mjModel.geom_rgba[g*4+3]];
+        const geomGroup = mjModel.geom_group[g];
+
+        let geometry = null;
+        switch (geomType) {
+            case 0: geometry = new THREE.PlaneGeometry(geomSize[0]*2, geomSize[1]*2); break;
+            case 2: geometry = new THREE.SphereGeometry(geomSize[0], 20, 20); break;
+            case 3: geometry = new THREE.CapsuleGeometry(geomSize[0], geomSize[1]*2, 8, 16); break;
+            case 5: geometry = new THREE.CylinderGeometry(geomSize[0], geomSize[0], geomSize[1]*2, 20); break;
+            case 6: geometry = new THREE.BoxGeometry(geomSize[0]*2, geomSize[2]*2, geomSize[1]*2); break;
+            case 7: 
+                const meshId = mjModel.geom_dataid[g];
+                geometry = createMeshFromMuJoCo(meshId);
+                break;
+            default:
+                geometry = new THREE.SphereGeometry(0.01, 8, 8);
+        }
+
+        let material;
+        if (geomType === 0) { 
+            material = new THREE.MeshStandardMaterial({ map: gridTexture, roughness: 0.8 });
+        } else {
+            material = new THREE.MeshStandardMaterial({
+                color: new THREE.Color(geomRgba[0], geomRgba[1], geomRgba[2]),
+                roughness: 0.6,
+                metalness: 0.15,
+                transparent: geomRgba[3] < 1.0,
+                opacity: geomRgba[3]
+            });
+        }
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        geomMeshes.push(mesh);
+
+        scene.add(mesh);
+    }
+}
+
+function updateMeshesFromMuJoCo() {
+    if (!mjModel || !mjData) return;
+    const ngeom = mjModel.ngeom;
+    const mat4 = new THREE.Matrix4();
+
+    for (let g = 0; g < ngeom; g++) {
+        const mesh = geomMeshes[g];
+        if (!mesh) continue;
+
+        const geomType = mjModel.geom_type[g];
+        const px = mjData.geom_xpos[g*3];
+        const py = mjData.geom_xpos[g*3+1];
+        const pz = mjData.geom_xpos[g*3+2];
+        const r = mjData.geom_xmat;
+        const i9 = g * 9;
+
+        if (geomType === 0) {
+            mesh.position.set(px, pz, -py);
+            mesh.rotation.x = -Math.PI / 2;
+        } else {
+            mesh.position.set(px, pz, -py);
+            mat4.set(
+                 r[i9+0],  r[i9+2], -r[i9+1], 0,
+                 r[i9+6],  r[i9+8], -r[i9+7], 0,
+                -r[i9+3], -r[i9+5],  r[i9+4], 0,
+                 0,        0,        0,       1
+            );
+            mesh.setRotationFromMatrix(mat4);
+        }
+        mesh.updateMatrixWorld(true);
+    }
+}
+
+// ── EE Camera & LiDAR (MuJoCo Native) ──────────────────────────────────
+function updateEECamera() {
+    if (!mjData) return;
+    
+    // Enum 객체(object)일 경우 .value를 추출하여 에러 방지
+    const objCam = mujoco.mjtObj.mjOBJ_CAMERA;
+    const typeCam = objCam.value !== undefined ? objCam.value : objCam;
+    
+    const camId = mujoco.mj_name2id(mjModel, typeCam, "ee_cam");
+    if (camId < 0) return;
+    
+    const px = mjData.cam_xpos[camId * 3 + 0];
+    const py = mjData.cam_xpos[camId * 3 + 1];
+    const pz = mjData.cam_xpos[camId * 3 + 2];
+    
+    const r = mjData.cam_xmat;
+    const i9 = camId * 9;
+    
+    eeCamera.position.set(px, pz, -py);
+    
+    // 💡 핵심 수정: 카메라의 경우, 내부 Geometry 좌표계를 비틀지 않으므로, 
+    // 열(column) 방향 매핑이 일반 메쉬(Mesh)와 다르게 설정되어야 합니다.
+    const mat4 = new THREE.Matrix4();
+    // mat4.set(
+    //      r[i9+0],  r[i9+1],  r[i9+2], 0,
+    //      r[i9+6],  r[i9+7],  r[i9+8], 0,
+    //     -r[i9+3], -r[i9+4], -r[i9+5], 0,
+    //      0,        0,        0,       1
+    // );
+    mat4.set(
+         r[i9+0],  r[i9+2], -r[i9+1], 0,
+         r[i9+6],  r[i9+8], -r[i9+7], 0,
+        -r[i9+3], -r[i9+5],  r[i9+4], 0,
+         0,        0,        0,       1
+    );
+    eeCamera.setRotationFromMatrix(mat4);
+    eeCamera.updateMatrixWorld(true);
+}
+
+function computeLiDAR() {
+    if (!mjData) return new Array(N_LIDAR).fill(LIDAR_RANGE);
+    
+    const dists = [];
+    
+    const objSens = mujoco.mjtObj.mjOBJ_SENSOR;
+    const typeSens = objSens.value !== undefined ? objSens.value : objSens;
+    
+    for (let i = 0; i < N_LIDAR; i++) {
+        const sensId = mujoco.mj_name2id(mjModel, typeSens, `rf_${i}`);
+        if (sensId >= 0) {
+            const adr = mjModel.sensor_adr[sensId];
+            let d = mjData.sensordata[adr];
+            if (d < 0) d = LIDAR_RANGE;
+            dists.push(d);
+        } else {
+            dists.push(LIDAR_RANGE);
+        }
+    }
+    return dists;
+}
+
+function drawLiDAR(dists) {
+    const cvs = document.getElementById('lidarview');
+    const ctx = cvs.getContext('2d');
+    const w = cvs.width, h = cvs.height, cx = w/2, cy = h/2, R = Math.min(cx, cy) - 8;
+    ctx.clearRect(0, 0, w, h);
+    
+    // 100%, 66%, 33% 거리 그리드 라인
+    ctx.strokeStyle = 'rgba(100,255,100,0.15)'; 
+    ctx.lineWidth = 1;
+    for(let i=1; i<=3; i++){ ctx.beginPath(); ctx.arc(cx,cy,R*i/3,0,Math.PI*2); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(cx-R,cy); ctx.lineTo(cx+R,cy); ctx.moveTo(cx,cy-R); ctx.lineTo(cx,cy+R); ctx.stroke();
+    
+    // 감지선 그리기
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(0,255,80,0.9)'; ctx.lineWidth = 2;
+    for(let i=0; i<=N_LIDAR; i++) {
+        const idx = i % N_LIDAR, a = 2*Math.PI*idx/N_LIDAR - Math.PI/2, r = dists[idx]/LIDAR_RANGE*R;
+        if(i===0) ctx.moveTo(cx+r*Math.cos(a), cy+r*Math.sin(a)); else ctx.lineTo(cx+r*Math.cos(a), cy+r*Math.sin(a));
+    }
+    ctx.stroke();
+    
+    // 충돌 포인트 도트 그리기
+    ctx.fillStyle = 'rgba(0,255,80,0.6)';
+    for(let i=0; i<N_LIDAR; i++) {
+        if(dists[i] < LIDAR_RANGE - 0.01) {
+            const a = 2*Math.PI*i/N_LIDAR - Math.PI/2, r = dists[i]/LIDAR_RANGE*R;
+            ctx.beginPath(); ctx.arc(cx+r*Math.cos(a), cy+r*Math.sin(a), 3, 0, Math.PI*2); ctx.fill();
+        }
+    }
+    
+    // 로봇 중심점(원점) 그리기
+    ctx.fillStyle = 'rgba(255,100,100,0.9)'; ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.fill();
+}
+
+// ── LiDAR Ray 3D Visualization ──────────────────────────────────────────
+function updateRaysIn3D(dists) {
+    if (!mjData || !rayLines) return;
+    
+    const positions = rayLines.geometry.attributes.position.array;
+    const objSite = mujoco.mjtObj.mjOBJ_SITE;
+    const typeSite = objSite.value !== undefined ? objSite.value : objSite;
+
+    for (let i = 0; i < N_LIDAR; i++) {
+        const siteId = mujoco.mj_name2id(mjModel, typeSite, `ray_${i}`);
+        if (siteId < 0) continue;
+
+        // MuJoCo 월드 프레임에서의 센서(Site) 원점 좌표
+        const px = mjData.site_xpos[siteId * 3 + 0];
+        const py = mjData.site_xpos[siteId * 3 + 1];
+        const pz = mjData.site_xpos[siteId * 3 + 2];
+
+        // MuJoCo site_xmat에서 Z축 벡터 추출 (Rangefinder는 사이트의 Z축으로 발사됨)
+        // 회전 행렬의 세 번째 열(column 2) 값들이 Z축 방향입니다.
+        const r = mjData.site_xmat;
+        const idx = siteId * 9;
+        const zx = r[idx + 2];
+        const zy = r[idx + 5];
+        const zz = r[idx + 8];
+
+        const dist = dists[i];
+
+        // Three.js 좌표계(Y-up)로 변환: (x, y, z) -> (x, z, -y)
+        
+        // 1. 시작점 (센서 원점)
+        positions[i * 6 + 0] = px;
+        positions[i * 6 + 1] = pz;
+        positions[i * 6 + 2] = -py;
+
+        // 2. 끝점 (원점 + 방향 * 거리)
+        positions[i * 6 + 3] = px + zx * dist;
+        positions[i * 6 + 4] = pz + zz * dist;
+        positions[i * 6 + 5] = -(py + zy * dist);
+    }
+    // Three.js에 버텍스가 변경되었음을 알림
+    rayLines.geometry.attributes.position.needsUpdate = true;
+}
+
+// ── Boilerplate (OrbitControls, GUI, Render Loop) ───────────────────────
+function setupOrbitControls(cam, el) {
+    let drag=false,prev={x:0,y:0},sph={t:Math.PI/4,p:Math.PI/3,r:2.5};
+    const tgt=new THREE.Vector3(0, 0.4, 0); 
+    const sync=()=>{const sp=Math.sin(sph.p);cam.position.set(tgt.x+sph.r*sp*Math.sin(sph.t),tgt.y+sph.r*Math.cos(sph.p),tgt.z+sph.r*sp*Math.cos(sph.t));cam.lookAt(tgt);};
+    el.addEventListener('pointerdown',e=>{drag=true;prev={x:e.clientX,y:e.clientY};});
+    window.addEventListener('pointerup',()=>{drag=false;});
+    el.addEventListener('pointermove',e=>{if(!drag)return;sph.t-=(e.clientX-prev.x)*0.005;sph.p=Math.max(0.1,Math.min(Math.PI-0.1,sph.p+(e.clientY-prev.y)*0.005));prev={x:e.clientX,y:e.clientY};sync();});
+    el.addEventListener('wheel',e=>{sph.r=Math.max(0.5,Math.min(10,sph.r+e.deltaY*0.005));sync();e.preventDefault();},{passive:false});
+    sync();
+}
+
+function initGui() {
+    gui = new dat.GUI({name:'UR10e Control'});
+    const c = document.getElementById('wrapper');
+    c.appendChild(gui.domElement);
+    gui.domElement.style.cssText='margin-right:0;position:absolute;top:0;right:0;';
+    const LIMITS = [[-6.28,6.28],[-6.28,6.28],[-3.14,3.14],[-6.28,6.28],[-6.28,6.28],[-6.28,6.28]];
+    const f = gui.addFolder('Joint Angles (rad)');
+    ['q1','q2','q3','q4','q5','q6'].forEach((k,i)=>{
+        f.add(guiParams,k,LIMITS[i][0],LIMITS[i][1]).step(0.01).name(`Joint ${i+1}`).listen();
+    });
+    f.open();
+    gui.add(guiParams,'reset').name('Reset');
+}
+
+function toggleFS(on) {
+    const w=document.getElementById('wrapper');
+    if(on){document.body.style.overflowY='hidden';w.style.cssText='position:fixed;top:0;left:0;width:100%;height:100vh;z-index:1000;background:#1a1a2e;';document.getElementById('enterFullscreen').style.visibility='hidden';document.getElementById('leaveFullscreen').style.visibility='visible';}
+    else{document.body.style.overflowY='';w.style.cssText='position:relative;width:100%;height:60vh;background:#1a1a2e;';document.getElementById('enterFullscreen').style.visibility='visible';document.getElementById('leaveFullscreen').style.visibility='hidden';}
+    onResize();
+}
+
+function onResize() {
+    const w = document.getElementById('wrapper');
+    W = w.clientWidth;
+    H = w.clientHeight;
+    renderer.setSize(W, H);
+    mainCamera.aspect = W / H;
+    mainCamera.updateProjectionMatrix();
+}
+
+async function init() {
+    const wrapper = document.getElementById('wrapper');
+    W = wrapper.clientWidth;
+    H = wrapper.clientHeight;
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a2e);
+    scene.fog = new THREE.Fog(0x1a1a2e, 5, 20);
+
+    mainCamera = new THREE.PerspectiveCamera(50, W/H, 0.05, 50);
+    const canvas = document.getElementById('webgl');
+    renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.autoClear = false;
+    renderer.shadowMap.enabled = true;
+
+    setupOrbitControls(mainCamera, canvas);
+
+    const lc = document.getElementById('lidarview');
+    lc.width = PIP_SIZE * Math.min(window.devicePixelRatio, 2);
+    lc.height = PIP_SIZE * Math.min(window.devicePixelRatio, 2);
+
+    scene.add(new THREE.AmbientLight(0x404060, 0.8));
+
+    // LiDAR 3D 시각화용 LineSegments 객체 생성
+    const lineGeo = new THREE.BufferGeometry();
+    // N_LIDAR개의 선분, 각 선분은 시작점과 끝점(2개)을 가지며, 점마다 3개의 좌표(x, y, z)
+    lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N_LIDAR * 2 * 3), 3));
+    // 녹색 반투명 선으로 설정
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
+    rayLines = new THREE.LineSegments(lineGeo, lineMat);
+    scene.add(rayLines);
+
+    const dl=new THREE.DirectionalLight(0xffffff,1.0);dl.position.set(2,4,3);dl.castShadow=true;scene.add(dl);
+    
+    eeCamera = new THREE.PerspectiveCamera(60, 1.0, 0.02, 10);
+    initGui();
+
+    window.addEventListener('resize', onResize);
+    document.getElementById('enterFullscreen').addEventListener('click',()=>toggleFS(true));
+    document.getElementById('leaveFullscreen').addEventListener('click',()=>toggleFS(false));
+    window.addEventListener('keydown',e=>{if(e.key==='Escape')toggleFS(false);});
+
+    await loadMuJoCo();
+    buildSceneFromModel();
+    updateMeshesFromMuJoCo();
+    animate();
+}
+
+function animate() {
+    if (!simRunning) {
+        requestAnimationFrame(animate);
+        return;
+    }
+    requestAnimationFrame(animate);
+    stepSim();
+    updateMeshesFromMuJoCo();
+    updateEECamera();
+
+    renderer.setViewport(0, 0, W, H);
+    renderer.setScissor(0, 0, W, H);
+    renderer.setScissorTest(true);
+    renderer.clear();
+    renderer.render(scene, mainCamera);
+
+    renderer.setViewport(PIP_M_X, PIP_M_Y, PIP_SIZE, PIP_SIZE);
+    renderer.setScissor(PIP_M_X, PIP_M_Y, PIP_SIZE, PIP_SIZE);
+    renderer.clearDepth();
+    renderer.render(scene, eeCamera);
+    renderer.setScissorTest(false);
+
+    const dists = computeLiDAR();
+    drawLiDAR(dists);
+    updateRaysIn3D(dists);
+}
+
+window.onload = init;
+</script>

@@ -48,8 +48,18 @@
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
 
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+        }
+    }
+</script>
+
 <script type="module">
-import * as THREE from 'https://unpkg.com/three@0.180.0/build/three.module.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // ── URLs ────────────────────────────────────────────────────────────────
 const MUJOCO_JS_URL = 'https://cdn.jsdelivr.net/npm/mujoco-js/dist/mujoco_wasm.js';
@@ -57,10 +67,10 @@ const MENAGERIE_BASE = 'https://raw.githubusercontent.com/google-deepmind/mujoco
 
 // ── Globals ─────────────────────────────────────────────────────────────
 let mujoco, mjModel, mjData;
-let scene, mainCamera, renderer, gui, eeCamera;
+let scene, mainCamera, renderer, gui, eeCamera, controls;
 let geomMeshes = [];
+let rayLines; // LiDAR 3D 시각화용 전역 변수
 
-// LiDAR의 시각적 스케일을 키우기 위해 Range를 1.0m로 축소합니다.
 const N_LIDAR = 72, LIDAR_RANGE = 1.0; 
 
 let W, H;
@@ -69,7 +79,6 @@ const PIP_M_X = 15;
 const PIP_M_Y = 15;
 
 let simRunning = false;
-let rayLines; // 👈 3D 공간에 광선을 그릴 객체
 
 const guiParams = {
     q1: 3.14, q2: -1.57, q3: 1.57, q4: -1.57, q5: -1.57, q6: 0,
@@ -145,8 +154,6 @@ async function loadMuJoCo() {
         `;
         sceneXml = sceneXml.replace('<worldbody>', assetXML + '\n<worldbody>');
 
-        // 2. 명시적인 센서 사이트 주입 
-        // 바닥을 똑바로 쳐다보도록 xyaxes="1 0 0 0 -1 0" 적용 
         let sensorInjection = `
             <camera name="ee_cam" pos="0 0.1 0" xyaxes="1 0 0 0 1 0" fovy="60"/>
         `;
@@ -159,7 +166,6 @@ async function loadMuJoCo() {
         
         ur10eXml = ur10eXml.replace('<site name="attachment_site"', sensorInjection + '\n<site name="attachment_site"');
 
-        // 3. LiDAR Rangefinder 추가 (스케일을 1.0으로 조정)
         let rfSensors = '<sensor>\n';
         for (let i = 0; i < N_LIDAR; i++) {
             rfSensors += `    <rangefinder name="rf_${i}" site="ray_${i}" cutoff="1.0"/>\n`;
@@ -339,7 +345,6 @@ function updateMeshesFromMuJoCo() {
 function updateEECamera() {
     if (!mjData) return;
     
-    // Enum 객체(object)일 경우 .value를 추출하여 에러 방지
     const objCam = mujoco.mjtObj.mjOBJ_CAMERA;
     const typeCam = objCam.value !== undefined ? objCam.value : objCam;
     
@@ -355,15 +360,7 @@ function updateEECamera() {
     
     eeCamera.position.set(px, pz, -py);
     
-    // 💡 핵심 수정: 카메라의 경우, 내부 Geometry 좌표계를 비틀지 않으므로, 
-    // 열(column) 방향 매핑이 일반 메쉬(Mesh)와 다르게 설정되어야 합니다.
     const mat4 = new THREE.Matrix4();
-    // mat4.set(
-    //      r[i9+0],  r[i9+1],  r[i9+2], 0,
-    //      r[i9+6],  r[i9+7],  r[i9+8], 0,
-    //     -r[i9+3], -r[i9+4], -r[i9+5], 0,
-    //      0,        0,        0,       1
-    // );
     mat4.set(
          r[i9+0],  r[i9+2], -r[i9+1], 0,
          r[i9+6],  r[i9+8], -r[i9+7], 0,
@@ -401,22 +398,16 @@ function drawLiDAR(dists) {
     const ctx = cvs.getContext('2d');
     const w = cvs.width, h = cvs.height, cx = w/2, cy = h/2, R = Math.min(cx, cy) - 8;
     ctx.clearRect(0, 0, w, h);
-    
-    // 100%, 66%, 33% 거리 그리드 라인
     ctx.strokeStyle = 'rgba(100,255,100,0.15)'; 
     ctx.lineWidth = 1;
     for(let i=1; i<=3; i++){ ctx.beginPath(); ctx.arc(cx,cy,R*i/3,0,Math.PI*2); ctx.stroke(); }
     ctx.beginPath(); ctx.moveTo(cx-R,cy); ctx.lineTo(cx+R,cy); ctx.moveTo(cx,cy-R); ctx.lineTo(cx,cy+R); ctx.stroke();
-    
-    // 감지선 그리기
     ctx.beginPath(); ctx.strokeStyle = 'rgba(0,255,80,0.9)'; ctx.lineWidth = 2;
     for(let i=0; i<=N_LIDAR; i++) {
         const idx = i % N_LIDAR, a = 2*Math.PI*idx/N_LIDAR - Math.PI/2, r = dists[idx]/LIDAR_RANGE*R;
         if(i===0) ctx.moveTo(cx+r*Math.cos(a), cy+r*Math.sin(a)); else ctx.lineTo(cx+r*Math.cos(a), cy+r*Math.sin(a));
     }
     ctx.stroke();
-    
-    // 충돌 포인트 도트 그리기
     ctx.fillStyle = 'rgba(0,255,80,0.6)';
     for(let i=0; i<N_LIDAR; i++) {
         if(dists[i] < LIDAR_RANGE - 0.01) {
@@ -424,12 +415,9 @@ function drawLiDAR(dists) {
             ctx.beginPath(); ctx.arc(cx+r*Math.cos(a), cy+r*Math.sin(a), 3, 0, Math.PI*2); ctx.fill();
         }
     }
-    
-    // 로봇 중심점(원점) 그리기
     ctx.fillStyle = 'rgba(255,100,100,0.9)'; ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.fill();
 }
 
-// ── LiDAR Ray 3D Visualization ──────────────────────────────────────────
 function updateRaysIn3D(dists) {
     if (!mjData || !rayLines) return;
     
@@ -441,13 +429,10 @@ function updateRaysIn3D(dists) {
         const siteId = mujoco.mj_name2id(mjModel, typeSite, `ray_${i}`);
         if (siteId < 0) continue;
 
-        // MuJoCo 월드 프레임에서의 센서(Site) 원점 좌표
         const px = mjData.site_xpos[siteId * 3 + 0];
         const py = mjData.site_xpos[siteId * 3 + 1];
         const pz = mjData.site_xpos[siteId * 3 + 2];
 
-        // MuJoCo site_xmat에서 Z축 벡터 추출 (Rangefinder는 사이트의 Z축으로 발사됨)
-        // 회전 행렬의 세 번째 열(column 2) 값들이 Z축 방향입니다.
         const r = mjData.site_xmat;
         const idx = siteId * 9;
         const zx = r[idx + 2];
@@ -456,35 +441,18 @@ function updateRaysIn3D(dists) {
 
         const dist = dists[i];
 
-        // Three.js 좌표계(Y-up)로 변환: (x, y, z) -> (x, z, -y)
-        
-        // 1. 시작점 (센서 원점)
         positions[i * 6 + 0] = px;
         positions[i * 6 + 1] = pz;
         positions[i * 6 + 2] = -py;
 
-        // 2. 끝점 (원점 + 방향 * 거리)
         positions[i * 6 + 3] = px + zx * dist;
         positions[i * 6 + 4] = pz + zz * dist;
         positions[i * 6 + 5] = -(py + zy * dist);
     }
-    // Three.js에 버텍스가 변경되었음을 알림
     rayLines.geometry.attributes.position.needsUpdate = true;
 }
 
-// ── Boilerplate (OrbitControls, GUI, Render Loop) ───────────────────────
-function setupOrbitControls(cam, el) {
-    let drag=false,prev={x:0,y:0},sph={t:Math.PI/4,p:Math.PI/3,r:2.5};
-    const tgt=new THREE.Vector3(0, 0.4, 0); 
-    const sync=()=>{const sp=Math.sin(sph.p);cam.position.set(tgt.x+sph.r*sp*Math.sin(sph.t),tgt.y+sph.r*Math.cos(sph.p),tgt.z+sph.r*sp*Math.cos(sph.t));cam.lookAt(tgt);};
-    el.addEventListener('pointerdown',e=>{drag=true;prev={x:e.clientX,y:e.clientY};});
-    window.addEventListener('pointerup',()=>{drag=false;});
-    window.addEventListener('pointercancel',()=>{drag=false;});
-    el.addEventListener('pointermove',e=>{if(!drag)return;sph.t-=(e.clientX-prev.x)*0.005;sph.p=Math.max(0.1,Math.min(Math.PI-0.1,sph.p-(e.clientY-prev.y)*0.005));prev={x:e.clientX,y:e.clientY};sync();});
-    el.addEventListener('wheel',e=>{sph.r=Math.max(0.5,Math.min(10,sph.r+e.deltaY*0.005));sync();e.preventDefault();},{passive:false});
-    sync();
-}
-
+// ── Boilerplate (GUI) ───────────────────────
 function initGui() {
     gui = new dat.GUI({name:'UR10e Control'});
     const c = document.getElementById('wrapper');
@@ -524,7 +492,11 @@ async function init() {
     scene.background = new THREE.Color(0x1a1a2e);
     scene.fog = new THREE.Fog(0x1a1a2e, 5, 20);
 
+    // 카메라 초기 위치 변경
     mainCamera = new THREE.PerspectiveCamera(50, W/H, 0.05, 50);
+    mainCamera.position.set(1.5, 1.5, 2.0);
+    mainCamera.layers.enable(1);
+
     const canvas = document.getElementById('webgl');
     renderer = new THREE.WebGLRenderer({canvas, antialias:true});
     renderer.setSize(W, H);
@@ -532,25 +504,29 @@ async function init() {
     renderer.autoClear = false;
     renderer.shadowMap.enabled = true;
 
-    setupOrbitControls(mainCamera, canvas);
+    // 공식 OrbitControls 설정 적용
+    controls = new OrbitControls(mainCamera, renderer.domElement);
+    controls.target.set(0, 0.4, 0); // 로봇의 기둥 높이를 타겟으로 설정
+    controls.enableDamping = true; // 부드러운 관성 회전 활성화
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 0.5; // 최소 줌 아웃
+    controls.maxDistance = 10; // 최대 줌 아웃
 
     const lc = document.getElementById('lidarview');
     lc.width = PIP_SIZE * Math.min(window.devicePixelRatio, 2);
     lc.height = PIP_SIZE * Math.min(window.devicePixelRatio, 2);
 
     scene.add(new THREE.AmbientLight(0x404060, 0.8));
-
-    // LiDAR 3D 시각화용 LineSegments 객체 생성
-    const lineGeo = new THREE.BufferGeometry();
-    // N_LIDAR개의 선분, 각 선분은 시작점과 끝점(2개)을 가지며, 점마다 3개의 좌표(x, y, z)
-    lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N_LIDAR * 2 * 3), 3));
-    // 녹색 반투명 선으로 설정
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
-    rayLines = new THREE.LineSegments(lineGeo, lineMat);
-    scene.add(rayLines);
-
     const dl=new THREE.DirectionalLight(0xffffff,1.0);dl.position.set(2,4,3);dl.castShadow=true;scene.add(dl);
     
+    // LiDAR 시각화 객체 초기화
+    const lineGeo = new THREE.BufferGeometry();
+    lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N_LIDAR * 2 * 3), 3));
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
+    rayLines = new THREE.LineSegments(lineGeo, lineMat);
+    rayLines.layers.set(1);
+    scene.add(rayLines);
+
     eeCamera = new THREE.PerspectiveCamera(60, 1.0, 0.02, 10);
     initGui();
 
@@ -571,6 +547,10 @@ function animate() {
         return;
     }
     requestAnimationFrame(animate);
+    
+    // OrbitControls를 매 프레임 업데이트해야 관성(damping)이 적용됩니다.
+    controls.update();
+
     stepSim();
     updateMeshesFromMuJoCo();
     updateEECamera();

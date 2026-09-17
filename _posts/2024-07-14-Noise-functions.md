@@ -20,7 +20,7 @@ excerpt_separator: <!--more-->
 <!--more-->
 
 ## Value noise
-This is the simplest noise function using four random values per each vertex. As mentioned in here[^shaderpattern], GLSL does not support a true random function, but pseudo-random function. Thus, a vertex can read the random value of adjacent vertices from indexing, i.e., `random(x + vec2(1., 0.))`. By interpolating the value of four vertices, we can generate a noise value. To make the noise value smooth at the boundary, we can use `smoothstep()` or a custom stepper (timing) function. I'll address the interpolation methods in [the upcoming article]({% post_url 2024-09-21-Interpolation-methods %}). Then, when you increase the scale of the input of the noise function, the resolution of the noise pattern will increase. 
+This is the simplest noise function using four random values per each vertex. As mentioned in here[^shaderpattern], GLSL does not support a true random function, but pseudo-random function. Thus, a vertex can read the random value of adjacent vertices from indexing, i.e., `random(x + vec2(1., 0.))`. By interpolating the value of four vertices, we can generate a noise value. To make the noise value smooth at the boundary, we can use `smoothstep()` or a custom stepper (timing) function. I'll address the [interpolation methods]({% post_url 2024-09-21-Interpolation-methods %}) in the upcoming article. Then, when you increase the scale of the input of the noise function, the resolution of the noise pattern will increase. 
 
 ```glsl
 // Fragment

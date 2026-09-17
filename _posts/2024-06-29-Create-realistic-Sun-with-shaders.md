@@ -35,7 +35,7 @@ This post is part of the [Solar System Simulator]({% post_url 2024-02-16-How-to-
 1. [Compute the elliptical orbit]({% post_url 2025-01-05-Elliptical-Orbit-Mechnics %})
 
 ## Surface
-Since the sun is the only celestial object that emits lights, there is no day-and-night. There is only day. So, we just design the texture of the surface of the sun only. In this article, the surface of the sun is rendered using fractal noise, a.k.a., fractal Brownian motion, referred from here[^shaderpattern]. To render a fractal noise in 3D space, we define a random and a noise function whose input is a 3D vector, in advance. You can find another magic numbers who generate a random number. 
+Since the sun is the only celestial object that emits lights, there is no day-and-night. There is only day. So, we just design the texture of the surface of the sun only. In this article, the surface of the sun is rendered using fractal noise, a.k.a., fractal Brownian motion, referred from here[^shaderpattern]. To render a fractal noise in 3D space, we define a random and a [noise function]({% post_url 2024-07-14-Noise-functions %}) whose input is a 3D vector, in advance. You can find another magic numbers who generate a random number. 
 ```glsl
 // 2D Random
 float random (in vec3 st) {

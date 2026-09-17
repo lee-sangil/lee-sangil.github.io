@@ -167,7 +167,7 @@ float random(in vec2 x) {
 The above magic numbers can be chosen manually so that randomness is shown well. For more information about the analysis of random sequences, visit [Analysis of Random Generator]({% post_url 2025-03-29-Random %}).
 
 ## Noise
-If we called a single independent noise as random, noise means the interpolated value between random values. Thus, noise functions have a continuity, whereas random functions show discontinuity. Below are the example of random and noise.
+If we called a single independent noise as random, noise means the interpolated value between random values. Thus, [noise functions]({% post_url 2024-07-14-Noise-functions %}) have a continuity, whereas random functions show discontinuity. Below are the example of random and noise.
 
 | random | noise |
 |:-:|:-:|

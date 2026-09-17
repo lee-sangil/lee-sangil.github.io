@@ -19,7 +19,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> This post explains how to apply a bloom effect to specific objects in a Three.js scene using multiple EffectComposer instances and layers. By leveraging Three.js Layers, objects that require the bloom effect are isolated into a dedicated layer. A "bloom composer" renders only these objects with the bloom effect, while a "main composer" renders the full scene and merges the bloom effect back into it using a custom shader. To merge two rendered images properly, non-blooming objects are temporarily darkened during the bloom rendering process to avoid unintended contributions to the effect. Then, the original materials are restored before rendering the final scene. Finally, a selective blooming effect can be achieved, while improving visual aesthetics.
+> This post explains how to apply a bloom effect to specific objects in a Three.js scene using multiple [EffectComposer]({% post_url 2025-01-15-Post-Processing %}) instances and layers. By leveraging Three.js Layers, objects that require the bloom effect are isolated into a dedicated layer. A "bloom composer" renders only these objects with the bloom effect, while a "main composer" renders the full scene and merges the bloom effect back into it using a [custom shader]({% post_url 2024-03-26-Shader-material %}). To merge two rendered images properly, non-blooming objects are temporarily darkened during the bloom rendering process to avoid unintended contributions to the effect. Then, the original materials are restored before rendering the final scene. Finally, a selective blooming effect can be achieved, while improving visual aesthetics.
 
 <!--more-->
 

@@ -26,7 +26,7 @@ excerpt_separator: <!--more-->
 {% include /assets/mujoco_balancing_double_pendulum.html %}
 <br/>
 
-The demo above runs a trained agent via MuJoCo. The pendulum starts hanging down. You can toggle a \[Get Inverted\] button in the control panel to activate the agent. The agent applies torque to the first joint, swings both links and makes them inverted. The arc at the pivot indicates the direction and magnitude of the applied torque. Adjust mass, length, damping, and gravity with the sliders to see how the agent handles configurations on which it was not trained.
+The demo above runs a trained agent via [MuJoCo]({% post_url 2026-03-04-Start-mujoco %}). The pendulum starts hanging down. You can toggle a \[Get Inverted\] button in the control panel to activate the agent. The agent applies torque to the first joint, swings both links and makes them inverted. The arc at the pivot indicates the direction and magnitude of the applied torque. Adjust mass, length, damping, and gravity with the sliders to see how the agent handles configurations on which it was not trained.
 
 In Q-Network, the action-value function $$Q^\pi(s, a)$$ is the expected cumulative reward from taking action $$a$$ in state $$s$$ and following policy $$\pi$$ thereafter:
 
@@ -349,4 +349,4 @@ Combining Dueling architecture with Double DQN yields Dueling Double DQN. The ne
 
 We implement vanilla DQN and Dueling Double DQN, and they can learn swing-up-and-balance problem on the double pendulum. The Dueling Double DQN typically shows faster convergence due to reduced overestimation and better value decomposition. 
 
-Further improvements are possible with prioritized experience replay, which trains transitions with high TD error more frequently. For tasks requiring continuous torque output, policy gradient methods such as SAC (Soft Actor-Critic) or PPO (Proximal Policy Optimization) don't need to discretize action and can achieve smoother control profiles.
+Further improvements are possible with prioritized experience replay, which trains transitions with high TD error more frequently. For tasks requiring continuous torque output, [policy gradient methods]({% post_url 2026-05-23-Policy-gradient-method %}) such as SAC (Soft Actor-Critic) or PPO (Proximal Policy Optimization) don't need to discretize action and can achieve smoother control profiles.

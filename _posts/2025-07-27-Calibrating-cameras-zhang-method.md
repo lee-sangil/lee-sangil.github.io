@@ -15,7 +15,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> Camera calibration is a fundamental step in many computer vision applications, from 3D reconstruction to augmented reality. It involves estimating the intrinsic parameters of a camera (like focal length, principal point, and lens distortion) and its extrinsic parameters (rotation and translation relative to a world coordinate system). Among the various calibration techniques, Zhang's method stands out for its simplicity and effectiveness, requiring only a planar checkerboard pattern observed from different viewpoints.
+> Camera calibration is a fundamental step in many computer vision applications, from 3D reconstruction to augmented reality. It involves estimating the intrinsic parameters of a camera (like focal length, principal point, and [lens distortion]({% post_url 2025-10-28-Exploring-camera-model %}) and its extrinsic parameters (rotation and translation relative to a world coordinate system). Among the various calibration techniques, Zhang's method stands out for its simplicity and effectiveness, requiring only a planar checkerboard pattern observed from different viewpoints.
 
 <!--more-->
 

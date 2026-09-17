@@ -22,7 +22,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> In the previous article, I explained how to render solid objects using the ray marching method. However, since the ray stops marching at the boundary of the object, it cannot successfully render translucent or transparent objects. This article delves into the ray marching method for a generalized object, such as glass, incorporating fundamental optical physics. This technique is also known as volume rendering or participating media rendering. 
+> In the previous article, I explained how to render solid objects using the [ray marching method]({% post_url 2025-04-29-Ray-marching %}). However, since the ray stops marching at the boundary of the object, it cannot successfully render translucent or transparent objects. This article delves into the ray marching method for a generalized object, such as glass, incorporating fundamental optical physics. This technique is also known as volume rendering or participating media rendering. 
 
 ## Translucent object
 To represent the color of an arbitrary object, it’s a good starting point to calculate a translucent color. Once we have that, it becomes straightforward to depict a transparent or opaque object by simply adjusting the opacity parameter.

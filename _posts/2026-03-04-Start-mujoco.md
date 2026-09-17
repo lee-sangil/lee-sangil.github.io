@@ -156,7 +156,7 @@ An MJCF model is an XML document rooted at `<mujoco>`. The key elements are:
 - `<joint>`: a degree of freedom connecting a body to its parent.
 - `<actuator>`: an actuator attached to a joint. Common types: `motor`, `position`, `velocity`.
 
-For example, the following MJCF defines a double pendulum:
+For example, the following MJCF defines a [double pendulum]({% post_url 2026-03-31-Balancing-double-pendulum %}):
 
 ```xml
 <mujoco model="double_pendulum">

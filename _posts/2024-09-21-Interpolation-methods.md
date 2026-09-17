@@ -20,7 +20,7 @@ excerpt_separator: <!--more-->
 <!--more-->
 
 ## Flat
-This is the simplest method for filling values inside predefined values. In this method, the value between two points remains constant until the next data point is reached. For example, in GLSL, a noise function using flat interpolation can be written as
+This is the simplest method for filling values inside predefined values. In this method, the value between two points remains constant until the next data point is reached. For example, in GLSL, a [noise function]({% post_url 2024-07-14-Noise-functions %}) using flat interpolation can be written as
 ```glsl
 float random (in vec2 x) {
   return fract(sin(dot(x, vec2(12.9898,54.233))) * 43758.5453123);

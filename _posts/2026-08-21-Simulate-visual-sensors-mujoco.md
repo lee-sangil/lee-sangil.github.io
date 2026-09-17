@@ -18,7 +18,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> MuJoCo provides two fundamentally different mechanisms for visual sensing. Camera-based sensors (RGB, depth, segmentation) are implemented through offscreen OpenGL rendering via the `mujoco.Renderer` class. Rangefinder-based sensors (LiDAR) are native MuJoCo sensors that use CPU raycasting and write their outputs directly to `mjData.sensordata`. This post covers both mechanisms, then attaches an RGB camera to the end-effector of a robot arm.
+> [MuJoCo]({% post_url 2026-03-04-Start-mujoco %}) provides two fundamentally different mechanisms for visual sensing. Camera-based sensors (RGB, depth, segmentation) are implemented through offscreen OpenGL rendering via the `mujoco.Renderer` class. Rangefinder-based sensors (LiDAR) are native MuJoCo sensors that use CPU raycasting and write their outputs directly to `mjData.sensordata`. This post covers both mechanisms, then attaches an RGB camera to the end-effector of a robot arm.
 
 <!--more-->
 

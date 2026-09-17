@@ -17,7 +17,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> A shader material is rendered with a custom shader. It requires vertex and fragment shaders which are written in GLSL (openGL Shading Language) code and depict the position of a vertex and its color, respectively. Since these codes run on the GPU using WebGL, a `ShaderMaterial` is rendered properly by `WebGLRenderer` only. In the post, I'll explain how to use Shaders in Three.js.
+> A shader material is rendered with a custom shader. It requires [vertex and fragment shaders]({% post_url 2024-04-21-Vertex-and-fragment %}) which are written in GLSL (openGL Shading Language) code and depict the position of a vertex and its color, respectively. Since these codes run on the GPU using WebGL, a `ShaderMaterial` is rendered properly by `WebGLRenderer` only. In the post, I'll explain how to use Shaders in Three.js.
 
 <!--more-->
 

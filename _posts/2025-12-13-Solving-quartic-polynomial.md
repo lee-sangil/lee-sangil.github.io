@@ -147,7 +147,7 @@ $$
 \end{align}
 $$
 
-By using Cardano’s formula, we can obtain the roots of the above cubic polynomial. Let the roots be $$u^2$$, $$v^2$$, $$w^2$$. Then, the roots of six-degree polynomial of $$k$$ are $$\pm u$$, $$\pm v$$, $$\pm w$$. 
+By using [Cardano’s formula]({% post_url 2025-11-19-Solving-cubic-polynomial %}), we can obtain the roots of the above cubic polynomial. Let the roots be $$u^2$$, $$v^2$$, $$w^2$$. Then, the roots of six-degree polynomial of $$k$$ are $$\pm u$$, $$\pm v$$, $$\pm w$$. 
 
 Let’s get back to the depressed quartic polynomial:
 

@@ -16,7 +16,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> The Particle Filter is a sequential Monte Carlo implementation of the Bayesian Filter. Unlike the Kalman Filter, it does not require linearity or Gaussian assumptions, making it suitable for highly nonlinear systems and non-Gaussian distributions. Instead of representing the belief with a mean and covariance, it approximates the posterior distribution using a set of discrete samples, or particles. This post provides a step-by-step mathematical derivation of the particle filter algorithm.
+> The Particle Filter is a sequential Monte Carlo implementation of the Bayesian Filter. Unlike the [Kalman Filter]({% post_url 2026-01-24-Kalman-filter %}), it does not require linearity or Gaussian assumptions, making it suitable for highly nonlinear systems and non-Gaussian distributions. Instead of representing the belief with a mean and covariance, it approximates the posterior distribution using a set of discrete samples, or particles. This post provides a step-by-step mathematical derivation of the particle filter algorithm.
 
 <!--more-->
 

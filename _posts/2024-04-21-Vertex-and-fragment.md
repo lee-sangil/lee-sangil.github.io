@@ -14,7 +14,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> A shader program consists of vertex and fragment shaders. A vertex shader defines the geometric attributes of vertices, whereas fragment shader defines their color. In this post, I'll address how to create the vertex and fragment shaders and how to use them.
+> A [shader program]({% post_url 2024-04-06-Shader-program %}) consists of vertex and fragment shaders. A vertex shader defines the geometric attributes of vertices, whereas fragment shader defines their color. In this post, I'll address how to create the vertex and fragment shaders and how to use them.
 
 <!--more-->
 

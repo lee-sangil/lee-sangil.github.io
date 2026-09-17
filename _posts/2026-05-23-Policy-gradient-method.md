@@ -19,7 +19,7 @@ header:
 excerpt_separator: <!--more-->
 ---
 
-> The previous post derived DQN, DDQN, and Dueling DQN. These value-based methods learn Q-function and follow a policy that maximizes Q-function. This approach works well for discrete action spaces but cannot be applied when actions are continuous, since the maximization step is no longer processed. On the other hand, policy gradient methods parameterize the policy directly and differentiate the expected return with respect to its parameters. This post reviews the three well-known algorithms of policy gradient methods — REINFORCE, Actor-Critic, A3C, and A2C.
+> The previous post derived [DQN]({% post_url 2026-03-31-Balancing-double-pendulum %}), DDQN, and Dueling DQN. These value-based methods learn Q-function and follow a policy that maximizes Q-function. This approach works well for discrete action spaces but cannot be applied when actions are continuous, since the maximization step is no longer processed. On the other hand, policy gradient methods parameterize the policy directly and differentiate the expected return with respect to its parameters. This post reviews the three well-known algorithms of policy gradient methods — REINFORCE, Actor-Critic, A3C, and A2C.
 
 <!--more-->
 

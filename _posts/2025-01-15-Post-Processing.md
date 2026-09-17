@@ -54,12 +54,12 @@ const bloomPass = new UnrealBloomPass(
 composer.addPass(bloomPass);
 ```
 
-Here, resolution determines the quality of the bloom effect. Higher resolution gives sharper results but can degrade performance. The strength controls the intensity of the bloom effect. The radius specifies the area over which the bloom spreads, and threshold sets the brightness threshold. Only pixels brighter than this value will bloom.
+Here, resolution determines the quality of the [bloom effect]({% post_url 2025-01-28-Selective-Bloom-Effect %}). Higher resolution gives sharper results but can degrade performance. The strength controls the intensity of the bloom effect. The radius specifies the area over which the bloom spreads, and threshold sets the brightness threshold. Only pixels brighter than this value will bloom.
 
 ### Shader Pass
 The above passes are pre-built-in classes defined in Three.js. On the other hand, `ShaderPass` uses custom shaders to implement effects. It allows high flexibility for creating custom post-processing effects. It is implemented by GLSL code. 
 
-The `ShaderPass` applies a custom shader to the image data produced by the previous pass in the pipeline. It uses two main components:
+The `ShaderPass` applies a [custom shader]({% post_url 2024-03-26-Shader-material %}) to the image data produced by the previous pass in the pipeline. It uses two main components:
 
 - **Vertex Shader**: Defines how the geometry is processed (usually minimal work in post-processing).
 - **Fragment Shader**: Defines how pixels are shaded or manipulated. This is where most of the work happens for post-processing effects.

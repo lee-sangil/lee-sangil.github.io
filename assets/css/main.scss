@@ -53,3 +53,136 @@
     left: 50%;
     transform: translate(-50%, 0);
 }
+
+/* ==========================================================================
+   Foldable block (<details>) with Copy button
+   ========================================================================== */
+
+details {
+  margin: 1.2em 0;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  background-color: $code-background-color;
+  overflow: hidden;
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6em 0.9em;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: $text-color;
+    background-color: mix(#fff, $light-gray, 70%);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    transition: background-color 0.2s ease;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::marker {
+      display: none;
+    }
+
+    &:hover {
+      background-color: mix(#fff, $light-gray, 50%);
+    }
+
+    .summary-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      flex: 1;
+      min-width: 0;
+
+      &::before {
+        content: "";
+        display: inline-block;
+        width: 0;
+        height: 0;
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        border-left: 6px solid $gray;
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+        margin-right: 2px;
+      }
+    }
+
+    .details-copy-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      padding: 0.25em 0.6em;
+      font-size: 0.8em;
+      font-family: $sans-serif;
+      font-weight: 600;
+      color: $text-color;
+      background-color: #ffffff;
+      border: 1px solid $border-color;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      margin-left: 1em;
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: all 0.15s ease-in-out;
+      line-height: 1.4;
+
+      &:hover {
+        background-color: mix(#fff, $primary-color, 90%);
+        border-color: $gray;
+        color: $darker-gray;
+      }
+
+      &.copied {
+        background-color: #e6f4ea;
+        border-color: #34a853;
+        color: #137333;
+      }
+
+      .copy-icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      svg {
+        display: block;
+        width: 13px;
+        height: 13px;
+        stroke: currentColor;
+      }
+    }
+  }
+
+  &[open] {
+    summary {
+      border-bottom: 1px solid $border-color;
+
+      .summary-title::before {
+        transform: rotate(90deg);
+      }
+    }
+
+    > .highlighter-rouge,
+    > div[class*="language-"] {
+      margin: 0;
+      border-radius: 0;
+    }
+
+    > *:not(summary):not(.highlighter-rouge):not(div[class*="language-"]) {
+      padding-left: 1em;
+      padding-right: 1em;
+    }
+
+    > p {
+      padding-top: 0.8em;
+      margin-bottom: 0.5em;
+    }
+  }
+}

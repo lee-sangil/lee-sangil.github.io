@@ -445,7 +445,7 @@ function uv = project(xyz, coeffs)
 % coeffs = [fx, fy, s, cx, cy, xi, k1, k2, p1, p2]
 
 coeffs_cell = num2cell(coeffs);
-[fx, fy, s, cx, cy, xi, k1, k2, p1, p2] =  = deal(coeffs_cell{:});
+[fx, fy, s, cx, cy, xi, k1, k2, p1, p2] = deal(coeffs_cell{:});
 
 x = xyz(1,:);
 y = xyz(2,:);

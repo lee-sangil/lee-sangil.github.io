@@ -131,7 +131,9 @@ details {
       margin-left: 1em;
       flex-shrink: 0;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      transition: all 0.15s ease-in-out;
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 0.2s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
       line-height: 1.4;
 
       &:hover {
@@ -158,6 +160,30 @@ details {
         height: 13px;
         stroke: currentColor;
       }
+    }
+  }
+
+  // Touch environments: copy button is always visible
+  @media (hover: none) {
+    summary .details-copy-btn {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  // Mouse environments: copy button is hidden by default and smoothly appears on hover
+  @media (hover: hover) {
+    summary .details-copy-btn {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &:hover summary .details-copy-btn,
+    summary .details-copy-btn:focus,
+    summary .details-copy-btn:focus-visible,
+    summary .details-copy-btn.copied {
+      opacity: 1;
+      pointer-events: auto;
     }
   }
 

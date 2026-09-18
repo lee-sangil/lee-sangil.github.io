@@ -1,0 +1,636 @@
+<div id="wrapper">
+    <canvas id='render'></canvas>
+    <svg id="enterFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
+    <svg id="leaveFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Leave Fullscreen</title><path d="M14,14H19V16H16V19H14V14M5,14H10V19H8V16H5V14M8,5H10V10H5V8H8V5M19,8V10H14V5H16V8H19Z" /></svg>
+</div>
+
+<style>
+    #wrapper {
+        background-color: #111;
+        position: relative;
+        width: 100%;
+        height: 50vh;
+        overflow: hidden;
+        font-family: sans-serif;
+    }
+    #wrapper canvas#render {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        z-index: 0;
+    }
+    .dg {
+        min-height: 16px;
+        max-height: 100%;
+        height: fit-content;
+        overflow-x: hidden;
+    }
+    .dg.main {
+        padding-bottom: 20px;
+    }
+    .dg.main > div:first-child {
+        position: relative !important;
+    }
+    .dg li {
+        margin-bottom: 0px;
+    }
+    .dg ul {
+        position: inherit;
+        top: 20px;
+        height: unset !important;
+    }
+    .dg .property-name {
+        width: 40%;
+    }
+    .dg .c {
+        width: 60%;
+    }
+    .dg .slider {
+        width: 70%;
+    }
+    .dg .has-slider input[type=text] {
+        width: 25%;
+    }
+    .dg .close-button {
+        position: absolute;
+        top: 0;
+    }
+    .fullscreen {
+        fill: lightgray;
+        position: absolute;
+        top: 1vh;
+        left: 1vw;
+        margin: 5px;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        z-index: 20;
+    }
+    .fullscreen:hover {
+        background-color: rgba(255,255,255,0.3);
+        border-radius: 50%;
+    }
+    #leaveFullscreen {
+        visibility: hidden;
+    }
+</style>
+
+<script id="webgl-compute-fs" type="x-shader/x-fragment">
+    precision highp float;
+    uniform sampler2D u_currPosition;
+    uniform vec2 u_mouse;
+    uniform float u_dt;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+
+    // Fast 2D Simplex-like hash/noise
+    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+    float snoise(vec2 v) {
+        const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+                            -0.577350269189626, 0.024390243902439);
+        vec2 i  = floor(v + dot(v, C.yy));
+        vec2 x0 = v -   i + dot(i, C.xx);
+        vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+        vec4 x12 = x0.xyxy + C.xxzz;
+        x12.xy -= i1;
+        i = mod289(i);
+        vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+        m = m*m; m = m*m;
+        vec3 x = 2.0 * fract(p * C.www) - 1.0;
+        vec3 h = abs(x) - 0.5;
+        vec3 ox = floor(x + 0.5);
+        vec3 a0 = x - ox;
+        m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+        vec3 g;
+        g.x  = a0.x  * x0.x  + h.x  * x0.y;
+        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+        return 130.0 * dot(m, g);
+    }
+
+    vec2 curlNoise(vec2 p, float time) {
+        const float eps = 0.005;
+        float n1, n2, a, b;
+        vec2 curl = vec2(0.0);
+        float freq = 0.8;
+        float amp = 1.0;
+
+        for(int i = 0; i < 10; i++) {
+            vec2 coord = p * freq + vec2(time * 0.1 + sin(time * 0.2 + float(i)), time * 0.08 + cos(time * 0.15 + float(i)));
+            n1 = snoise(coord + vec2(0.0, eps));
+            n2 = snoise(coord - vec2(0.0, eps));
+            a = (n1 - n2) / (2.0 * eps);
+
+            n1 = snoise(coord + vec2(eps, 0.0));
+            n2 = snoise(coord - vec2(eps, 0.0));
+            b = (n1 - n2) / (2.0 * eps);
+
+            curl += vec2(a, -b) * amp;
+            freq *= 2.0;
+            amp *= 0.5;
+        }
+        return curl;
+    }
+
+    void main() {
+        vec2 uv = gl_FragCoord.xy / u_resolution;
+        vec4 data = texture2D(u_currPosition, uv);
+        vec2 pos = data.xy;
+        vec2 vel = data.zw;
+
+        vec2 turbulence = curlNoise(pos, u_time);
+
+        vec2 dir = u_mouse - pos;
+        float dist = length(dir);
+        vec2 mouseForce = normalize(dir) * (0.7 / (dist * dist + 0.1));
+
+        vel += (turbulence * 1.5 + mouseForce - 2.5 * vel) * u_dt;
+        pos += vel * u_dt;
+
+        if (abs(pos.x) > 1.2) pos.x = -sign(pos.x) * 1.15;
+        if (abs(pos.y) > 1.2) pos.y = -sign(pos.y) * 1.15;
+
+        gl_FragColor = vec4(pos, vel);
+    }
+</script>
+<script id="webgl-compute-vs" type="x-shader/x-vertex">
+    attribute vec2 a_position;
+    void main() { gl_Position = vec4(a_position, 0.0, 1.0); }
+</script>
+<script id="webgl-render-vs" type="x-shader/x-vertex">
+    attribute vec2 a_index;
+    uniform sampler2D u_positionMap;
+    varying vec2 v_uv;
+    void main() {
+        vec4 data = texture2D(u_positionMap, a_index);
+        v_uv = data.zw;
+        gl_Position = vec4(data.xy, 0.0, 1.0);
+        gl_PointSize = 1.0;
+    }
+</script>
+<script id="webgl-render-fs" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec2 v_uv;
+    void main() { 
+        float t = clamp(length(v_uv) / 1.5, 0.0, 1.0);
+        vec3 slowColor = vec3(0.2, 0.6, 1.0);
+        vec3 fastColor = vec3(1.0, 0.4, 1.0);
+        vec3 col = mix(slowColor, fastColor, t);
+        gl_FragColor = vec4(col, 1.0); 
+    }
+</script>
+
+<script src="//unpkg.com/stats.js@0.17.0/build/stats.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+
+<script type="module">
+    const CONFIG = {
+        mode: 'WebGL',
+        textureSize: 512,
+    };
+
+    const SIZE_OPTIONS = {
+        '262K': 512,
+        '1M': 1024,
+    };
+
+    let currentApp = null;
+    let mouse = { x: 0, y: 0 };
+
+    // 마우스 좌표를 캔버스 로컬 좌표계(NDC)로 변환.
+    // wrapper 크기가 window 전체가 아니므로 window.innerWidth/Height 대신
+    // canvas의 getBoundingClientRect() 기준으로 계산한다.
+    window.addEventListener('mousemove', e => {
+        const canvas = document.getElementById('render');
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+    });
+
+    // ---------------------------------------------------------
+    // WebGL Implementation
+    // ---------------------------------------------------------
+    class WebGLApp {
+        constructor(canvas, size) {
+            this.canvas = canvas;
+            this.gl = canvas.getContext('webgl');
+            const gl = this.gl;
+            
+            if (!gl.getExtension('OES_texture_float')) alert("Float texture not supported");
+
+            this.width = size;
+            this.height = size;
+            this.numParticles = size * size;
+
+            this.computeProg = this.createProgram('webgl-compute-vs', 'webgl-compute-fs');
+            this.renderProg = this.createProgram('webgl-render-vs', 'webgl-render-fs');
+
+            this.texA = this.createTexture();
+            this.texB = this.createTexture();
+            this.framebuffer = gl.createFramebuffer();
+
+            this.quadBuf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuf);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+
+            // Create index buffer for rendering particles
+            const indices = new Float32Array(this.numParticles * 2);
+            for(let i=0; i<this.numParticles; i++) {
+                const x = i % this.width;
+                const y = Math.floor(i / this.width);
+                indices[i*2+0] = (x + 0.5) / this.width;
+                indices[i*2+1] = (y + 0.5) / this.height;
+            }
+            this.idxBuf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.idxBuf);
+            gl.bufferData(gl.ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+
+            this.running = true;
+            this.loop();
+        }
+
+        createProgram(vsId, fsId) {
+            const gl = this.gl;
+            const vs = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vs, document.getElementById(vsId).text);
+            gl.compileShader(vs);
+            if(!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(vs));
+            
+            const fs = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fs, document.getElementById(fsId).text);
+            gl.compileShader(fs);
+            if(!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(fs));
+
+            const p = gl.createProgram();
+            gl.attachShader(p, vs);
+            gl.attachShader(p, fs);
+            gl.linkProgram(p);
+            return p;
+        }
+
+        createTexture() {
+            const gl = this.gl;
+            const t = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, t);
+            const data = new Float32Array(this.numParticles * 4);
+            for(let i=0; i<data.length; i+=4) {
+                data[i] = Math.random() * 2 - 1;
+                data[i+1] = Math.random() * 2 - 1;
+                // data[i+2] = 0; data[i+3] = 0; // initial velocity
+            }
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.FLOAT, data);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            return t;
+        }
+
+        loop() {
+            if(!this.running) return;
+            stats.begin(); // Start Measure
+
+            const gl = this.gl;
+
+            // Compute
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+            gl.viewport(0, 0, this.width, this.height);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texB, 0);
+            
+            gl.useProgram(this.computeProg);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.texA);
+            gl.uniform1i(gl.getUniformLocation(this.computeProg, "u_currPosition"), 0);
+            gl.uniform2f(gl.getUniformLocation(this.computeProg, "u_mouse"), mouse.x, mouse.y);
+            gl.uniform1f(gl.getUniformLocation(this.computeProg, "u_dt"), 0.016);
+            gl.uniform2f(gl.getUniformLocation(this.computeProg, "u_resolution"), this.width, this.height);
+            gl.uniform1f(gl.getUniformLocation(this.computeProg, "u_time"), performance.now() * 0.001);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuf);
+            const aPos = gl.getAttribLocation(this.computeProg, "a_position");
+            gl.enableVertexAttribArray(aPos);
+            gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            // Render
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            gl.clearColor(0,0,0,1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.useProgram(this.renderProg);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.texB);
+            gl.uniform1i(gl.getUniformLocation(this.renderProg, "u_positionMap"), 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.idxBuf);
+            const aIdx = gl.getAttribLocation(this.renderProg, "a_index");
+            gl.enableVertexAttribArray(aIdx);
+            gl.vertexAttribPointer(aIdx, 2, gl.FLOAT, false, 0, 0);
+            gl.drawArrays(gl.POINTS, 0, this.numParticles);
+
+            let t = this.texA; this.texA = this.texB; this.texB = t;
+
+            stats.end(); // End Measure
+            requestAnimationFrame(() => this.loop());
+        }
+
+        destroy() { this.running = false; }
+    }
+
+    // ---------------------------------------------------------
+    // WebGPU Implementation
+    // ---------------------------------------------------------
+    class WebGPUApp {
+        constructor(canvas, size) {
+            this.canvas = canvas;
+            this.numParticles = size * size;
+            this.running = true;
+            this.init();
+        }
+
+        async init() {
+            if (!navigator.gpu) return;
+            const adapter = await navigator.gpu.requestAdapter();
+            const device = await adapter.requestDevice();
+            this.device = device;
+            this.context = this.canvas.getContext('webgpu');
+            this.format = navigator.gpu.getPreferredCanvasFormat();
+            this.context.configure({ device, format: this.format });
+
+            const common = `struct P { pos: vec2<f32>, vel: vec2<f32> }; struct U { m: vec2<f32>, dt: f32, t: f32 };`;
+            const cShader = `${common}
+                @group(0) @binding(0) var<storage, read_write> p: array<P>;
+                @group(0) @binding(1) var<uniform> u: U;
+
+                fn mod289_3(x: vec3<f32>) -> vec3<f32> { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                fn mod289_2(x: vec2<f32>) -> vec2<f32> { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                fn permute(x: vec3<f32>) -> vec3<f32> { return mod289_3(((x * 34.0) + 1.0) * x); }
+
+                fn snoise(v: vec2<f32>) -> f32 {
+                    let C = vec4<f32>(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+                    var i = floor(v + dot(v, C.yy));
+                    let x0 = v - i + dot(i, C.xx);
+                    var i1 = vec2<f32>(0.0);
+                    if (x0.x > x0.y) { i1 = vec2<f32>(1.0, 0.0); } else { i1 = vec2<f32>(0.0, 1.0); }
+                    var x12 = x0.xyxy + C.xxzz;
+                    x12 = vec4<f32>(x12.xy - i1, x12.zw);
+                    i = mod289_2(i);
+                    let p_vec = permute(permute(i.y + vec3<f32>(0.0, i1.y, 1.0)) + i.x + vec3<f32>(0.0, i1.x, 1.0));
+                    var m = max(0.5 - vec3<f32>(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), vec3<f32>(0.0));
+                    m = m * m; m = m * m;
+                    let x = 2.0 * fract(p_vec * C.www) - 1.0;
+                    let h = abs(x) - 0.5;
+                    let ox = floor(x + 0.5);
+                    let a0 = x - ox;
+                    m = m * (1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h));
+                    let g = vec3<f32>(a0.x * x0.x + h.x * x0.y, a0.yz * x12.xz + h.yz * x12.yw);
+                    return 130.0 * dot(m, g);
+                }
+
+                fn curlNoise(p: vec2<f32>, time: f32) -> vec2<f32> {
+                    let eps: f32 = 0.005;
+                    var curl = vec2<f32>(0.0);
+                    var freq: f32 = 0.8;
+                    var amp: f32 = 1.0;
+
+                    for (var i: i32 = 0; i < 10; i = i + 1) {
+                        let coord = p * freq + vec2<f32>(time * 0.1 + sin(time * 0.2 + f32(i)), time * 0.08 + cos(time * 0.15 + f32(i)));
+                        let n1_y = snoise(coord + vec2<f32>(0.0, eps));
+                        let n2_y = snoise(coord - vec2<f32>(0.0, eps));
+                        let a = (n1_y - n2_y) / (2.0 * eps);
+
+                        let n1_x = snoise(coord + vec2<f32>(eps, 0.0));
+                        let n2_x = snoise(coord - vec2<f32>(eps, 0.0));
+                        let b = (n1_x - n2_x) / (2.0 * eps);
+
+                        curl = curl + vec2<f32>(a, -b) * amp;
+                        freq = freq * 2.0;
+                        amp = amp * 0.5;
+                    }
+                    return curl;
+                }
+
+                @compute @workgroup_size(64)
+                fn main(@builtin(global_invocation_id) id: vec3<u32>) {
+                    let i = id.x;
+                    if (i >= arrayLength(&p)) { return; }
+                    var pt = p[i];
+
+                    let turbulence = curlNoise(pt.pos, u.t);
+                    let dir = u.m - pt.pos;
+                    let dist = length(dir);
+                    let mouseForce = normalize(dir) * (0.7 / (dist * dist + 0.1));
+
+                    pt.vel += (turbulence * 1.5 + mouseForce - 2.5 * pt.vel) * u.dt;
+                    pt.pos += pt.vel * u.dt;
+
+                    if (abs(pt.pos.x) > 1.2) { pt.pos.x = -sign(pt.pos.x) * 1.15; }
+                    if (abs(pt.pos.y) > 1.2) { pt.pos.y = -sign(pt.pos.y) * 1.15; }
+
+                    p[i] = pt;
+                }`;
+            const rShader = `${common}
+                struct VertexOutput {
+                    @builtin(position) pos: vec4<f32>,
+                    @location(0) color: vec3<f32>,
+                };
+                @group(0) @binding(0) var<storage, read> p: array<P>;
+                @vertex fn vs(@builtin(vertex_index) i: u32) -> VertexOutput {
+                    let pt = p[i];
+                    
+                    let t = clamp(length(pt.vel) / 1.5, 0.0, 1.0);
+                    let slowColor = vec3<f32>(0.2, 0.6, 1.0);
+                    let fastColor = vec3<f32>(1.0, 0.4, 1.0);
+                    let col = mix(slowColor, fastColor, t);
+
+                    var out: VertexOutput;
+                    out.pos = vec4<f32>(pt.pos, 0.0, 1.0);
+                    out.color = col;
+                    return out;
+                }
+                @fragment fn fs(in: VertexOutput) -> @location(0) vec4<f32> {
+                    return vec4<f32>(in.color, 1.0);
+                }`;
+
+            const pData = new Float32Array(this.numParticles * 4);
+            for(let i=0; i<pData.length; i+=4) {
+                pData[i] = Math.random() * 2 - 1; pData[i+1] = Math.random() * 2 - 1;
+                // pData[i+2] = 0; pData[i+3] = 0; // initial velocity
+            }
+            this.pBuf = device.createBuffer({ size: pData.byteLength, usage: GPUBufferUsage.STORAGE|GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST, mappedAtCreation: true });
+            new Float32Array(this.pBuf.getMappedRange()).set(pData);
+            this.pBuf.unmap();
+            this.uBuf = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST });
+
+            this.cPipe = device.createComputePipeline({ layout: 'auto', compute: { module: device.createShaderModule({ code: cShader }), entryPoint: 'main' } });
+            this.rPipe = device.createRenderPipeline({ layout: 'auto', vertex: { module: device.createShaderModule({ code: rShader }), entryPoint: 'vs' }, fragment: { module: device.createShaderModule({ code: rShader }), entryPoint: 'fs', targets: [{ format: this.format }] }, primitive: { topology: 'point-list' } });
+
+            this.cGroup = device.createBindGroup({ layout: this.cPipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: this.pBuf } }, { binding: 1, resource: { buffer: this.uBuf } }] });
+            this.rGroup = device.createBindGroup({ layout: this.rPipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: this.pBuf } }] });
+
+            this.loop();
+        }
+
+        loop() {
+            if(!this.running) return;
+
+            stats.begin();
+
+            this.device.queue.writeBuffer(this.uBuf, 0, new Float32Array([mouse.x, mouse.y, 0.016, performance.now() * 0.001]));
+            const enc = this.device.createCommandEncoder();
+            
+            const cPass = enc.beginComputePass();
+            cPass.setPipeline(this.cPipe);
+            cPass.setBindGroup(0, this.cGroup);
+            cPass.dispatchWorkgroups(Math.ceil(this.numParticles / 64));
+            cPass.end();
+
+            const rPass = enc.beginRenderPass({ colorAttachments: [{ view: this.context.getCurrentTexture().createView(), loadOp: 'clear', clearValue: {r:0,g:0,b:0,a:1}, storeOp: 'store' }] });
+            rPass.setPipeline(this.rPipe);
+            rPass.setBindGroup(0, this.rGroup);
+            rPass.draw(this.numParticles);
+            rPass.end();
+
+            this.device.queue.submit([enc.finish()]);
+            
+            stats.end(); // End Measure
+            requestAnimationFrame(() => this.loop());
+        }
+        destroy() { this.running = false; }
+    }
+
+    // ---------------------------------------------------------
+    // resize / fullscreen
+    // ---------------------------------------------------------
+    // canvas의 실제 렌더링 해상도를 wrapper의 현재 크기에 맞춘다.
+    // (denoise_image.html의 resize()와 동일한 역할이지만, 정사각형으로
+    //  강제하지 않고 wrapper의 가로세로 비율을 그대로 따른다.)
+    function resize() {
+        const wrapperDom = document.getElementById('wrapper');
+        const canvas = document.getElementById('render');
+        if (!canvas) return;
+
+        canvas.width = wrapperDom.clientWidth;
+        canvas.height = wrapperDom.clientHeight;
+    }
+
+    function toggleFullscreen(status) {
+        const wrapperDom = document.getElementById('wrapper');
+        const enterFullscreenDom = document.getElementById('enterFullscreen');
+        const leaveFullscreenDom = document.getElementById('leaveFullscreen');
+
+        if (status) {
+            document.body.style.overflowY = 'hidden';
+
+            wrapperDom.style.position = 'fixed';
+            wrapperDom.style.top = '0';
+            wrapperDom.style.left = '0';
+            wrapperDom.style.width = '100vw';
+            wrapperDom.style.height = '100vh';
+            wrapperDom.style.zIndex = '1000';
+
+            enterFullscreenDom.style.visibility = 'hidden';
+            leaveFullscreenDom.style.visibility = 'visible';
+        }
+        else {
+            document.body.style.overflowY = '';
+
+            wrapperDom.style.position = '';
+            wrapperDom.style.top = '';
+            wrapperDom.style.left = '';
+            wrapperDom.style.width = '';
+            wrapperDom.style.height = '';
+            wrapperDom.style.zIndex = '';
+
+            enterFullscreenDom.style.visibility = 'visible';
+            leaveFullscreenDom.style.visibility = 'hidden';
+        }
+
+        resize();
+    }
+
+    // ---------------------------------------------------------
+    // Manager
+    // ---------------------------------------------------------
+    const stats = new Stats();
+    stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+
+    async function init() {
+        const wrapperDom = document.getElementById('wrapper');
+
+        // stats 패널을 wrapper 내부에 배치 (fullscreen 토글 시 wrapper와 함께 이동)
+        wrapperDom.appendChild(stats.dom);
+        stats.dom.style.position = 'absolute';
+        stats.dom.style.bottom = '0px';
+        stats.dom.style.right = '0px';
+        stats.dom.style.top = 'unset';
+        stats.dom.style.left = 'unset';
+        stats.dom.style.zIndex = '20';
+
+        const hasWebGPU = !!navigator.gpu;
+        const gui = new dat.GUI({ width: 300 });
+        wrapperDom.appendChild(gui.domElement);
+        gui.domElement.style.marginRight = '0px';
+        gui.domElement.style.position = 'absolute';
+        gui.domElement.style.top = '0px';
+        gui.domElement.style.right = '0px';
+        gui.domElement.style.zIndex = '20';
+
+        // GUI: Mode Switch
+        gui.add(CONFIG, 'mode', ['WebGL', 'WebGPU']).onChange(val => {
+            if(val === 'WebGPU' && !hasWebGPU) {
+                alert("WebGPU not supported!");
+                CONFIG.mode = 'WebGL';
+                return;
+            }
+            resetApp();
+        });
+
+        // GUI: Particle Count
+        gui.add(CONFIG, 'textureSize', SIZE_OPTIONS).name('Particle number').onChange(() => {
+            resetApp();
+        });
+
+        function resetApp() {
+            if(currentApp) currentApp.destroy();
+            
+            // erase old canvas and create new one
+            const old = document.getElementById('render');
+            if(old) old.remove();
+            const c = document.createElement('canvas');
+            c.setAttribute('id', 'render');
+            wrapperDom.appendChild(c);
+
+            resize();
+
+            const size = parseInt(CONFIG.textureSize);
+            
+            if(CONFIG.mode === 'WebGL') currentApp = new WebGLApp(c, size);
+            else currentApp = new WebGPUApp(c, size);
+        }
+
+        // Initial Start
+        resetApp();
+    }
+
+    init();
+
+    const enterFullscreenDom = document.getElementById('enterFullscreen');
+    const leaveFullscreenDom = document.getElementById('leaveFullscreen');
+
+    enterFullscreenDom.addEventListener('click', ()=>toggleFullscreen(true));
+    leaveFullscreenDom.addEventListener('click', ()=>toggleFullscreen(false));
+
+    window.addEventListener('keydown', (event)=>{
+        if (event.key == "Escape") toggleFullscreen(false);
+    });
+
+    window.addEventListener('resize', resize, false);
+</script>

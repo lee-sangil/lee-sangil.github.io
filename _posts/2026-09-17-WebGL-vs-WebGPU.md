@@ -13,7 +13,7 @@ tags:
  - glsl
  - compute
 header:
-  teaser: /assets/image/thumbnail/webgl.jpg
+  teaser: /assets/image/thumbnail/2026-09-17-webgl-webgpu.jpg
 excerpt_separator: <!--more-->
 ---
 
@@ -30,18 +30,20 @@ WebGL and WebGPU are both APIs designed for working with GPUs in a web environme
 
 1. GPU access approach
 
-WebGL is a browser-based API for rendering 2D and 3D graphics using the GPU. It works by creating a rendering context coupled with an HTML canvas element. This context acts as a bridge between the JavaScript application and the GPU. On the other hand, WebGPU is a next-generation web API designed for more direct GPU access. It builds upon modern graphics APIs like Vulkan, Metal, and Direct3D 12, allowing developers to leverage low-level GPU features for advanced performance and flexibility.
+    WebGL is a browser-based API for rendering 2D and 3D graphics using the GPU. It works by creating a rendering context coupled with an HTML canvas element. This context acts as a bridge between the JavaScript application and the GPU. On the other hand, WebGPU is a next-generation web API designed for more direct GPU access. It builds upon modern graphics APIs like Vulkan, Metal, and Direct3D 12, allowing developers to leverage low-level GPU features for advanced performance and flexibility.
 
-- In WebGL, GPU control is indirect, as much of the GPU’s functionality is abstracted by the browser and GPU drivers. WebGL focuses mainly on rendering tasks, meaning it’s less suited for non-rendering workloads like general-purpose GPU computing (GPGPU).
-- WebGPU provides direct controls over GPU resources. WebGPU supports compute pipelines, enabling tasks beyond graphics rendering, such as machine learning or physics simulations.
+    - In WebGL, GPU control is indirect, as much of the GPU’s functionality is abstracted by the browser and GPU drivers. WebGL focuses mainly on rendering tasks, meaning it’s less suited for non-rendering workloads like general-purpose GPU computing (GPGPU).
+    - WebGPU provides direct controls over GPU resources. WebGPU supports compute pipelines, enabling tasks beyond graphics rendering, such as machine learning or physics simulations.
 
 2. Canvas and GPU Control
-- WebGL requires a canvas element. All GPU rendering happens through the WebGL context attached to a canvas, and the results are directly displayed there. GPU usage is tightly coupled to the canvas and rendering tasks.
-- In WebGPU, the canvas is optional. While it can be used for rendering, WebGPU also supports offscreen rendering and compute-only workloads, meaning that you can use the GPU for non-visual tasks without requiring a canvas. This decoupling provides developers with more flexibility.     
+
+    - WebGL requires a canvas element. All GPU rendering happens through the WebGL context attached to a canvas, and the results are directly displayed there. GPU usage is tightly coupled to the canvas and rendering tasks.
+    - In WebGPU, the canvas is optional. While it can be used for rendering, WebGPU also supports offscreen rendering and compute-only workloads, meaning that you can use the GPU for non-visual tasks without requiring a canvas. This decoupling provides developers with more flexibility.     
 
 3. High-Level vs. Low-Level API
-- WebGL operates at a higher level of abstraction. The browser and the WebGL implementation manage many GPU details, which makes it easier to use but limits fine-grained control.
-- WebGPU is a lower-level API that exposes more of the GPU’s functionality to developers. While this adds complexity, it also allows for better performance and more advanced use cases.
+
+    - WebGL operates at a higher level of abstraction. The browser and the WebGL implementation manage many GPU details, which makes it easier to use but limits fine-grained control.
+    - WebGPU is a lower-level API that exposes more of the GPU’s functionality to developers. While this adds complexity, it also allows for better performance and more advanced use cases.
 
 ## Translation between WebGL and WebGPU  
 
@@ -53,7 +55,7 @@ In this section, the WebGL and WebGPU examples render the same color gradient th
 
 | WebGL                                | WebGPU                               |   
 | :----------------------------------: | :----------------------------------: |   
-| <img class="imageWide" referrerpolicy="no-referrer" src="https://i.imgur.com/C8Kfp0C.png"> | <img class="imageWide" referrerpolicy="no-referrer" src="https://i.imgur.com/FbcCsMI.png"> |   
+| <img class="imageWide" referrerpolicy="no-referrer" src="https://i.imgur.com/ynJy4hx.png"> | <img class="imageWide" referrerpolicy="no-referrer" src="https://i.imgur.com/LTMXx7E.png"> |   
 
 Below, each corresponding stage of the two pipelines is shown side by side.       
 
@@ -125,7 +127,7 @@ void main() {
 ```
 
 **WebGPU (WGSL)**
-```glsl
+```rust
 struct Uniforms {
         mouse : vec2<f32>,
         resolution : vec2<f32>,
@@ -228,7 +230,9 @@ const pipeline = device.createRenderPipeline({
 
 Below are the complete standalone examples for both APIs, drawing the interactive mouse-tracking gradient.
 
-### WebGL
+<details markdown="1">
+<summary>WebGL</summary>
+
 ```js
 const canvas = document.getElementById('webgl');
 const dpr = window.devicePixelRatio || 1;
@@ -426,8 +430,11 @@ function render(t) {
     requestAnimationFrame(render.bind(this));
 }
 ```
+</details>
 
-### WebGPU
+<details markdown="1">
+<summary>WebGPU</summary>
+
 ```js
 async function init() {
     if (!navigator.gpu) {
@@ -593,6 +600,7 @@ async function init() {
 
 init();
 ```
+</details>
 
 ## Use of GPGPU
 
@@ -628,7 +636,7 @@ gl_FragColor = vec4(pos, vel);
 
 WebGPU computes the particles' motion directly. The shader has a `@compute` entry point, and `dispatchWorkgroups` runs as many workgroups as we need. `workgroup_size` can be multiples of 32 or 64 for computational efficiency. You can read the limit of it from `device.limits.maxComputeWorkgroupSizeX`.
 
-```glsl
+```rust
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     let i = id.x; if(i >= arrayLength(&p)) { return; }
     var pt = p[i];
@@ -652,7 +660,7 @@ this.texB = this.createTexture();
 
 On the other hand, WebGPU just keeps everything in one storage buffer.
 
-```glsl
+```rust
 struct P { pos: vec2<f32>, vel: vec2<f32> };
 @group(0) @binding(0) var<storage, read_write> p: array<P>;
 ```
@@ -706,7 +714,7 @@ void main() {
 
 WebGPU's vertex shader needs no additional attribute. It uses the built-in `@builtin(vertex_index)` as an index into the storage buffer, and accesses the buffer directly.
 
-```glsl
+```rust
 @vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {    
     return vec4<f32>(p[i].pos, 0.0, 1.0);
 }
@@ -1077,5 +1085,5 @@ The entire code for the above description follows below.
 WebGL is well-suited for rendering graphics on a canvas in a browser, offering simplicity and broad compatibility. However, it abstracts most of the GPU’s functionality, making it less versatile for modern needs, especially non-rendering tasks. WebGPU exposes GPU resources more directly and supports compute pipelines, so it fits workloads that need lower-level control, such as GPGPU tasks or more advanced rendering techniques.
 
 ## References
-- [https://webgpufundamentals.org/webgpu/lessons/webgpu-fundamentals.html](https://webgpufundamentals.org/webgpu/lessons/webgpu-fundamentals.html)
-- [https://gemini.google.com/share/f23e79dea16d](https://gemini.google.com/share/f23e79dea16d)
+- [https://webgpufundamentals.org](https://webgpufundamentals.org/webgpu/lessons/webgpu-fundamentals.html)
+- [https://gemini.google.com](https://gemini.google.com/share/f23e79dea16d)

@@ -565,6 +565,20 @@
     async function init() {
         const wrapperDom = document.getElementById('wrapper');
 
+        // 터치 기기 지원을 위한 이벤트 처리 및 스크롤 방지
+        function handleTouch(e) {
+            if (e.target.id === 'render' && e.touches.length > 0) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const canvas = e.target;
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -(((touch.clientY - rect.top) / rect.height) * 2 - 1);
+            }
+        }
+        wrapperDom.addEventListener('touchstart', handleTouch, { passive: false });
+        wrapperDom.addEventListener('touchmove', handleTouch, { passive: false });
+
         // stats 패널을 wrapper 내부에 배치 (fullscreen 토글 시 wrapper와 함께 이동)
         wrapperDom.appendChild(stats.dom);
         stats.dom.style.position = 'absolute';
@@ -574,7 +588,6 @@
         stats.dom.style.left = 'unset';
         stats.dom.style.zIndex = '20';
 
-        const hasWebGPU = !!navigator.gpu;
         const gui = new dat.GUI({ width: 300 });
         wrapperDom.appendChild(gui.domElement);
         gui.domElement.style.marginRight = '0px';
@@ -584,11 +597,37 @@
         gui.domElement.style.zIndex = '20';
 
         // GUI: Mode Switch
-        gui.add(CONFIG, 'mode', ['WebGL', 'WebGPU']).onChange(val => {
-            if(val === 'WebGPU' && !hasWebGPU) {
-                alert("WebGPU not supported!");
-                CONFIG.mode = 'WebGL';
-                return;
+        const modeController = gui.add(CONFIG, 'mode', ['WebGL', 'WebGPU']);
+        modeController.onChange(async val => {
+            if (val === 'WebGPU') {
+                let supported = false;
+                if (navigator.gpu) {
+                    try {
+                        const adapter = await navigator.gpu.requestAdapter();
+                        supported = !!adapter;
+                    } catch (e) {
+                        supported = false;
+                    }
+                }
+
+                if (!supported) {
+                    const select = modeController.__select || modeController.domElement.querySelector('select');
+                    CONFIG.mode = 'WebGL';
+                    if (select) {
+                        select.value = 'WebGL';
+                        select.blur();
+                    }
+                    modeController.updateDisplay();
+
+                    alert("WebGPU not supported!");
+
+                    if (select) {
+                        select.value = 'WebGL';
+                        select.blur();
+                    }
+                    modeController.updateDisplay();
+                    return;
+                }
             }
             resetApp();
         });

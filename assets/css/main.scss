@@ -55,7 +55,7 @@
 }
 
 /* ==========================================================================
-   Foldable block (<details>) with Copy button
+   Foldable block (<details>)
    ========================================================================== */
 
 details {
@@ -69,7 +69,6 @@ details {
   summary {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 0.6em 0.9em;
     font-size: 0.95em;
     font-weight: 600;
@@ -92,98 +91,17 @@ details {
       background-color: mix(#fff, $light-gray, 50%);
     }
 
-    .summary-title {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5em;
-      flex: 1;
-      min-width: 0;
-
-      &::before {
-        content: "";
-        display: inline-block;
-        width: 0;
-        height: 0;
-        border-top: 4px solid transparent;
-        border-bottom: 4px solid transparent;
-        border-left: 6px solid $gray;
-        transition: transform 0.2s ease;
-        flex-shrink: 0;
-        margin-right: 2px;
-      }
-    }
-
-    .details-copy-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35em;
-      padding: 0.25em 0.6em;
-      font-size: 0.8em;
-      font-family: $sans-serif;
-      font-weight: 600;
-      color: $text-color;
-      background-color: #ffffff;
-      border: 1px solid $border-color;
-      border-radius: 4px;
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      margin-left: 1em;
+    &::before {
+      content: "";
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      border-left: 6px solid $gray;
+      transition: transform 0.2s ease;
       flex-shrink: 0;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      opacity: 1;
-      pointer-events: auto;
-      transition: opacity 0.2s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-      line-height: 1.4;
-
-      &:hover {
-        background-color: mix(#fff, $primary-color, 90%);
-        border-color: $gray;
-        color: $darker-gray;
-      }
-
-      &.copied {
-        background-color: #e6f4ea;
-        border-color: #34a853;
-        color: #137333;
-      }
-
-      .copy-icon-wrapper {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      svg {
-        display: block;
-        width: 13px;
-        height: 13px;
-        stroke: currentColor;
-      }
-    }
-  }
-
-  // Touch environments: copy button is always visible
-  @media (hover: none) {
-    summary .details-copy-btn {
-      opacity: 1;
-      pointer-events: auto;
-    }
-  }
-
-  // Mouse environments: copy button is hidden by default and smoothly appears on hover
-  @media (hover: hover) {
-    summary .details-copy-btn {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    &:hover summary .details-copy-btn,
-    summary .details-copy-btn:focus,
-    summary .details-copy-btn:focus-visible,
-    summary .details-copy-btn.copied {
-      opacity: 1;
-      pointer-events: auto;
+      margin-right: 0.6em;
     }
   }
 
@@ -191,7 +109,7 @@ details {
     summary {
       border-bottom: 1px solid $border-color;
 
-      .summary-title::before {
+      &::before {
         transform: rotate(90deg);
       }
     }
@@ -211,5 +129,85 @@ details {
       padding-top: 0.8em;
       margin-bottom: 0.5em;
     }
+  }
+}
+
+/* ==========================================================================
+   Code block copy button
+   ========================================================================== */
+
+div.highlighter-rouge,
+figure.highlight,
+pre.code-copy-standalone {
+  position: relative;
+}
+
+.code-copy-btn {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.25em 0.6em;
+  font-size: 0.8em;
+  font-family: $sans-serif;
+  font-weight: 600;
+  color: $text-color;
+  background-color: #ffffff;
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  line-height: 1.4;
+
+  &:hover {
+    background-color: mix(#fff, $primary-color, 90%);
+    border-color: $gray;
+    color: $darker-gray;
+  }
+
+  &.copied {
+    background-color: #e6f4ea;
+    border-color: #34a853;
+    color: #137333;
+  }
+
+  .copy-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  svg {
+    display: block;
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+  }
+}
+
+// Visible when touched on touch devices, focused, or copied
+.code-copy-btn.is-touch-active,
+.code-copy-btn:focus,
+.code-copy-btn:focus-visible,
+.code-copy-btn.copied {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+// Mouse environments: smoothly appears on hover
+@media (hover: hover) and (pointer: fine) {
+  div.highlighter-rouge:hover > .code-copy-btn,
+  figure.highlight:hover > .code-copy-btn,
+  pre.code-copy-standalone:hover > .code-copy-btn {
+    opacity: 1;
+    pointer-events: auto;
   }
 }

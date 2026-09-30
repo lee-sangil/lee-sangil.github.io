@@ -3,6 +3,8 @@ import { db, ref, get, runTransaction } from '/assets/js/firebase-init.js';
 const countEl = document.getElementById('visitor-count');
 const countRef = ref(db, 'visitors');
 const sessionKey = 'visitor-counted';
+const cacheKey = 'visitor-count-cache';
+const cacheLifetime = 5 * 60 * 1000;
 const kstOffset = 9 * 60 * 60 * 1000;
 let serverTime;
 let syncedAt;
@@ -60,9 +62,14 @@ try {
   await syncClock();
   refreshAtMidnight();
   render();
-  const snapshot = sessionStorage.getItem(sessionKey)
-    ? await get(countRef)
-    : (await runTransaction(countRef, (current) => {
+  const counted = sessionStorage.getItem(sessionKey) === '1';
+  const cached = counted && JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
+  const cacheAge = cached && currentTime() - cached.at;
+  if (cached && cached.counts && cacheAge >= 0 && cacheAge < cacheLifetime) {
+    counts = cached.counts;
+  } else {
+    const snapshot = counted ? await get(countRef)
+      : (await runTransaction(countRef, (current) => {
         const date = kstDate();
         const previous = current || {};
         const sameDay = previous.date === date;
@@ -74,8 +81,10 @@ try {
           total: (previous.total || 0) + 1
         };
       })).snapshot;
-  counts = snapshot.val();
-  if (!sessionStorage.getItem(sessionKey)) sessionStorage.setItem(sessionKey, '1');
+    counts = snapshot.val();
+    if (!counted) sessionStorage.setItem(sessionKey, '1');
+    sessionStorage.setItem(cacheKey, JSON.stringify({ at: currentTime(), counts }));
+  }
   render();
 } catch (error) {
   console.error('Visitor count unavailable:', error);

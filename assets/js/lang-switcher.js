@@ -18,6 +18,7 @@
     var koLink = document.getElementById('lang-ko');
     if (enLink) enLink.style.fontWeight = lang === 'en' ? 'bold' : 'normal';
     if (koLink) koLink.style.fontWeight = lang === 'ko' ? 'bold' : 'normal';
+    window.dispatchEvent(new CustomEvent('site-lang-change', { detail: lang }));
   }
 
   function applyLang(lang) {

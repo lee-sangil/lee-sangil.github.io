@@ -28,10 +28,19 @@
     {% endif %}
 
     {% if document.comments %}
+    {% assign comment_pathname = document.url %}
+    {% if document.lang == 'ko' and document.lang_ref %}
+      {% for english_post in site.posts %}
+        {% if english_post.lang_ref == document.lang_ref %}
+          {% assign comment_pathname = english_post.url %}
+          {% break %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
     <span class="page__meta-sep"></span>
     <span class="page__meta-comments">
       <i class="far fa-fw fa-comment" aria-hidden="true"></i>
-      <span class="comment_count" pathname="{{ document.url }}">0</span>
+      <span class="comment_count" pathname="{{ comment_pathname }}">0</span>
     </span>
     {% endif %}
 

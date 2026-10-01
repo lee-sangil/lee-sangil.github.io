@@ -27,7 +27,9 @@
 </div>
 
 <div id="visitor-count" class="page__footer-copyright" aria-live="polite">Today — / Yesterday — / Total —</div>
+{% if jekyll.environment == 'production' %}
 <script type="module" src="/assets/js/visitor-count.js"></script>
+{% endif %}
 
 <div class="page__footer-copyright">&copy; {{ site.time | date: '%Y' }} {{ site.name | default: site.title }}. {{ site.data.ui-text[site.locale].powered_by | default: "Powered by" }} <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
 <!-- <div style="display: none; margin-top: 10px;">

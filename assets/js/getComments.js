@@ -1,45 +1,25 @@
-// 화면이 다 표시되고나서 API호출함
-$(document).ready(function() {
-    var repository = "lee-sangil/lee-sangil.github.io";
-    $.ajax({
-        url: "https://api.github.com/repos/" + repository + "/discussions?per_page=100",
-        type: 'GET', 
-        dataType: "json",
-        success: function(data) {
-
-            var discussionDataMap = new Map();
-            // 조회 건수가 있으면
-            if (data.length > 0) {
-                // 각 Discussion의 제목과 댓글 수 저장
-                for (var i = 0; i < data.length; i++) {
-                    var discussionTitle = data[i].title;
-                    var commentsCount = data[i].comments;
-
-                    // Map에 저장
-                    if (data[i].category.name === 'Announcements') {
-                        discussionDataMap.set("/" + discussionTitle, commentsCount);
-                    }
-                }
-            
-                // comment_count 클래스 내의 모든 객체 가져오기. 
-                var countTags = $('.comment_count');
-                
-                for (var i = 0; i < countTags.length; i++) {
-                    var key = countTags.eq(i).attr('pathname');
-                    var value = discussionDataMap.get(key);
-
-                    // value가 undefined인 경우 0으로 대체
-                    if (value === undefined) {
-                        value = 0;
-                    }
-    
-                    // 해당 Discussion의 댓글 수를 표시
-                    countTags.eq(i).text(value); 
-                }
-            }
-        },
-        error: function(error) {
-            console.error('Discussion 검색 실패:', error);
+// Read every Discussion page before treating an unmatched post as having no comments.
+$(document).ready(async function() {
+  const tags = document.querySelectorAll('.comment_count[pathname]');
+  if (!tags.length) return;
+  const counts = new Map();
+  tags.forEach((tag) => { tag.textContent = '—'; });
+  try {
+    for (let page = 1; ; page++) {
+      const response = await fetch('https://api.github.com/repos/lee-sangil/lee-sangil.github.io/discussions?per_page=10&page=' + page);
+      if (!response.ok) throw new Error('GitHub returned ' + response.status);
+      const discussions = await response.json();
+      if (!Array.isArray(discussions)) throw new Error('Invalid Discussions response');
+      discussions.forEach((discussion) => {
+        if (discussion.category && discussion.category.name === 'Announcements') {
+          const path = '/' + discussion.title.replace(/^\//, '');
+          counts.set(path, (counts.get(path) || 0) + discussion.comments);
         }
-    });
+      });
+      if (discussions.length < 10) break;
+    }
+    tags.forEach((tag) => { tag.textContent = counts.get(tag.getAttribute('pathname')) || 0; });
+  } catch (error) {
+    console.error('Discussion lookup failed:', error);
+  }
 });

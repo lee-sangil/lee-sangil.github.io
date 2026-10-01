@@ -47,19 +47,19 @@
 {% endunless %}
 
 <script type="module">
-  import { db, analytics, ref, get, runTransaction, onValue } from "/assets/js/firebase-init.js";
+  import { db, ref, runTransaction, onValue } from "/assets/js/firebase-init.js";
 
-  {% assign _like_url = document.url %}
-  {% if document.lang == "ko" and document.lang_ref %}
+  {% assign _like_url = page.url %}
+  {% if page.lang == "ko" and page.lang_ref %}
     {% for p in site.posts %}
-      {% if p.lang_ref == document.lang_ref %}
+      {% if p.lang_ref == page.lang_ref %}
         {% assign _like_url = p.url %}
         {% break %}
       {% endif %}
     {% endfor %}
   {% endif %}
-  const postUrl = "{{ _like_url }}";
-  const postId = btoa(postUrl).replace(/\//g, "_").replace(/=/g, "");
+  const postUrl = {{ _like_url | jsonify }};
+  const postId = btoa(String.fromCharCode(...new TextEncoder().encode(postUrl))).replace(/\//g, "_").replace(/=/g, "");
   const storageKey = `like_${postId}`; // 로컬스토리지에 저장될 고유 키
   const likeRef = ref(db, `${postUrl}/like`);
 
@@ -85,50 +85,47 @@
       likeCountSpan.innerText = data;
     }
 
-    // Check if the user has liked this post (storageKey) by checking localStorage.
-    if (localStorage.getItem(storageKey) === 'true') {
-      likeBtn.classList.add('liked');
-      if (heartSvg && heartSvg.classList && heartSvg.classList.contains('fa-heart')) {
-        heartSvg.classList.remove('far'); heartSvg.classList.add('fas');
-      }
-    } else {
-      likeBtn.classList.remove('liked');
-      if (heartSvg && heartSvg.classList && heartSvg.classList.contains('fa-heart')) {
-        heartSvg.classList.remove('fas'); heartSvg.classList.add('far');
-      }
+    updateLikedState();
+  }, (error) => console.error('Like count unavailable:', error));
+
+  function updateLikedState() {
+    const liked = localStorage.getItem(storageKey) === 'true';
+    likeBtn.classList.toggle('liked', liked);
+    if (heartSvg && heartSvg.classList.contains('fa-heart')) {
+      heartSvg.classList.toggle('fas', liked);
+      heartSvg.classList.toggle('far', !liked);
     }
+  }
+  window.addEventListener('likes-updated', updateLikedState);
+  window.addEventListener('storage', (event) => {
+    if (event.key === storageKey) updateLikedState();
   });
 
-  // Click event
-  likeBtn.onclick = () => {
-    if (!isFirebaseLoaded) return;
-
-    const isAlreadyLiked = localStorage.getItem(storageKey) === 'true';
-
+  // Commit first: transaction callbacks may retry or be rejected by Firebase.
+  likeBtn.onclick = async () => {
+    if (!isFirebaseLoaded || likeBtn.disabled) return;
+    likeBtn.disabled = true;
     if (heartSvg) {
       heartSvg.classList.add('heart-beat');
       setTimeout(() => heartSvg.classList.remove('heart-beat'), 400);
     }
-
-    runTransaction(likeRef, (data) => {
-      if (!data) data = 0;
-
-      if (isAlreadyLiked) {
-        data = Math.max(0, data - 1);
-        localStorage.removeItem(storageKey);
-      } else {
-        data = data + 1;
-        localStorage.setItem(storageKey, 'true');
-      }
-      return data;
-    });
-
-    if (heartSvg && heartSvg.classList && heartSvg.classList.contains('fa-heart')) {
-      if (isAlreadyLiked) {
-        heartSvg.classList.remove('fas'); heartSvg.classList.add('far');
-      } else {
-        heartSvg.classList.remove('far'); heartSvg.classList.add('fas');
-      }
+    try {
+      const toggle = async () => {
+        const liked = localStorage.getItem(storageKey) === 'true';
+        const result = await runTransaction(likeRef,
+          (data) => Math.max(0, (data || 0) + (liked ? -1 : 1)),
+          { applyLocally: false });
+        if (!result.committed) return;
+        if (liked) localStorage.removeItem(storageKey);
+        else localStorage.setItem(storageKey, 'true');
+        window.dispatchEvent(new Event('likes-updated'));
+      };
+      if (navigator.locks) await navigator.locks.request(storageKey, toggle);
+      else await toggle();
+    } catch (error) {
+      console.error('Like update failed:', error);
+    } finally {
+      likeBtn.disabled = false;
     }
   };
 </script>

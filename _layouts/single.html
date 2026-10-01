@@ -87,8 +87,9 @@ layout: default
           {{ content }}
           {% if page.link %}<div><a href="{{ page.link }}" class="btn btn--primary">{{ site.data.ui-text[site.locale].ext_link_label | default: "Direct Link" }}</a></div>{% endif %}
 
-          {% include firebase-config.html variant="footer" %}
+          {% if page.show_likes %}{% include firebase-config.html variant="footer" %}{% endif %}
 
+          {% if page.comments %}
           {% assign discussion_term = en_post_url | remove_first: '/' %}
           <script src="https://giscus.app/client.js"
           data-repo="lee-sangil/lee-sangil.github.io"
@@ -105,6 +106,7 @@ layout: default
           data-lang="{{ page.lang | default: 'en' }}"
           crossorigin="anonymous" async>
           </script>
+          {% endif %}
         </section>
 
         <footer class="page__meta">

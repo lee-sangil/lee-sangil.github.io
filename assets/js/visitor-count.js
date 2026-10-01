@@ -1,21 +1,15 @@
-import { db, ref, get, runTransaction } from '/assets/js/firebase-init.js';
+import { db, ref, onValue, runTransaction } from '/assets/js/firebase-init.js';
 
 const countEl = document.getElementById('visitor-count');
 const countRef = ref(db, 'visitors');
-const sessionKey = 'visitor-counted';
-const cacheKey = 'visitor-count-cache';
-const cacheLifetime = 5 * 60 * 1000;
+const storageKey = 'visitor-daily';
 const kstOffset = 9 * 60 * 60 * 1000;
+let dwellTimer;
+let midnightTimer;
+let unsubscribe;
 let leftPage = false;
-const stayed = new Promise((resolve) => {
-  const timeout = setTimeout(() => resolve(true), 5000);
-  function leave() {
-    leftPage = true;
-    clearTimeout(timeout);
-    resolve(false);
-  }
-  window.addEventListener('pagehide', leave, { once: true });
-});
+let pending = false;
+let ready = false;
 let serverTime;
 let syncedAt;
 let counts = null;
@@ -43,7 +37,8 @@ function yesterday(date) {
 }
 
 function render() {
-  const lang = localStorage.getItem('site-lang') === 'ko' ? 'ko' : 'en';
+  let lang = 'en';
+  try { lang = localStorage.getItem('site-lang') === 'ko' ? 'ko' : 'en'; } catch (_) {}
   const labels = lang === 'ko' ? ['오늘', '어제', '전체'] : ['Today', 'Yesterday', 'Total'];
   const date = counts ? kstDate() : null;
   const values = counts ? [
@@ -54,48 +49,119 @@ function render() {
   countEl.textContent = labels.map((label, i) => `${label} ${values[i]}`).join(' / ');
 }
 
-window.addEventListener('site-lang-change', render);
+// Keep just two days of receipts so a committed request can safely be retried
+// after navigation, even if localStorage was not updated before the page closed.
+function recordVisit(previous, date, id) {
+  previous = previous || {};
+  if (previous.date && previous.date > date) {
+    if (yesterday(previous.date) !== date) return;
+    const ids = previous.yesterdayIds || {};
+    if (ids[id]) return previous;
+    return { ...previous, yesterday: (previous.yesterday || 0) + 1,
+      total: (previous.total || 0) + 1, yesterdayIds: { ...ids, [id]: true } };
+  }
+  const sameDay = previous.date === date;
+  const ids = sameDay ? previous.todayIds || {} : {};
+  if (ids[id]) return previous;
+  const consecutive = previous.date === yesterday(date);
+  return {
+    date,
+    today: (sameDay ? previous.today || 0 : 0) + 1,
+    yesterday: sameDay ? previous.yesterday || 0 : consecutive ? previous.today || 0 : 0,
+    total: (previous.total || 0) + 1,
+    todayIds: { ...ids, [id]: true },
+    yesterdayIds: sameDay ? previous.yesterdayIds || {} : consecutive ? previous.todayIds || {} : {}
+  };
+}
+
+async function countVisit() {
+  if (pending || leftPage || document.hidden) return;
+  pending = true;
+  try {
+    // A shared lock also serializes first-time creation of the browser ID.
+    // Without safe storage/locking, keep displaying counts but do not risk duplicates.
+    if (!navigator.locks) return;
+    await navigator.locks.request('visitor-daily', async () => {
+      if (leftPage || document.hidden) return;
+      const date = kstDate();
+      let browser;
+      try { browser = JSON.parse(localStorage.getItem(storageKey) || 'null'); } catch (_) {}
+      if (!browser || !/^[a-f0-9-]{36}$/i.test(browser.id || '')) {
+        browser = { id: crypto.randomUUID(), date: null };
+        localStorage.setItem(storageKey, JSON.stringify(browser));
+      }
+      if (browser.date && browser.date >= date) return;
+      const result = await runTransaction(countRef,
+        (previous) => recordVisit(previous, date, browser.id), { applyLocally: false });
+      if (result.committed) {
+        browser.date = date;
+        localStorage.setItem(storageKey, JSON.stringify(browser));
+      }
+    });
+  } catch (error) {
+    console.error('Visitor count unavailable:', error);
+  } finally {
+    pending = false;
+  }
+}
+
+function scheduleVisit() {
+  clearTimeout(dwellTimer);
+  if (!ready || leftPage || document.hidden) return;
+  dwellTimer = setTimeout(countVisit, 5000);
+}
+
+function listen() {
+  if (unsubscribe) return;
+  unsubscribe = onValue(countRef, (snapshot) => {
+    counts = snapshot.val();
+    render();
+  }, (error) => console.error('Visitor count unavailable:', error));
+}
+
 function refreshAtMidnight() {
-  setTimeout(async () => {
+  clearTimeout(midnightTimer);
+  midnightTimer = setTimeout(async () => {
     try {
       await syncClock();
       render();
+      scheduleVisit();
       refreshAtMidnight();
     } catch (error) {
       console.error('Time API unavailable:', error);
-      setTimeout(refreshAtMidnight, 60000);
+      midnightTimer = setTimeout(refreshAtMidnight, 60000);
     }
   }, 86400000 - (currentTime() + kstOffset) % 86400000 + 1000);
 }
 
+window.addEventListener('site-lang-change', render);
+window.addEventListener('pagehide', () => {
+  leftPage = true;
+  clearTimeout(dwellTimer);
+  clearTimeout(midnightTimer);
+  if (unsubscribe) unsubscribe();
+  unsubscribe = null;
+});
+window.addEventListener('pageshow', () => {
+  leftPage = false;
+  if (!ready) return;
+  listen();
+  refreshAtMidnight();
+  scheduleVisit();
+});
+document.addEventListener('visibilitychange', scheduleVisit);
+// Also handles a sleeping computer waking after midnight and transient write errors.
+setInterval(scheduleVisit, 60000);
+
 try {
   await syncClock();
-  refreshAtMidnight();
+  ready = true;
   render();
-  const counted = sessionStorage.getItem(sessionKey) === '1';
-  const cached = counted && JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
-  const cacheAge = cached && currentTime() - cached.at;
-  if (cached && cached.counts && cacheAge >= 0 && cacheAge < cacheLifetime) {
-    counts = cached.counts;
-  } else if (!leftPage && (counted || await stayed)) {
-    const snapshot = counted ? await get(countRef)
-      : (await runTransaction(countRef, (current) => {
-        const date = kstDate();
-        const previous = current || {};
-        const sameDay = previous.date === date;
-        return {
-          date,
-          today: (sameDay ? previous.today || 0 : 0) + 1,
-          yesterday: sameDay ? previous.yesterday || 0
-            : previous.date === yesterday(date) ? previous.today || 0 : 0,
-          total: (previous.total || 0) + 1
-        };
-      })).snapshot;
-    counts = snapshot.val();
-    if (!counted) sessionStorage.setItem(sessionKey, '1');
-    sessionStorage.setItem(cacheKey, JSON.stringify({ at: currentTime(), counts }));
+  if (!leftPage) {
+    listen();
+    refreshAtMidnight();
+    scheduleVisit();
   }
-  render();
 } catch (error) {
   console.error('Visitor count unavailable:', error);
 }

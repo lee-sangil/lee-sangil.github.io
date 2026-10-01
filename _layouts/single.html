@@ -90,9 +90,6 @@ layout: default
           {% include firebase-config.html variant="footer" %}
 
           {% assign discussion_term = en_post_url | remove_first: '/' %}
-          {% if discussion_term == '2024-04-06-shader-program/' %}
-            {% assign discussion_term = 'javascript/Shader-program/' %}
-          {% endif %}
           <script src="https://giscus.app/client.js"
           data-repo="lee-sangil/lee-sangil.github.io"
           data-repo-id="MDEwOlJlcG9zaXRvcnkzNTI5MDU2MTg="

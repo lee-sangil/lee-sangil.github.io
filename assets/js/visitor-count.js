@@ -6,6 +6,16 @@ const sessionKey = 'visitor-counted';
 const cacheKey = 'visitor-count-cache';
 const cacheLifetime = 5 * 60 * 1000;
 const kstOffset = 9 * 60 * 60 * 1000;
+let leftPage = false;
+const stayed = new Promise((resolve) => {
+  const timeout = setTimeout(() => resolve(true), 5000);
+  function leave() {
+    leftPage = true;
+    clearTimeout(timeout);
+    resolve(false);
+  }
+  window.addEventListener('pagehide', leave, { once: true });
+});
 let serverTime;
 let syncedAt;
 let counts = null;
@@ -67,7 +77,7 @@ try {
   const cacheAge = cached && currentTime() - cached.at;
   if (cached && cached.counts && cacheAge >= 0 && cacheAge < cacheLifetime) {
     counts = cached.counts;
-  } else {
+  } else if (!leftPage && (counted || await stayed)) {
     const snapshot = counted ? await get(countRef)
       : (await runTransaction(countRef, (current) => {
         const date = kstDate();

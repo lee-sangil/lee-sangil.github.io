@@ -16,7 +16,6 @@ $(function() {
   var $search = $('nav.greedy-nav button.search__toggle');
   
   var numOfItems, totalSpace, closingTime, breakWidths;
-  var searchContentWidth = 0;
 
   // This function measures both hidden and visible links and sets the navbar breakpoints
   // This is called the first time the script runs and everytime the "check()" function detects a change of window width that reached a different CSS width breakpoint, which affects the size of navbar Items 
@@ -53,7 +52,7 @@ $(function() {
   // Set the last measured CSS width breakpoint: 0: <768px, 1: <1024px, 2: < 1280px, 3: >= 1280px.
   var lastBreakpoint = winWidth < 768 ? 0 : winWidth < 1024 ? 1 : winWidth < 1280 ? 2 : 3;
 
-  var availableSpace, numOfVisibleItems, timer;
+  var availableSpace, numOfVisibleItems, requiredSpace, timer;
 
   function check() {
 
@@ -75,12 +74,13 @@ $(function() {
                    - /* toggle */ (numOfVisibleItems !== breakWidths.length ? $btn.outerWidth(true) : 0);
 
     // There is not enought space
-    if (breakWidths[numOfVisibleItems-1]+searchContentWidth > availableSpace) {
+    requiredSpace = breakWidths[numOfVisibleItems - 1];
+    if (requiredSpace > availableSpace) {
       $vlinks.children().last().prependTo($hlinks);
       numOfVisibleItems -= 1;
       check();
       // There is more than enough space. If only one element is hidden, add the toggle width to the available space
-    } else if (breakWidths[numOfVisibleItems]+searchContentWidth < availableSpace + (numOfVisibleItems === breakWidths.length - 1?$btn.outerWidth(true):0)) {
+    } else if (availableSpace + (numOfVisibleItems === breakWidths.length - 1?$btn.outerWidth(true):0) > breakWidths[numOfVisibleItems]) {
       $hlinks.children().first().appendTo($vlinks);
       numOfVisibleItems += 1;
       check();
@@ -95,34 +95,6 @@ $(function() {
   // Window listeners
   $(window).resize(function() {
     check();
-  });
-
-  $search.on('click', function(){
-    $search.toggleClass("open");
-    $(".search-content").toggleClass("is--visible");
-    $(".results-wrapper").toggleClass("is--visible");
-    // $("#main").toggleClass("is--hidden");
-
-    $(".search-input").val('');
-
-    // set focus on input
-    setTimeout(function() {
-      $(".search-content input").focus();
-    }, 400);
-
-    if ($search.hasClass('open')) {
-      searchContentWidth = 100;
-    } else {
-      searchContentWidth = 0;
-    }
-    check();
-  });
-
-  $(document).keyup(function(e) {
-    if (e.keyCode === 27) {
-      searchContentWidth = 0;
-      check();
-    }
   });
 
   $btn.on('click', function() {

@@ -476,9 +476,11 @@ var idx = lunr(function () {
 });
 
 $(document).ready(function() {
-  $('input#search').on('keyup', function () {
+  $('input#search').on('input', function () {
     var resultdiv = $('#results');
     var query = $(this).val().toLowerCase();
+    resultdiv.empty();
+    if (!query.trim()) return;
     var result =
       idx.query(function (q) {
         query.split(lunr.tokenizer.separator).forEach(function (term) {
@@ -491,36 +493,14 @@ $(document).ready(function() {
           }
         })
       });
-    resultdiv.empty();
-    resultdiv.prepend('<p class="results__found">'+result.length+' {{ site.data.ui-text[site.locale].results_found | default: "Result(s) found" }}</p>');
-    for (var item in result) {
-      var ref = result[item].ref;
-      if(store[ref].teaser){
-        var searchitem =
-          '<div class="list__item">'+
-            '<article class="search__item" itemscope itemtype="https://schema.org/CreativeWork">'+
-              '<div class="search__item-teaser_leftOfText">'+
-                '<img src="'+store[ref].teaser+'" alt="">'+
-              '</div>'+
-              '<h2 class="search__item-title" itemprop="headline">'+
-                '<a href="'+store[ref].url+'" rel="permalink">'+store[ref].title+'</a>'+
-              '</h2>'+
-              '<p class="search__item-excerpt" itemprop="description">'+store[ref].excerpt.split(" ").splice(0,200).join(" ")+'...</p>'+
-            '</article>'+
-          '</div>';
-      }
-      else{
-    	  var searchitem =
-          '<div class="list__item">'+
-            '<article class="search__item" itemscope itemtype="https://schema.org/CreativeWork">'+
-              '<h2 class="search__item-title" itemprop="headline">'+
-                '<a href="'+store[ref].url+'" rel="permalink">'+store[ref].title+'</a>'+
-              '</h2>'+
-              '<p class="search__item-excerpt" itemprop="description">'+store[ref].excerpt.split(" ").splice(0,20).join(" ")+'...</p>'+
-            '</article>'+
-          '</div>';
-      }
-      resultdiv.append(searchitem);
+    var selected = selectSearchResults(result);
+    resultdiv.prepend('<p class="results__found">'+selected.length+' {{ site.data.ui-text[site.locale].results_found | default: "Result(s) found" }}</p>');
+    for (var item in selected) {
+      resultdiv.append(renderSearchResult(selected[item]));
     }
+  });
+
+  $(window).on('site-lang-change', function() {
+    if ($('input#search').val()) $('input#search').trigger('input');
   });
 });

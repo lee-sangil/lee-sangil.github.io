@@ -20,9 +20,6 @@
           {%- endfor -%}
         </ul>
         {% if site.search == true %}
-        <div class="search-content">
-          {% include_cached search/search_form.html %}
-        </div>
         <button class="search__toggle" type="button">
           <span class="visually-hidden">{{ site.data.ui-text[site.locale].search_label | default: "Toggle search" }}</span>
           <svg class="icon" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15.99 16">
@@ -38,9 +35,9 @@
       </nav>
     </div>
   </div>
-  <div class="results-bg">
-    <div class="results-wrapper">
-      <div id="results" class="results"></div>
-    </div>
-  </div>
 </div>
+{% if site.search == true %}
+<div class="search-content">
+  {% include_cached search/search_form.html %}
+</div>
+{% endif %}

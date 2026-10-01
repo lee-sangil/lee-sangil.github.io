@@ -2,12 +2,16 @@
   {%- assign search_provider = site.search_provider | default: "lunr" -%}
   {%- case search_provider -%}
   {%- when "lunr" -%}
-  <form class="search-content__form" onkeydown="return event.key != 'Enter';">
+  <form class="search-content__form">
     <label class="sr-only" for="search">
       {{ site.data.ui-text[site.locale].search_label_text | default: 'Enter your search term...' }}
     </label>
-    <input type="search" id="search" class="search-input" tabindex="-1" placeholder="{{ site.data.ui-text[site.locale].search_placeholder_text | default: 'Enter your search term...' }}" />
+    <div class="search-input-wrap">
+      <input type="search" id="search" class="search-input" tabindex="-1" enterkeyhint="search" placeholder="{{ site.data.ui-text[site.locale].search_placeholder_text | default: 'Enter your search term...' }}" />
+      <button class="search-clear" type="button" aria-label="Clear search" hidden><i class="fas fa-times-circle" aria-hidden="true"></i></button>
+    </div>
   </form>
+  <div id="results" class="results"></div>
   {%- when "google" -%}
   <form onsubmit="return googleCustomSearchExecute();" id="cse-search-box-form-id">
     <label class="sr-only" for="cse-search-input-box-id">

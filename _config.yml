@@ -105,7 +105,7 @@ author:
       url: "/assets/download/sangillee_cv.pdf"
     - label: "Email"
       icon: "fas fa-fw fa-envelope"
-      # url: "mailto:sangillee724@gmail.com"
+      url: "mailto:sangillee724@gmail.com"
     - label: "Website"
       icon: "fas fa-fw fa-link"
       # url: "https://your-website.com"
@@ -115,37 +115,6 @@ author:
     - label: "Facebook"
       icon: "fab fa-fw fa-facebook-square"
       # url: "https://facebook.com/"
-    - label: "GitHub"
-      icon: "fab fa-fw fa-github"
-      # url: "https://github.com/lee-sangil"
-    - label: "Instagram"
-      icon: "fab fa-fw fa-instagram"
-      # url: "https://instagram.com/"
-    - label: "Google Scholar"
-      icon: "fab fa-fw fa-google"
-      # url: "https://scholar.google.com/citations?user=Z34jsGIAAAAJ"
-    - label: "Youtube"
-      icon: "fab fa-fw fa-youtube"
-      # url: "https://www.youtube.com/user/aeternuslsi"
-    - label: "LinkedIn"
-      icon: "fab fa-fw fa-linkedin"
-      # url: "https://www.linkedin.com/in/lee-sangil"
-    - label: "Portfolio"
-      icon: "fas fa-fw fa-link"
-      # url: "https://portfolio.sangillee.com"
-
-# Site Footer
-footer:
-  links:
-    - label: "Curriculum Vitae"
-      icon: "fas fa-fw fa-file-pdf"
-      # url: "/assets/download/sangillee_cv.pdf"
-    - label: "Email"
-      icon: "fas fa-fw fa-envelope"
-      url: "mailto:sangillee724@gmail.com"
-    - label: "Website"
-      icon: "fas fa-fw fa-link"
-      # url: "https://your-website.com"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
       url: "https://github.com/lee-sangil"
@@ -164,6 +133,10 @@ footer:
     - label: "Portfolio"
       icon: "fas fa-fw fa-link"
       url: "https://portfolio.sangillee.com"
+
+# Site Footer
+footer:
+  links: []
 
 
 # Reading Files

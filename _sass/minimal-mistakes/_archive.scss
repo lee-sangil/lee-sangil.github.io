@@ -291,40 +291,49 @@
   }
 
   .entries-list {
-    margin-left: 0.5em;
+    margin-left: 0;
     border-left: 0;
+
+    @media screen and (max-width: $small) {
+      margin-left: 0.5em;
+    }
   }
 
   .post__item {
     position: relative;
-    padding: 0.75em 0 2em 1.5em;
+    padding: 0.75em 0 2em;
     border-bottom: 0;
 
-    &::before {
-      content: "";
-      position: absolute;
-      top: 1.2em;
-      left: -2.75px;
-      width: 5.5px;
-      height: 5.5px;
-      border-radius: 50%;
-      background-color: $gray;
-      z-index: 1;
-    }
+    // Match the breakpoint where post thumbnails are hidden.
+    @media screen and (max-width: $small) {
+      padding-left: 1.5em;
 
-    &::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      width: 1px;
-      background-color: $gray;
-    }
+      &::before {
+        content: "";
+        position: absolute;
+        top: 1.2em;
+        left: -2.75px;
+        width: 5.5px;
+        height: 5.5px;
+        border-radius: 50%;
+        background-color: $gray;
+        z-index: 1;
+      }
 
-    &:last-child::after {
-      bottom: auto;
-      height: calc(1.2em + 2.75px);
+      &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 1px;
+        background-color: $gray;
+      }
+
+      &:last-child::after {
+        bottom: auto;
+        height: calc(1.2em + 2.75px);
+      }
     }
 
     .archive__item {

@@ -44,6 +44,11 @@ var store = [
         "tags": {{ doc.tags | jsonify }},
         "url": {{ doc.url | relative_url | jsonify }},
         "teaser": {{ teaser | relative_url | jsonify }},
+        "display_excerpt": {{ doc.excerpt | markdownify | strip_html | truncate: 300 | jsonify }},
+        "prefix": {{ doc.prefix | default: "" | jsonify }},
+        "show_date": {{ doc.show_date | default: false | jsonify }},
+        "date": {% if doc.date %}{{ doc.date | date: "%B %-d, %Y" | jsonify }}{% else %}null{% endif %},
+        "date_iso": {% if doc.date %}{{ doc.date | date_to_xmlschema | jsonify }}{% else %}null{% endif %},
         "lang": {{ doc.lang | default: "" | jsonify }},
         "lang_ref": {{ doc.lang_ref | default: "" | jsonify }}
       }{%- unless forloop.last and l -%},{%- endunless -%}

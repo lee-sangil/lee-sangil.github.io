@@ -63,10 +63,8 @@ $(document).ready(function() {
   $(document).keyup(function(e) {
     if (e.keyCode === 27) {
       if ($(".search-content").hasClass("is--visible")) {
-        $(".search__toggle").toggleClass("open");
-        $(".search-content").toggleClass("is--visible");
-        $(".results-wrapper").toggleClass("is--visible");
-        // $("#main").toggleClass("is--hidden");
+        $(".search-content").removeClass("is--visible");
+        $("body").removeClass("search--active");
       }
       if ($(".greedy-nav__toggle").hasClass("close")) {
         $(".greedy-nav__toggle").toggleClass("close");
@@ -75,18 +73,17 @@ $(document).ready(function() {
     }
   });
 
-  // // Search toggle
-  // $(".search__toggle").on("click", function() {
-  //   $(".search__toggle").toggleClass("open");
-  //   $(".search-content").toggleClass("is--visible");
-  //   $(".results-wrapper").toggleClass("is--visible");
-  //   // $("#main").toggleClass("is--hidden");
-
-  //   // set focus on input
-  //   setTimeout(function() {
-  //     $(".search-content input").focus();
-  //   }, 400);
-  // });
+  // Search toggle
+  $(".search__toggle").on("click", function() {
+    $(".search-content").toggleClass("is--visible");
+    $("body").toggleClass("search--active");
+    // set focus on input
+    if ($(".search-content").hasClass("is--visible")) {
+      setTimeout(function() {
+        $(".search-content input").focus();
+      }, 400);
+    }
+  });
 
   // Smooth scrolling -- about to scroll
   var scroll = new SmoothScroll('a[href*="#"]', {

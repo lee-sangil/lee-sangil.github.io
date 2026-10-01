@@ -29,7 +29,7 @@
   {% endif %}
 {% endif %}
 
-<div class="{{ include.type }}__item" data-lang-ref="{{ post.lang_ref }}"{% if _ko_post %} data-ko-url="{{ _ko_post.url | relative_url }}" data-ko-title="{{ _ko_title }}" data-ko-excerpt="{{ _ko_post.excerpt | markdownify | strip_html | truncate: 300 | escape }}"{% endif %}>
+<div class="{{ include.type }}__item" data-lang-ref="{{ post.lang_ref }}"{% if _ko_post %} data-ko-url="{{ _ko_post.url | relative_url }}" data-ko-title="{{ _ko_title | escape }}" data-ko-excerpt="{{ _ko_post.excerpt | markdownify | strip_html | truncate: 300 | escape }}"{% endif %}>
   <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
     {% if include.type == "grid" and teaser %}
       <div class="archive__item-teaser">

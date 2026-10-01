@@ -1,12 +1,18 @@
 (function () {
   var LANG_KEY = 'site-lang';
+  var selectedLang = null;
 
   function getLang() {
-    return localStorage.getItem(LANG_KEY);
+    try {
+      var lang = localStorage.getItem(LANG_KEY);
+      return lang === 'ko' || lang === 'en' ? lang : selectedLang;
+    } catch (_) { return selectedLang; }
   }
 
   function setLang(lang) {
-    localStorage.setItem(LANG_KEY, lang);
+    if (lang !== 'ko' && lang !== 'en') return;
+    selectedLang = lang;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (_) {}
     if (tryRedirectPost(lang)) return;
     applyLang(lang);
     updatePagination(lang);
@@ -84,7 +90,10 @@
 
   function detectLang(callback) {
     fetch('https://ipapi.co/country/')
-      .then(function (res) { return res.text(); })
+      .then(function (res) {
+        if (!res.ok) throw new Error('Country lookup failed');
+        return res.text();
+      })
       .then(function (country) {
         callback(country.trim() === 'KR' ? 'ko' : 'en');
       })
@@ -103,11 +112,8 @@
       updateLangUI(saved);
     } else {
       detectLang(function (lang) {
-        localStorage.setItem(LANG_KEY, lang);
-        if (tryRedirectPost(lang)) return;
-        applyLang(lang);
-        updatePagination(lang);
-        updateLangUI(lang);
+        // A manual choice made while the request was pending takes precedence.
+        setLang(getLang() || lang);
       });
     }
   }

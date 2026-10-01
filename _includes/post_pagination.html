@@ -54,21 +54,21 @@
 {% if custom_prev or custom_next %}
   <nav class="pagination pagination--post">
     {% if custom_prev %}
-      <a href="{{ custom_prev.url | relative_url }}" class="pagination--pager pagination--pager-prev" title="{{ custom_prev.title | markdownify | strip_html }}"
-        {% if prev_ko_url %}data-ko-url="{{ prev_ko_url }}" data-ko-title="{{ prev_ko_title | strip_html }}"{% endif %}
-        data-en-url="{{ custom_prev.url | relative_url }}" data-en-title="{{ custom_prev.title | markdownify | strip_html }}">
+      <a href="{{ custom_prev.url | relative_url }}" class="pagination--pager pagination--pager-prev" title="{{ custom_prev.title | markdownify | strip_html | escape }}"
+        {% if prev_ko_url %}data-ko-url="{{ prev_ko_url }}" data-ko-title="{{ prev_ko_title | strip_html | escape }}"{% endif %}
+        data-en-url="{{ custom_prev.url | relative_url }}" data-en-title="{{ custom_prev.title | markdownify | strip_html | escape }}">
         <span class="pagination--pager-label"><span class="pagination--arrow">&lsaquo;</span> {{ site.data.ui-text[site.locale].pagination_previous | default: "Previous" }}</span>
-        <span class="pagination--pager-title">{{ custom_prev.title | markdownify | strip_html }}</span>
+        <span class="pagination--pager-title">{{ custom_prev.title | markdownify | strip_html | escape }}</span>
       </a>
     {% else %}
       <span class="pagination--pager pagination--pager-prev disabled"></span>
     {% endif %}
     {% if custom_next %}
-      <a href="{{ custom_next.url | relative_url }}" class="pagination--pager pagination--pager-next" title="{{ custom_next.title | markdownify | strip_html }}"
-        {% if next_ko_url %}data-ko-url="{{ next_ko_url }}" data-ko-title="{{ next_ko_title | strip_html }}"{% endif %}
-        data-en-url="{{ custom_next.url | relative_url }}" data-en-title="{{ custom_next.title | markdownify | strip_html }}">
+      <a href="{{ custom_next.url | relative_url }}" class="pagination--pager pagination--pager-next" title="{{ custom_next.title | markdownify | strip_html | escape }}"
+        {% if next_ko_url %}data-ko-url="{{ next_ko_url }}" data-ko-title="{{ next_ko_title | strip_html | escape }}"{% endif %}
+        data-en-url="{{ custom_next.url | relative_url }}" data-en-title="{{ custom_next.title | markdownify | strip_html | escape }}">
         <span class="pagination--pager-label">{{ site.data.ui-text[site.locale].pagination_next | default: "Next" }} <span class="pagination--arrow">&rsaquo;</span></span>
-        <span class="pagination--pager-title">{{ custom_next.title | markdownify | strip_html }}</span>
+        <span class="pagination--pager-title">{{ custom_next.title | markdownify | strip_html | escape }}</span>
       </a>
     {% endif %}
   </nav>

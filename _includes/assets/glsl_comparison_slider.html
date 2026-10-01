@@ -327,7 +327,7 @@
   
     window.addEventListener('mousemove', (e) => {
         if (isDragging) updateView(e.clientX);
-        event.stopPropagation();
+        e.stopPropagation();
     });
   
     window.addEventListener('mouseup', () => {

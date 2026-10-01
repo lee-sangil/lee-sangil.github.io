@@ -17,6 +17,7 @@ node_modules
 npm-debug.log*
 package-lock.json
 codekit-config.json
+/assets/solar/js/solar.bundle.js
 
 # macOS
 .DS_Store

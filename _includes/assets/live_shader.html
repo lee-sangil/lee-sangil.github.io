@@ -1,5 +1,14 @@
+{% assign shader_ko = false %}
+{% if page.lang == 'ko' %}{% assign shader_ko = true %}{% endif %}
 <div id="code-wrapper">
-    <textarea id="vertex" rows="20" onkeydown="check_tab(this, event)">
+    <div class="shader-tabs" role="tablist" aria-label="{% if shader_ko %}셰이더 코드{% else %}Shader code{% endif %}">
+        <button type="button" id="vertex-tab" role="tab" aria-controls="vertex-panel" aria-selected="true">Vertex</button>
+        <button type="button" id="fragment-tab" role="tab" aria-controls="fragment-panel" aria-selected="false" tabindex="-1">Fragment</button>
+    </div>
+    <div id="vertex-panel" class="shader-panel" role="tabpanel" aria-labelledby="vertex-tab">
+    <div class="shader-editor">
+    <pre class="shader-highlight highlight" aria-hidden="true"></pre>
+    <textarea id="vertex" rows="20" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="{% if shader_ko %}정점 셰이더 코드{% else %}Vertex shader code{% endif %}">
 // Vertex
 precision mediump float;
 
@@ -19,7 +28,12 @@ void main() {
 
     gl_Position = vec4(clipSpace, 0., 1.);
 }</textarea>
-    <textarea id="fragment" rows="20" onkeydown="check_tab(this, event)">
+    </div>
+    </div>
+    <div id="fragment-panel" class="shader-panel" role="tabpanel" aria-labelledby="fragment-tab">
+    <div class="shader-editor">
+    <pre class="shader-highlight highlight" aria-hidden="true"></pre>
+    <textarea id="fragment" rows="20" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="{% if shader_ko %}프래그먼트 셰이더 코드{% else %}Fragment shader code{% endif %}">
 // Fragment
 precision mediump float;
 
@@ -31,32 +45,231 @@ varying vec2 v_position;
 void main() {
     gl_FragColor = vec4(1., 0., 1., 1.);
 }</textarea>
+    </div>
+    </div>
 </div>
+<pre id="shader-feedback" role="status" aria-live="polite" hidden></pre>
 <div id="wrapper">
-    <p id='hover'>Touch or hover your mouse here</p>
+    <p id='hover'>{% if shader_ko %}여기를 터치하거나 마우스를 올려보세요{% else %}Touch or hover your mouse here{% endif %}</p>
     <canvas id='webgl'></canvas>
 </div>
 <style>
     #code-wrapper {
+        margin-bottom: 1em;
+        border: 1px solid #425466;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    #code-wrapper .shader-tabs {
         display: flex;
-        justify-content: space-between;
+        border-bottom: 1px solid #425466;
     }
-    textarea {
-        padding: 10px;
-        font-family: monospace;
-        background-color: rgb(10, 20, 20);
-        font-size: small;
-        color: white;
-        width: calc(50% - 2px);
-        overflow-y: scroll;
-        resize: none
+    #code-wrapper [role="tab"] {
+        margin: 0;
+        padding: 0.6em 1em;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        opacity: 0.7;
     }
-    textarea::selection {
-        background-color: lightgray;
+    #code-wrapper [role="tab"][aria-selected="true"] {
+        border-bottom-color: currentColor;
+        opacity: 1;
+    }
+    #code-wrapper [role="tab"]:focus,
+    #code-wrapper [role="tab"]:focus-visible,
+    #code-wrapper textarea:focus {
+        outline: none;
+        box-shadow: none;
+    }
+    #code-wrapper .shader-panel {
+        min-width: 0;
+        overflow: hidden;
+    }
+    #code-wrapper .shader-editor { position: relative; height: 24em; }
+    /* Identical metrics keep the native textarea caret aligned with the mirror. */
+    #code-wrapper textarea, #code-wrapper .shader-highlight {
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        padding: 12px;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: 1.6;
+        letter-spacing: normal;
+        tab-size: 4;
+        white-space: pre;
+        overflow: auto;
+        text-align: left;
+    }
+    #code-wrapper .shader-highlight {
+        background: transparent;
+        color: inherit;
+        pointer-events: none;
+        scrollbar-width: none;
+    }
+    #code-wrapper .shader-highlight::-webkit-scrollbar { display: none; }
+    #code-wrapper textarea {
+        /* Keep the native input at least 16px to avoid mobile focus zoom.
+           Scale its geometry to match the smaller static-code typography. */
+        font-size: max(16px, 1em);
+        width: calc(100% / var(--shader-input-scale, 1));
+        height: calc(100% / var(--shader-input-scale, 1));
+        padding: calc(12px / var(--shader-input-scale, 1));
+        transform: scale(var(--shader-input-scale, 1));
+        transform-origin: top left;
+        background: transparent;
+        color: inherit;
+        caret-color: #ffffff;
+        resize: none;
+    }
+    #code-wrapper .shader-editor.highlighted textarea {
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+    }
+    #code-wrapper textarea::selection {
+        background: #385b7a;
+        color: #ffffff;
+        -webkit-text-fill-color: #ffffff;
+    }
+    #shader-feedback {
+        padding: 12px;
+        background: #321e24;
+        color: #ffd1d9;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-size: 12px;
+    }
+    @media (max-width: 600px) {
+        #code-wrapper .shader-editor { height: 20em; }
+    }
+    @media (forced-colors: active) {
+        #code-wrapper .shader-highlight { display: none; }
+        #code-wrapper .shader-editor.highlighted textarea {
+            color: CanvasText;
+            -webkit-text-fill-color: CanvasText;
+        }
     }
 </style>
 <script>
-    let u_mousePosition, u_time, u_resolution, program;
+    const shaderTabs = Array.from(document.querySelectorAll('#code-wrapper [role="tab"]'));
+    function selectShaderTab(selected) {
+        shaderTabs.forEach(tab => {
+            const active = tab === selected;
+            tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
+            document.getElementById(tab.getAttribute('aria-controls')).hidden = !active;
+        });
+    }
+    selectShaderTab(shaderTabs[0]);
+    shaderTabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => selectShaderTab(tab));
+        tab.addEventListener('keydown', event => {
+            let target;
+            if (event.key === 'ArrowRight') target = shaderTabs[(index + 1) % shaderTabs.length];
+            if (event.key === 'ArrowLeft') target = shaderTabs[(index + shaderTabs.length - 1) % shaderTabs.length];
+            if (event.key === 'Home') target = shaderTabs[0];
+            if (event.key === 'End') target = shaderTabs[shaderTabs.length - 1];
+            if (!target) return;
+            event.preventDefault();
+            selectShaderTab(target);
+            target.focus();
+        });
+    });
+
+    // A plain-text mirror supplies colors; the textarea owns all editing and selection.
+    const glslKeywords = new Set('attribute const uniform varying layout centroid flat smooth noperspective patch sample in out inout invariant precise lowp mediump highp precision break continue do for while switch case default if else subroutine discard return struct true false'.split(' '));
+    const glslTypes = /^(?:void|bool|int|uint|float|double|[biud]?vec[234]|d?mat[234](?:x[234])?|[iu]?sampler\w*|[iu]?image\w*|atomic_uint)$/;
+    const glslBuiltins = new Set('radians degrees sin cos tan asin acos atan sinh cosh tanh asinh acosh atanh pow exp log exp2 log2 sqrt inversesqrt abs sign floor trunc round roundEven ceil fract mod modf min max clamp mix step smoothstep isnan isinf floatBitsToInt floatBitsToUint intBitsToFloat uintBitsToFloat fma frexp ldexp packUnorm2x16 packSnorm2x16 packHalf2x16 unpackUnorm2x16 unpackSnorm2x16 unpackHalf2x16 length distance dot cross normalize faceforward reflect refract matrixCompMult outerProduct transpose determinant inverse lessThan lessThanEqual greaterThan greaterThanEqual equal notEqual any all not texture texture2D texture2DProj texture2DLod texture2DProjLod textureCube textureCubeLod textureSize textureProj textureLod textureOffset texelFetch texelFetchOffset textureProjOffset textureLodOffset textureProjLod textureProjLodOffset textureGrad textureGradOffset textureProjGrad textureProjGradOffset textureGather dFdx dFdy fwidth noise1 noise2 noise3 noise4 EmitVertex EndPrimitive barrier memoryBarrier'.split(' '));
+    const glslTokens = /\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|^\s*#\s*\w+|\b0[xX][\da-fA-F]+[uU]?\b|(?:\b\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?[fFuU]?(?![\w.])|\b[A-Za-z_]\w*\b/gm;
+    function highlightGLSL(source) {
+        const escape = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let html = '', end = 0;
+        for (const match of source.matchAll(glslTokens)) {
+            const token = match[0];
+            let kind = '';
+            if (token.startsWith('//') || token.startsWith('/*')) kind = 'comment';
+            else if (glslKeywords.has(token) || token.trimStart().startsWith('#')) kind = 'keyword';
+            else if (glslTypes.test(token)) kind = 'type';
+            else if (token.startsWith('gl_') || glslBuiltins.has(token)) kind = 'builtin';
+            else if (/^[\d.]/.test(token)) kind = 'number';
+            html += escape(source.slice(end, match.index));
+            const themeClass = { comment: 'c', keyword: 'k', type: 'kt', builtin: 'nf', number: 'm' }[kind];
+            html += kind ? '<span class="glsl-' + kind + ' ' + themeClass + '">' + escape(token) + '</span>' : escape(token);
+            end = match.index + token.length;
+        }
+        return html + escape(source.slice(end)) + '\n';
+    }
+    document.querySelectorAll('#code-wrapper textarea').forEach(editor => {
+        const mirror = editor.previousElementSibling;
+        const syncScroll = () => {
+            const scale = parseFloat(getComputedStyle(mirror).fontSize) / parseFloat(getComputedStyle(editor).fontSize);
+            editor.style.setProperty('--shader-input-scale', scale);
+            mirror.style.width = editor.clientWidth * scale + 'px';
+            mirror.style.height = editor.clientHeight * scale + 'px';
+            mirror.scrollTop = editor.scrollTop * scale;
+            mirror.scrollLeft = editor.scrollLeft * scale;
+        };
+        const highlight = () => {
+            mirror.innerHTML = highlightGLSL(editor.value);
+            syncScroll();
+        };
+        highlight();
+        editor.parentElement.classList.add('highlighted');
+        editor.addEventListener('input', highlight);
+        editor.addEventListener('scroll', syncScroll);
+        new ResizeObserver(syncScroll).observe(editor.parentElement);
+        editor.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                shaderTabs.find(tab => tab.getAttribute('aria-selected') === 'true').focus();
+                return;
+            }
+            if (event.key !== 'Tab' || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+            event.preventDefault();
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const lineStart = editor.value.lastIndexOf('\n', start - 1) + 1;
+            let from = start, to = end, replacement = '    ';
+            let selectionStart = start + 4, selectionEnd = selectionStart;
+            if (start !== end || event.shiftKey) {
+                from = lineStart;
+                const lines = editor.value.slice(from, to).split('\n');
+                let removedFirst = 0;
+                replacement = lines.map((line, index) => {
+                    if (index === lines.length - 1 && line === '' && start !== end) return line;
+                    if (!event.shiftKey) return '    ' + line;
+                    const indent = (line.match(/^(?:\t| {1,4})/) || [''])[0].length;
+                    if (index === 0) removedFirst = indent;
+                    return line.slice(indent);
+                }).join('\n');
+                const delta = replacement.length - (to - from);
+                selectionStart = event.shiftKey ? Math.max(from, start - removedFirst) : start + 4;
+                selectionEnd = end + delta;
+            }
+            const top = editor.scrollTop, left = editor.scrollLeft;
+            editor.setSelectionRange(from, to);
+            // Native insertText keeps Tab in the browser's undo history where supported.
+            if (!document.execCommand('insertText', false, replacement)) {
+                editor.setRangeText(replacement, from, to, 'end');
+            }
+            editor.setSelectionRange(selectionStart, Math.max(selectionStart, selectionEnd));
+            editor.scrollTop = top;
+            editor.scrollLeft = left;
+            editor.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+    });
+
+    let u_mousePosition, u_time, u_resolution, program, positionBuffer;
+    const feedback = document.getElementById('shader-feedback');
+    let shaderErrors = [];
 
     const text = document.getElementById('hover');
     text.style.position = 'absolute';
@@ -103,19 +316,19 @@ void main() {
 
     vertexDOM.addEventListener('input', (event)=>{
         const vertex = event.target.value;
-        const fragment = fragmentDOM.textContent;
+        const fragment = fragmentDOM.value;
 
         updateShader(gl, vertex, fragment);
     });
     fragmentDOM.addEventListener('input', (event)=>{
-        const vertex = vertexDOM.textContent;
+        const vertex = vertexDOM.value;
         const fragment = event.target.value;
 
         updateShader(gl, vertex, fragment);
     })
 
-    const vertex = vertexDOM.textContent;
-    const fragment = fragmentDOM.textContent;
+    const vertex = vertexDOM.value;
+    const fragment = fragmentDOM.value;
 
     updateShader(gl, vertex, fragment);
 
@@ -147,15 +360,13 @@ void main() {
             return shader;
         }
 
-        console.log(gl.getShaderInfoLog(shader));
+        const log = gl.getShaderInfoLog(shader);
+        console.log(log);
+        shaderErrors.push((type === gl.VERTEX_SHADER ? vertexDOM : fragmentDOM).getAttribute('aria-label') + '\n' + log);
         gl.deleteShader(shader);
     }
 
     function createProgram(gl, vertexShader, fragmentShader) {
-        if (program) {
-            gl.deleteProgram(program);
-        }
-
         const _program = gl.createProgram();
         gl.attachShader(_program, vertexShader);
         gl.attachShader(_program, fragmentShader);
@@ -166,13 +377,15 @@ void main() {
             return _program;
         }
 
-        console.log(gl.getProgramInfoLog(_program));
+        const log = gl.getProgramInfoLog(_program);
+        console.log(log);
+        shaderErrors.push(log);
         gl.deleteProgram(_program);
     }
 
     function createAttribute(gl, program, name, size, value) {
         // create a buffer
-        const buffer = gl.createBuffer();
+        const buffer = positionBuffer || (positionBuffer = gl.createBuffer());
 
         // bind it to ARRAY_BUFFER
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -180,6 +393,7 @@ void main() {
 
         // look up where the vertex data needs to go.
         const attributeLocation = gl.getAttribLocation(program, name);
+        if (attributeLocation < 0) return;
 
         // turn on the attribute
         gl.enableVertexAttribArray(attributeLocation);
@@ -192,10 +406,20 @@ void main() {
     }
 
     function updateShader(gl, vertexSource, fragmentSource) {
+        shaderErrors = [];
         const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
         const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
-
-        program = createProgram(gl, vertexShader, fragmentShader);
+        const nextProgram = vertexShader && fragmentShader ? createProgram(gl, vertexShader, fragmentShader) : null;
+        if (vertexShader) gl.deleteShader(vertexShader);
+        if (fragmentShader) gl.deleteShader(fragmentShader);
+        feedback.textContent = shaderErrors.join('\n');
+        feedback.hidden = shaderErrors.length === 0;
+        vertexDOM.setAttribute('aria-invalid', String(!vertexShader));
+        fragmentDOM.setAttribute('aria-invalid', String(!fragmentShader));
+        // Keep the last working preview while a shader is incomplete or invalid.
+        if (!nextProgram) return;
+        if (program) gl.deleteProgram(program);
+        program = nextProgram;
 
         // use program
         gl.useProgram(program);
@@ -241,6 +465,7 @@ void main() {
     }
 
     function render(t) {
+        if (!program) { requestAnimationFrame(render); return; }
         gl.uniform1f(u_time, t * 0.001);
 
         // set color to clear canvas
@@ -258,32 +483,4 @@ void main() {
         requestAnimationFrame(render.bind(this));
     }
 
-    function update_code() {
-      const result_elem = document.querySelector("code");
-      let text = result_elem.value;
-      if (text[text.length-1] == "\n") {
-        text += "    ";
-      } else if (text == "") {
-        text += "\n    ";
-      } else if (text.indexOf("\n", 1) < 0) {
-        text += "\n    ";
-      }
-
-      result_elem.innerHTML = text;
-      hljs.highlightBlock(result_elem)
-    }
-
-    function check_tab(element, event) {
-      let code = element.value;
-      if(event.key == "Tab") {
-        event.preventDefault();
-        let before_tab = code.slice(0, element.selectionStart);
-        let after_tab = code.slice(element.selectionEnd, element.value.length); //
-        let cursor_pos = element.selectionEnd + 4;
-        element.value = before_tab + "    " + after_tab;
-        element.selectionStart = cursor_pos;
-        element.selectionEnd = cursor_pos;
-        update_code(element.value);
-      }
-    }
 </script>

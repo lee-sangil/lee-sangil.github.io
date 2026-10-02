@@ -137,6 +137,14 @@ details {
    Code block copy button
    ========================================================================== */
 
+// Live shader editors share the static code blocks' typography and syntax theme.
+#code-wrapper {
+  background: $base00;
+  color: $base05;
+  font-family: $monospace;
+  font-size: $type-size-6;
+}
+
 div.highlighter-rouge,
 figure.highlight,
 pre.code-copy-standalone {

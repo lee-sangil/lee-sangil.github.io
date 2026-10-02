@@ -220,7 +220,10 @@ li ol {
    ========================================================================== */
 
 /* Equation */
-.MJXc-display {
+.page__content .MJXc-display {
+  // MathJax glyphs can extend beyond their line boxes (e.g. underbraces).
+  // Include that space in the scroll container so only wide formulas scroll.
+  padding: 1em 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }

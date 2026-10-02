@@ -48,9 +48,9 @@
     <span class="page__meta-sep"></span>
     <span class="page__meta-likes">
       {% if document == page %}
-      <button id="like-btn-0" class="like-btn page__meta-like-btn" aria-label="Like" type="button">
+      <button id="like-btn-0" class="like-btn page__meta-like-btn" aria-label="{% if document.lang == 'ko' %}좋아요{% else %}Like{% endif %}" aria-pressed="false" data-post-like data-like-label="{% if document.lang == 'ko' %}좋아요{% else %}Like{% endif %}" data-unlike-label="{% if document.lang == 'ko' %}좋아요 취소{% else %}Unlike{% endif %}" type="button" disabled>
         <i id="heart-svg-0" class="far fa-fw fa-heart heart-svg" aria-hidden="true"></i>
-        <span id="like-count-0" class="like-count" pathname="{{ document.url }}">0</span>
+        <span id="like-count-0" class="like-count" data-post-like-count>0</span>
       </button>
       {% include firebase-config.html variant="meta" %}
       {% else %}

@@ -1,0 +1,51 @@
+{% comment %}
+  variant: a, b (default), c. lang: en/ko. demo: display-only, no controller.
+  Set support_variant in post front matter or site config to change the default.
+{% endcomment %}
+{% assign support_variant = include.variant | default: page.support_variant | default: site.support_variant | default: 'b' | downcase %}
+{% unless support_variant == 'a' or support_variant == 'b' or support_variant == 'c' %}{% assign support_variant = 'b' %}{% endunless %}
+{% assign support_lang = include.lang | default: page.lang | default: 'en' %}
+{% if support_lang == 'ko' %}
+  {% assign support_title = '이 글이 도움이 되었나요?' %}
+  {% assign support_note = '좋아요와 커피 한 잔으로 다음 글을 응원해주세요.' %}
+  {% assign support_like = '좋아요' %}
+  {% assign support_unlike = '좋아요 취소' %}
+  {% assign support_coffee = '커피 한 잔 후원' %}
+  {% assign support_count = '명이 좋아합니다' %}
+{% else %}
+  {% assign support_title = 'Was this post helpful?' %}
+  {% assign support_note = 'A like or a coffee helps keep these articles coming.' %}
+  {% assign support_like = 'Like' %}
+  {% assign support_unlike = 'Unlike' %}
+  {% assign support_coffee = 'Buy me a coffee' %}
+  {% assign support_count = 'likes' %}
+{% endif %}
+{% if support_variant == 'b' %}
+  {% if support_lang == 'ko' %}
+    {% assign support_title = '이 글이 마음에 드셨다면, 좋아요와 커피 한 잔으로 응원해주세요.' %}
+  {% else %}
+    {% assign support_title = 'If you enjoyed this post, support me with a like and a coffee.' %}
+  {% endif %}
+{% endif %}
+<section {% unless include.demo %}id="post-support"{% endunless %} class="post-support post-support--{{ support_variant }}" lang="{{ support_lang }}" aria-label="{{ support_title }}">
+  <p class="post-support__title">{{ support_title }}</p>
+  {% if support_variant == 'c' %}<p class="post-support__note">{{ support_note }}</p>{% endif %}
+  <div class="post-support__actions">
+    <div class="post-support__action">
+      <button class="like-btn post-support__button post-support__like" type="button" aria-label="{{ support_like }}{% if include.demo %} (preview){% endif %}" aria-pressed="false" {% if include.demo %}disabled{% else %}data-post-like data-like-label="{{ support_like }}" data-unlike-label="{{ support_unlike }}" disabled{% endif %}>
+        <svg class="heart-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C5.4 15 2 11.9 2 8.2A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 10 3.2C22 11.9 18.6 15 12 21Z"/></svg>
+        {% unless support_variant == 'b' %}<span>{{ support_like }}</span>{% endunless %}
+      </button>
+      {% if support_variant == 'b' %}<span class="post-support__label">{{ support_like }}</span>{% endif %}
+      <span class="post-support__count"><span {% unless include.demo %}data-post-like-count{% endunless %}>{% if include.demo %}{{ include.count | default: 24 }}{% else %}0{% endif %}</span> {{ support_count }}</span>
+    </div>
+    <div class="post-support__action">
+      <a class="post-support__button post-support__coffee" href="https://buymeacoffee.com/sangillee/" target="_blank" rel="noopener noreferrer" aria-label="{{ support_coffee }} (Buy Me a Coffee)">
+        <img src="{{ '/assets/image/brand/buy-me-a-coffee.svg' | relative_url }}" alt="" width="28" height="40">
+        {% unless support_variant == 'b' %}<span>{{ support_coffee }}</span>{% endunless %}
+      </a>
+      {% if support_variant == 'b' %}<span class="post-support__label">{{ support_coffee }}</span>{% endif %}
+    </div>
+  </div>
+</section>
+{% unless include.demo %}{% include firebase-config.html %}{% endunless %}

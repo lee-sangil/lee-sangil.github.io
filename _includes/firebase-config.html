@@ -1,131 +1,14 @@
-{% comment %} variant: "meta" = page__meta 인라인(버튼만, HTML 없음), "footer" = 글 아래 전체 섹션 {% endcomment %}
-{% assign _idx = 0 %}
-{% if include.variant == "footer" %}{% assign _idx = 1 %}{% endif %}
-
-<style>
-  .like-btn {
-    outline: none;
-  }
-
-  .like-btn:focus {
-    outline: none;
-  }
-</style>
-{% unless include.variant == "meta" %}
-<style>
-  .like-section { text-align: right; margin: 20px 0 0 0; }
-  .like-btn {
-    background-color: white; border: none;
-    color: #586069; cursor: pointer;
-    transition: all 0.3s ease; outline: none;
-    display: inline-flex; align-items: center; justify-content: center;
-    gap: 4px;
-  }
-  .heart-svg {
-    width: 14px; height: 14px;
-    fill: none; stroke: #ff4d4d; stroke-width: 2;
-    stroke-linecap: round; stroke-linejoin: round;
-  }
-  .like-btn.liked .heart-svg { fill: #ff4d4d; stroke: #ff4d4d; outline: none; }
-  .heart-beat { animation: heartBeat 0.3s ease-in-out; }
-  @keyframes heartBeat {
-    0% { transform: scale(1); } 10% { transform: scale(0.8); }
-    50% { transform: scale(1.2); } 70% { transform: scale(0.9); }
-    100% { transform: scale(1); }
-  }
-</style>
-
-<div id="like-section-{{ _idx }}" class="like-section">
-  <button id="like-btn-{{ _idx }}" class="like-btn" aria-label="Like button">
-    <svg id="heart-svg-{{ _idx }}" class="heart-svg" viewBox="0 0 22 21">
-      <path d="M11 21c-6.6-5.99-10-9.07-10-12.85 0-3.08 2.42-5.5 5.5-5.5 1.74 0 3.41.91 4.5 2.59 1.09-1.68 2.76-2.59 4.5-2.59 3.08 0 5.5 2.42 5.5 5.5 0 3.78-3.4 6.86-10 12.85z"></path>
-    </svg>
-    <span id="like-text-{{ _idx }}">Like</span>
-    <span id="like-count-{{ _idx }}" class="like-count">0</span>
-  </button>
-</div>
-{% endunless %}
-
+{% comment %}One shared controller for metadata and end-of-post likes.{% endcomment %}
+{% assign _like_url = page.url %}
+{% if page.lang == "ko" and page.lang_ref %}
+  {% for p in site.posts %}
+    {% if p.lang_ref == page.lang_ref %}
+      {% assign _like_url = p.url %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
 <script type="module">
-  import { db, ref, runTransaction, onValue } from "/assets/js/firebase-init.js";
-
-  {% assign _like_url = page.url %}
-  {% if page.lang == "ko" and page.lang_ref %}
-    {% for p in site.posts %}
-      {% if p.lang_ref == page.lang_ref %}
-        {% assign _like_url = p.url %}
-        {% break %}
-      {% endif %}
-    {% endfor %}
-  {% endif %}
-  const postUrl = {{ _like_url | jsonify }};
-  const postId = btoa(String.fromCharCode(...new TextEncoder().encode(postUrl))).replace(/\//g, "_").replace(/=/g, "");
-  const storageKey = `like_${postId}`; // 로컬스토리지에 저장될 고유 키
-  const likeRef = ref(db, `${postUrl}/like`);
-
-  const likeBtn = document.getElementById('like-btn-{{ _idx }}');
-  const likeCountSpan = document.getElementById('like-count-{{ _idx }}');
-  const heartSvg = document.getElementById('heart-svg-{{ _idx }}');
-
-  let isFirebaseLoaded = false;
-  likeBtn.disabled = true;
-
-  // Get initial like count and listen for changes
-  onValue(likeRef, (snapshot) => {
-    if (!isFirebaseLoaded) {
-      isFirebaseLoaded = true;
-      likeBtn.disabled = false;
-    }
-
-    const data = snapshot.val();
-
-    if (data === null) {
-      likeCountSpan.innerText = '0';
-    } else {
-      likeCountSpan.innerText = data;
-    }
-
-    updateLikedState();
-  }, (error) => console.error('Like count unavailable:', error));
-
-  function updateLikedState() {
-    const liked = localStorage.getItem(storageKey) === 'true';
-    likeBtn.classList.toggle('liked', liked);
-    if (heartSvg && heartSvg.classList.contains('fa-heart')) {
-      heartSvg.classList.toggle('fas', liked);
-      heartSvg.classList.toggle('far', !liked);
-    }
-  }
-  window.addEventListener('likes-updated', updateLikedState);
-  window.addEventListener('storage', (event) => {
-    if (event.key === storageKey) updateLikedState();
-  });
-
-  // Commit first: transaction callbacks may retry or be rejected by Firebase.
-  likeBtn.onclick = async () => {
-    if (!isFirebaseLoaded || likeBtn.disabled) return;
-    likeBtn.disabled = true;
-    if (heartSvg) {
-      heartSvg.classList.add('heart-beat');
-      setTimeout(() => heartSvg.classList.remove('heart-beat'), 400);
-    }
-    try {
-      const toggle = async () => {
-        const liked = localStorage.getItem(storageKey) === 'true';
-        const result = await runTransaction(likeRef,
-          (data) => Math.max(0, (data || 0) + (liked ? -1 : 1)),
-          { applyLocally: false });
-        if (!result.committed) return;
-        if (liked) localStorage.removeItem(storageKey);
-        else localStorage.setItem(storageKey, 'true');
-        window.dispatchEvent(new Event('likes-updated'));
-      };
-      if (navigator.locks) await navigator.locks.request(storageKey, toggle);
-      else await toggle();
-    } catch (error) {
-      console.error('Like update failed:', error);
-    } finally {
-      likeBtn.disabled = false;
-    }
-  };
+  import { initLikes } from {{ '/assets/js/post-likes.js' | relative_url | jsonify }};
+  initLikes({{ _like_url | jsonify }});
 </script>

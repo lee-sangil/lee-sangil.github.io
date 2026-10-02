@@ -15,6 +15,7 @@
 minimal_mistakes_skin    : "default" # "air", "aqua", "contrast", "dark", "dirt", "neon", "mint", "plum", "sunrise"
 
 # Site Settings
+support_variant          : "b" # Shared end-of-post Like and Buy Me a Coffee controls
 locale                   : "en-US"
 title                    : "Sangil Lee"
 title_separator          : "-"

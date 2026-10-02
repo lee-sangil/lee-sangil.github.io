@@ -87,7 +87,9 @@ layout: default
           {{ content }}
           {% if page.link %}<div><a href="{{ page.link }}" class="btn btn--primary">{{ site.data.ui-text[site.locale].ext_link_label | default: "Direct Link" }}</a></div>{% endif %}
 
-          {% if page.show_likes %}{% include firebase-config.html variant="footer" %}{% endif %}
+          {% if page.collection == 'posts' or page.collection == 'ko_posts' %}
+            {% include post-support.html %}
+          {% endif %}
 
           {% if page.comments %}
           {% assign discussion_term = en_post_url | remove_first: '/' %}

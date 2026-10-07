@@ -2,6 +2,35 @@
    MASTHEAD
    ========================================================================== */
 
+@supports (animation-timeline: view()) {
+  @media (max-width: 1023px) {
+    #main-wrapper {
+      view-timeline-name: --navigation;
+    }
+
+    #main-wrapper .masthead::before {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background-color: $background-color;
+      pointer-events: none;
+      opacity: 0;
+      // Cover everything above the menu only once it reaches the viewport top.
+      animation: navigation-mask 1s steps(1, end) both;
+      animation-timeline: --navigation;
+      animation-range: exit-crossing 0px exit-crossing 1px;
+    }
+  }
+}
+
+@keyframes navigation-mask {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .masthead {
   position: sticky;
   top: -0.5em;

@@ -286,7 +286,9 @@
 /* Timeline used only on /archive/. */
 .archive-timeline .taxonomy__section {
   .archive__subtitle {
-    border-bottom: 0;
+    border-bottom: 1px solid $border-color;
+    // Convert the masthead's 3em sticky bottom to the year heading's font size.
+    top: calc(#{3 * $h-size-3 / $type-size-4 * 1em} + 1px);
     z-index: 2;
   }
 

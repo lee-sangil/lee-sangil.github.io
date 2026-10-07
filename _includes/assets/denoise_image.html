@@ -1,3 +1,4 @@
+<script src="{{ '/assets/js/demo-fullscreen.js' | relative_url }}"></script>
 <div id="wrapper">
     <canvas id='webgl'></canvas>
     <svg id="enterFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
@@ -308,39 +309,6 @@
         canvas.height = height;
     }
 
-    function toggleFullscreen(status) {
-        const wrapperDom = document.getElementById('wrapper');
-        const enterFullscreenDom = document.getElementById('enterFullscreen');
-        const leaveFullscreenDom = document.getElementById('leaveFullscreen');
-
-        if (status) {
-            document.body.style.overflowY = 'hidden';
-
-            wrapperDom.style.position = 'fixed';
-            wrapperDom.style.top = '0';
-            wrapperDom.style.left = '0';
-            wrapperDom.style.height = '100vh';
-            wrapperDom.style.zIndex = '1000';
-
-            enterFullscreenDom.style.visibility = 'hidden';
-            leaveFullscreenDom.style.visibility = 'visible';
-        }
-        else {
-            document.body.style.overflowY = '';
-
-            wrapperDom.style.position = '';
-            wrapperDom.style.top = '';
-            wrapperDom.style.left = '';
-            wrapperDom.style.height = '';
-            wrapperDom.style.zIndex = '';
-
-            enterFullscreenDom.style.visibility = 'visible';
-            leaveFullscreenDom.style.visibility = 'hidden';
-        }
-
-        resize();
-    }
-
     async function init() {
         const gui = new dat.GUI();
         const canvasContainer = document.getElementById("wrapper");
@@ -369,12 +337,8 @@
     const enterFullscreenDom = document.getElementById('enterFullscreen');
     const leaveFullscreenDom = document.getElementById('leaveFullscreen');
 
-    enterFullscreenDom.addEventListener('click', ()=>toggleFullscreen(true));
-    leaveFullscreenDom.addEventListener('click', ()=>toggleFullscreen(false));
-
-    window.addEventListener('keydown', (event)=>{
-        if (event.key == "Escape") toggleFullscreen(false);
-    });
+    enterFullscreenDom.addEventListener('click', ()=>window.DemoFullscreen.toggle(document.getElementById('wrapper'), true, resize));
+    leaveFullscreenDom.addEventListener('click', ()=>window.DemoFullscreen.toggle(document.getElementById('wrapper'), false, resize));
 
     window.addEventListener('resize', resize, false);
 </script>

@@ -1,3 +1,4 @@
+<script src="{{ '/assets/js/demo-fullscreen.js' | relative_url }}"></script>
 <div id="wrapper">
     <canvas id="webgl"></canvas>
     
@@ -467,13 +468,6 @@ function initGui() {
     gui.add(guiParams,'reset').name('Reset');
 }
 
-function toggleFS(on) {
-    const w=document.getElementById('wrapper');
-    if(on){document.body.style.overflowY='hidden';w.style.cssText='position:fixed;top:0;left:0;width:100%;height:100vh;z-index:1000;background:#1a1a2e;';document.getElementById('enterFullscreen').style.visibility='hidden';document.getElementById('leaveFullscreen').style.visibility='visible';}
-    else{document.body.style.overflowY='';w.style.cssText='position:relative;width:100%;height:60vh;background:#1a1a2e;';document.getElementById('enterFullscreen').style.visibility='visible';document.getElementById('leaveFullscreen').style.visibility='hidden';}
-    onResize();
-}
-
 function onResize() {
     const w = document.getElementById('wrapper');
     W = w.clientWidth;
@@ -531,9 +525,8 @@ async function init() {
     initGui();
 
     window.addEventListener('resize', onResize);
-    document.getElementById('enterFullscreen').addEventListener('click',()=>toggleFS(true));
-    document.getElementById('leaveFullscreen').addEventListener('click',()=>toggleFS(false));
-    window.addEventListener('keydown',e=>{if(e.key==='Escape')toggleFS(false);});
+    document.getElementById('enterFullscreen').addEventListener('click',()=>window.DemoFullscreen.toggle(document.getElementById('wrapper'), true, onResize));
+    document.getElementById('leaveFullscreen').addEventListener('click',()=>window.DemoFullscreen.toggle(document.getElementById('wrapper'), false, onResize));
 
     await loadMuJoCo();
     buildSceneFromModel();

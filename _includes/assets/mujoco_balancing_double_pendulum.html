@@ -1,3 +1,4 @@
+<script src="{{ '/assets/js/demo-fullscreen.js' | relative_url }}"></script>
 <div id="wrapper">
     <canvas id='webgl'></canvas>
     <svg id="enterFullscreen" class="fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
@@ -493,36 +494,8 @@
     }
 
     // ── Fullscreen toggle ───────────────────────────────────────────────────
-    function toggleFullscreen(on) {
-        const wr    = document.getElementById('wrapper');
-        const enter = document.getElementById('enterFullscreen');
-        const leave = document.getElementById('leaveFullscreen');
-
-        if (on) {
-            document.body.style.overflowY = 'hidden';
-            wr.style.position = 'fixed';
-            wr.style.top      = '0';
-            wr.style.left     = '0';
-            wr.style.height   = '100vh';
-            wr.style.zIndex   = '1000';
-            enter.style.visibility = 'hidden';
-            leave.style.visibility = 'visible';
-        } else {
-            document.body.style.overflowY = '';
-            wr.style.position = '';
-            wr.style.top      = '';
-            wr.style.left     = '';
-            wr.style.height   = '';
-            wr.style.zIndex   = '';
-            enter.style.visibility = 'visible';
-            leave.style.visibility = 'hidden';
-        }
-        resize();
-    }
-
-    document.getElementById('enterFullscreen').addEventListener('click', () => toggleFullscreen(true));
-    document.getElementById('leaveFullscreen').addEventListener('click', () => toggleFullscreen(false));
-    window.addEventListener('keydown', e => { if (e.key === 'Escape') toggleFullscreen(false); });
+    document.getElementById('enterFullscreen').addEventListener('click', () => window.DemoFullscreen.toggle(document.getElementById('wrapper'), true, resize));
+    document.getElementById('leaveFullscreen').addEventListener('click', () => window.DemoFullscreen.toggle(document.getElementById('wrapper'), false, resize));
     window.addEventListener('resize', resize);
 
     // ── dat.gui ─────────────────────────────────────────────────────────────

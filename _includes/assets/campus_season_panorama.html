@@ -1,0 +1,367 @@
+<script src="{{ '/assets/js/demo-fullscreen.js' | relative_url }}"></script>
+<div id="wrapper" class="campus-panorama">
+  <canvas id="campus-panorama-canvas" tabindex="0" aria-label="SNU panorama. Move the mouse horizontally to look around and vertically to change seasons. On a touchscreen, drag to explore."></canvas>
+  <div id="campus-panorama-status" role="status" aria-live="polite">Loading panorama photos…</div>
+  <svg id="enterFullscreen" class="fullscreen" role="button" tabindex="0" aria-label="Enter fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Enter Fullscreen</title><path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" /></svg>
+  <svg id="leaveFullscreen" class="fullscreen" role="button" tabindex="0" aria-label="Leave fullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Leave Fullscreen</title><path d="M14,14H19V16H16V19H14V14M5,14H10V19H8V16H5V14M8,5H10V10H5V8H8V5M19,8V10H14V5H16V8H19Z" /></svg>
+  <div class="campus-panorama-controls" role="group" aria-label="Season">
+    <button type="button" data-season="0">Spring</button>
+    <button type="button" data-season="1">Summer</button>
+    <button type="button" data-season="2">Autumn</button>
+    <button type="button" data-season="3">Winter</button>
+  </div>
+</div>
+
+<style>
+  #wrapper.campus-panorama { position: relative; width: 100%; height: min(62vh, 620px); min-height: 340px; overflow: hidden; background: #111; color: #fff; font-family: Arial, sans-serif; }
+  #campus-panorama-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+  #campus-panorama-status { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: #111; text-align: center; z-index: 15; opacity: 1; visibility: visible; transition: opacity .4s ease, visibility 0s linear .4s; }
+  #campus-panorama-status.is-loaded { opacity: 0; visibility: hidden; }
+  @media (prefers-reduced-motion: reduce) { #campus-panorama-status { transition-duration: .01s, .01s; transition-delay: 0s, 0s; } }
+  #wrapper.campus-panorama .fullscreen { position: absolute; top: 1vh; left: 1vw; margin: 5px; width: 24px; height: 24px; fill: lightgray; cursor: pointer; z-index: 20; touch-action: manipulation; }
+  #wrapper.campus-panorama .fullscreen:hover, #wrapper.campus-panorama .fullscreen:focus-visible { background: rgba(255,255,255,.3); border-radius: 50%; }
+  #wrapper.campus-panorama #leaveFullscreen { visibility: hidden; }
+  .campus-panorama-controls { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; max-width: calc(100% - 24px); font-size: 13px; z-index: 10; }
+  .campus-panorama-controls button { border: 1px solid #bbb; border-radius: 4px; padding: 5px 9px; background: rgba(34,34,34,.65); color: #fff; font: inherit; cursor: pointer; touch-action: manipulation; }
+  .campus-panorama-controls button:hover, .campus-panorama-controls button:focus-visible { background: rgba(68,68,68,.75); }
+  .campus-panorama-controls button[aria-pressed="true"] { background: rgba(86,122,155,.75); border-color: #b6d7f1; }
+  @media (max-width: 600px) {
+    #wrapper.campus-panorama { height: 65vh; min-height: 420px; }
+    .campus-panorama-controls { font-size: 12px; }
+    .campus-panorama-controls button { padding: 5px 7px; }
+  }
+</style>
+
+<script>
+(() => {
+  const wrapper = document.getElementById('wrapper');
+  const canvas = document.getElementById('campus-panorama-canvas');
+  const status = document.getElementById('campus-panorama-status');
+  const seasonButtons = [...wrapper.querySelectorAll('[data-season]')];
+  const imageBase = "{{ '/assets/image/campus-season/' | relative_url }}";
+  const gl = canvas.getContext('webgl', { alpha: false });
+  if (!gl) { status.textContent = 'This panorama needs WebGL.'; return; }
+
+  // CampusSeason shaders, unchanged from commit 3f6cc15.
+  const vertexSource = `
+precision mediump float;
+
+attribute vec2 a_position;
+attribute vec2 a_uv;
+
+uniform vec2 u_resolution;
+
+varying vec2 v_uv;
+
+void main() {
+    // convert the rectangle from pixels to 0.0 to 1.0
+    vec2 zeroToOne = a_position / u_resolution;
+
+    // convert from 0->1 to 0->2
+    vec2 zeroToTwo = zeroToOne * 2.0;
+
+    // convert from 0->2 to -1->+1 (clipspace)
+    vec2 clipSpace = zeroToTwo - 1.0;
+
+    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+
+    // pass the texCoord to the fragment shader
+    // The GPU will interpolate this value between points.
+    v_uv = a_uv;
+}
+`;
+  const fragmentSource = `
+precision mediump float;
+
+// our textures
+uniform vec2 u_resolution;
+uniform vec2 u_imageResolution;
+uniform vec2 u_mousePosition;
+
+uniform sampler2D u_image0L;
+uniform sampler2D u_image0R;
+uniform sampler2D u_image1L;
+uniform sampler2D u_image1R;
+uniform sampler2D u_image2L;
+uniform sampler2D u_image2R;
+uniform sampler2D u_image3L;
+uniform sampler2D u_image3R;
+
+// the texCoords passed in from the vertex shader.
+varying vec2 v_uv;
+
+void main() {
+    float uvRatio = u_imageResolution.x / u_imageResolution.y;
+    float xyRatio = u_resolution.x / u_resolution.y;
+    float scale = xyRatio / uvRatio;
+
+    float w = u_mousePosition.y * 4.; // 0 => 4
+    float t = u_mousePosition.x; // 0 => 1
+    t = clamp(t, 0., 1.);
+
+    vec4 color0, color1;
+    vec2 uv = vec2(v_uv.x * scale + (2.0 - scale) * t, v_uv.y);
+    if (uv.x >= 1.) {
+        uv.x -= 1.;
+        if (w >= 3.0) {
+            color0 = texture2D(u_image3R, uv);
+            color1 = texture2D(u_image0R, uv);
+            if (w >= 4.0) w = 4.0;
+        }else if (w >= 2.0) {
+            color0 = texture2D(u_image2R, uv);
+            color1 = texture2D(u_image3R, uv);
+        }else if (w >= 1.0) {
+            color0 = texture2D(u_image1R, uv);
+            color1 = texture2D(u_image2R, uv);
+        }else {
+            color0 = texture2D(u_image0R, uv);
+            color1 = texture2D(u_image1R, uv);
+            if (w < 0.0) w = 0.0;
+        }
+    }else {
+        if (w >= 3.0) {
+            color0 = texture2D(u_image3L, uv);
+            color1 = texture2D(u_image0L, uv);
+            if (w >= 4.0) w = 4.0;
+        }else if (w >= 2.0) {
+            color0 = texture2D(u_image2L, uv);
+            color1 = texture2D(u_image3L, uv);
+        }else if (w >= 1.0) {
+            color0 = texture2D(u_image1L, uv);
+            color1 = texture2D(u_image2L, uv);
+        }else {
+            color0 = texture2D(u_image0L, uv);
+            color1 = texture2D(u_image1L, uv);
+            if (w < 0.0) w = 0.0;
+        }
+    }
+
+    if (w == 4.0)
+        gl_FragColor = mix(color0, color1, 1.0);
+    else
+        gl_FragColor = mix(color0, color1, fract(w));
+}
+`;
+
+  function shader(type, source) {
+    const result = gl.createShader(type);
+    gl.shaderSource(result, source);
+    gl.compileShader(result);
+    if (!gl.getShaderParameter(result, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(result));
+    return result;
+  }
+  let program;
+  try {
+    program = gl.createProgram();
+    gl.attachShader(program, shader(gl.VERTEX_SHADER, vertexSource));
+    gl.attachShader(program, shader(gl.FRAGMENT_SHADER, fragmentSource));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+  } catch (error) {
+    status.textContent = 'Could not start the panorama renderer.';
+    console.error(error);
+    return;
+  }
+  gl.useProgram(program);
+  const position = gl.getAttribLocation(program, 'a_position');
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+  const texcoord = gl.getAttribLocation(program, 'a_uv');
+  const texcoordBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0, 1,0, 0,1, 0,1, 1,0, 1,1]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(texcoord);
+  gl.vertexAttribPointer(texcoord, 2, gl.FLOAT, false, 0, 0);
+  const uniforms = Object.fromEntries(['u_resolution', 'u_imageResolution', 'u_mousePosition'].map(name => [name, gl.getUniformLocation(program, name)]));
+  for (let i = 0; i < 4; i++) {
+    gl.uniform1i(gl.getUniformLocation(program, `u_image${i}L`), i * 2);
+    gl.uniform1i(gl.getUniformLocation(program, `u_image${i}R`), i * 2 + 1);
+  }
+
+  let ready = false;
+  let imageWidth = 2048;
+  let imageHeight = 610;
+  let pan = 0;
+  let season = 0;
+  let seasonTransition = null;
+  let seasonVelocity = 0;
+  let inertia = 0;
+  let frame = 0;
+  const pointers = new Map();
+  const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+  const visibleWidth = () => (canvas.clientWidth / canvas.clientHeight) / (imageWidth / imageHeight);
+  let highlightedSeason = null;
+
+  function updateControls() {
+    const nearestSeason = Math.round(season) % 4;
+    if (nearestSeason === highlightedSeason) return;
+    highlightedSeason = nearestSeason;
+    seasonButtons.forEach(button => button.setAttribute('aria-pressed', Number(button.dataset.season) === nearestSeason ? 'true' : 'false'));
+  }
+  function draw(now) {
+    frame = 0;
+    if (!ready) return;
+    if (seasonTransition) {
+      const { from, distance, target, start, duration, slope } = seasonTransition;
+      const progress = clamp((now - start) / duration, 0, 1);
+      const remaining = 1 - progress;
+      const eased = progress * progress * (3 - 2 * progress) + slope * progress * remaining * remaining;
+      season = (from + distance * eased) % 4;
+      seasonVelocity = distance / duration * remaining * (6 * progress + slope * (1 - 3 * progress));
+      if (progress === 1) {
+        season = target;
+        seasonTransition = null;
+        seasonVelocity = 0;
+      }
+      updateControls();
+    }
+    gl.uniform2f(uniforms.u_resolution, canvas.width, canvas.height);
+    gl.uniform2f(uniforms.u_imageResolution, imageWidth, imageHeight);
+    gl.uniform2f(uniforms.u_mousePosition, pan, season / 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    if (seasonTransition) requestDraw();
+  }
+  function requestDraw() { if (!frame) frame = requestAnimationFrame(draw); }
+  function resize() {
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.max(1, Math.round(canvas.clientWidth * pixelRatio));
+    const height = Math.max(1, Math.round(canvas.clientHeight * pixelRatio));
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+      gl.viewport(0, 0, width, height);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0, width,0, 0,height, 0,height, width,0, width,height]), gl.STATIC_DRAW);
+      requestDraw();
+    }
+  }
+  function glide() {
+    if (pointers.size) return;
+    if (Math.abs(inertia) < 0.0001) { inertia = 0; return; }
+    pan = clamp(pan + inertia, 0, 1);
+    if (pan === 0 || pan === 1) inertia = 0;
+    else inertia *= 0.95;
+    requestDraw();
+    if (inertia) requestAnimationFrame(glide);
+  }
+  function loadImage(url) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error(`Failed to load ${url}`));
+      image.src = url;
+    });
+  }
+  if (gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS) < 8 || gl.getParameter(gl.MAX_TEXTURE_SIZE) < 2048) {
+    status.textContent = 'This device cannot display the panorama textures.';
+    return;
+  }
+  const files = ['spring', 'summer', 'autumn', 'winter'].flatMap(name => [`${name}_left.webp`, `${name}_right.webp`]);
+  let loaded = 0;
+  let failed = false;
+  Promise.all(files.map(file => loadImage(imageBase + file).then(image => {
+    if (!failed) status.textContent = `Loading panorama photos… ${++loaded}/8`;
+    return image;
+  }))).then(images => {
+    imageWidth = images[0].naturalWidth;
+    imageHeight = images[0].naturalHeight;
+    if (images.some(image => image.naturalWidth !== imageWidth || image.naturalHeight !== imageHeight)) throw new Error('Panorama image sizes differ');
+    images.forEach((image, index) => {
+      const texture = gl.createTexture();
+      gl.activeTexture(gl.TEXTURE0 + index);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    });
+    ready = true;
+    status.textContent = 'Panorama ready.';
+    resize();
+    requestDraw();
+    requestAnimationFrame(() => status.classList.add('is-loaded'));
+  }).catch(error => {
+    failed = true;
+    status.textContent = 'Could not load the panorama photos. Please reload the page.';
+    console.error(error);
+  });
+
+  seasonButtons.forEach(button => button.addEventListener('click', () => {
+    if (!ready) return;
+    const target = Number(button.dataset.season);
+    if (seasonTransition && seasonTransition.target === target) return;
+    inertia = 0;
+    // Start at the displayed phase and move forward through the seasonal cycle.
+    const from = season % 4;
+    const distance = (target - from + 4) % 4;
+    // Preserve the current speed on retargeting; a slope at most 3 keeps time moving forward.
+    const duration = Math.min(Math.max(500, distance * 700), seasonVelocity > 0 ? 3 * distance / seasonVelocity : Infinity);
+    seasonTransition = distance > 0 ? {
+      from, distance, target, start: performance.now(), duration,
+      slope: Math.min(3, seasonVelocity * duration / distance)
+    } : null;
+    if (!seasonTransition) seasonVelocity = 0;
+    updateControls();
+    requestDraw();
+  }));
+
+  canvas.addEventListener('pointerdown', event => {
+    if (!ready || event.pointerType === 'mouse') return;
+    seasonTransition = null;
+    seasonVelocity = 0;
+    updateControls();
+    inertia = 0;
+    canvas.setPointerCapture(event.pointerId);
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  });
+  canvas.addEventListener('pointermove', event => {
+    if (!ready) return;
+    if (event.pointerType === 'mouse') {
+      // The original uses a full-window canvas; embedded input needs its local origin.
+      const rect = canvas.getBoundingClientRect();
+      inertia = 0;
+      pan = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+      if (!seasonTransition) season = clamp((event.clientY - rect.top) / rect.height, 0, 1) * 4;
+    } else {
+      if (!pointers.has(event.pointerId)) return;
+      const previous = pointers.get(event.pointerId);
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size !== 1) return;
+      const visible = visibleWidth();
+      const dx = event.clientX - previous.x;
+      const dy = event.clientY - previous.y;
+      inertia = visible < 2 ? -dx / canvas.clientWidth * visible / (2 - visible) : 0;
+      pan = clamp(pan + inertia, 0, 1);
+      season = ((season - dy / canvas.clientHeight * 4) % 4 + 4) % 4;
+    }
+    updateControls();
+    requestDraw();
+  });
+  function endPointer(event) {
+    if (!pointers.delete(event.pointerId)) return;
+    if (!pointers.size && inertia) requestAnimationFrame(glide);
+  }
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', event => { inertia = 0; endPointer(event); });
+  canvas.addEventListener('keydown', event => {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') pan = clamp(pan + (event.key === 'ArrowLeft' ? -0.04 : 0.04), 0, 1);
+    else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') { seasonTransition = null; seasonVelocity = 0; season = (season + (event.key === 'ArrowUp' ? -0.1 : 0.1) + 4) % 4; updateControls(); }
+    else return;
+    event.preventDefault();
+    requestDraw();
+  });
+  for (const [id, on] of [['enterFullscreen', true], ['leaveFullscreen', false]]) {
+    const button = wrapper.querySelector(`#${id}`);
+    const toggle = () => window.DemoFullscreen.toggle(wrapper, on, resize);
+    button.addEventListener('click', toggle);
+    button.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } });
+  }
+  new ResizeObserver(resize).observe(canvas);
+  window.addEventListener('resize', resize);
+  updateControls();
+  resize();
+})();
+</script>

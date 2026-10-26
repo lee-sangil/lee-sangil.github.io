@@ -40,6 +40,9 @@ sidebar-category:
       - title: "Python"
         category: "Python"
         url:  "/python"
+      - title: "Playground"
+        category: "Playground"
+        url: "/playground"
   - title: "Knowledge"
     children:
       - title: "Vision"

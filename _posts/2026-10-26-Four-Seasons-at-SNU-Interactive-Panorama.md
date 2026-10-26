@@ -12,7 +12,7 @@ tags:
  - shader
  - interactive
 header:
-  teaser: /assets/image/log/SNU/four_season_2.jpg
+  teaser: /assets/image/thumbnail/2026-10-26-four-seasons-at-snu-interactive-panorama.gif
 excerpt_separator: <!--more-->
 ---
 

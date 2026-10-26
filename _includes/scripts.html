@@ -7,7 +7,9 @@
 {% endif %}
 
 <script src="{{ '/assets/js/getComments.js' | relative_url }}"></script>
+{% if jekyll.environment == 'production' %}
 <script type="module" src="{{ '/assets/js/getLikes.js' | relative_url }}"></script>
+{% endif %}
 
 {% if site.search == true or page.layout == "search" %}
   {%- assign search_provider = site.search_provider | default: "lunr" -%}

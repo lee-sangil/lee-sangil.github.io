@@ -91,7 +91,7 @@ layout: default
             {% include post-support.html %}
           {% endif %}
 
-          {% if page.comments %}
+          {% if jekyll.environment == 'production' and page.comments %}
           {% assign discussion_term = en_post_url | remove_first: '/' %}
           <script src="https://giscus.app/client.js"
           data-repo="lee-sangil/lee-sangil.github.io"

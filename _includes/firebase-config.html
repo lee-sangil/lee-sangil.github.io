@@ -1,4 +1,5 @@
 {% comment %}One shared controller for metadata and end-of-post likes.{% endcomment %}
+{% if jekyll.environment == 'production' %}
 {% assign _like_url = page.url %}
 {% if page.lang == "ko" and page.lang_ref %}
   {% for p in site.posts %}
@@ -12,3 +13,4 @@
   import { initLikes } from {{ '/assets/js/post-likes.js' | relative_url | jsonify }};
   initLikes({{ _like_url | jsonify }});
 </script>
+{% endif %}
